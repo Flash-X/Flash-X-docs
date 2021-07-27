@@ -1,0 +1,521 @@
+\documentclass{book}
+\usepackage{longtable} % To typeset table which span multiple pages
+\usepackage{subfigure} % To have two different figures in one \begin{figure} env
+\usepackage{html} % for latex2html and latex to work nice
+\begin{htmlonly}
+\usepackage{color} % To define colors
+\end{htmlonly}
+\usepackage{colortbl} % colored tables
+\usepackage{xspace} % use \xspace if you have spacing issues in your macros
+\usepackage{fancyvrb} % Allows us to use Fancy Verbatim environments
+\usepackage{fontenc} % this and next line needed to import Type 1 fonts which
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx} % including graphics
+\usepackage{comment} % for comments
+\usepackage{index} % for multiple indices
+\usepackage{html} % for latex2html and latex to work nice
+\usepackage{multirow}
+
+\usepackage{hyperref} % to generate clickable PDFs and stuff
+
+
+% \begin{htmlonly}
+% \usepackage[latex2html]{hyperref}
+% \end{htmlonly}
+
+
+
+
+\hypersetup{colorlinks=true,
+    bookmarksopen=true,
+    bookmarksopenlevel=1,
+    bookmarksnumbered=true,
+    pdfstartpage=7,
+}
+
+\newsavebox{\flashtipbox}
+\definecolor{tipshade}{gray}{0.85}
+
+\newenvironment{flashtip}[1][Flash-X Transition]
+{
+  \begin{lrbox}{\flashtipbox}
+  \begin{minipage}{0.85\textwidth}
+  \medskip
+  \begin{center} \textbf{{#1}} \end{center}
+}{
+  \medskip
+  \end{minipage}\end{lrbox}
+  \par\bigskip
+  \colorbox{tipshade}{\usebox{\flashtipbox}}
+  \bigskip
+}
+%end{latexonly}
+
+% \begin{htmlonly}
+% \newenvironment{flashtip}[1][Flash-X3 Transition]{%
+%   \begin{rawhtml}
+% <DIV class='Flash-XTIP'>
+%   \end{rawhtml}
+%   \textbf{#1:} \HTMLcode{<BR>}
+% }{
+% \begin{rawhtml}
+% </DIV>
+% \end{rawhtml}
+% }
+% \end{htmlonly}
+
+%%KW: Note that the \HTMLcode{<BR>} above doesn't work, no <BR> tag appears in the HTML text produced.
+
+
+%begin{latexonly}
+\DefineVerbatimEnvironment{codeseg}{Verbatim}{frame=none}
+\DefineVerbatimEnvironment{fcodeseg}{Verbatim}{frame=single,framerule=1pt,framesep=5mm}
+\newenvironment{shrink}{%
+\begin{center}
+\begin{minipage}{0.8\textwidth}}
+{\end{minipage}\end{center}}
+%end{latexonly}
+
+% \begin{htmlonly}
+% \newenvironment{codeseg}{%
+% %This will prevent L2H from making an image if put inside a figure
+% \begin{makeimage}\end{makeimage}
+%   \begin{rawhtml}
+% <DIV class='CODESEG'><PRE>
+%   \end{rawhtml}
+% }{%
+%   \begin{rawhtml}
+% </PRE> </DIV>
+%   \end{rawhtml}
+% }
+
+% \newenvironment{fcodeseg}{%
+% %This will prevent L2H from making an image if put inside a figure
+% \begin{makeimage}\end{makeimage}
+%   \begin{rawhtml}
+% <DIV class='FCODESEG'><PRE>
+%   \end{rawhtml}
+% }{%
+%   \begin{rawhtml}
+% </PRE> </DIV>
+%   \end{rawhtml}
+% }
+
+% \newenvironment{shrink}{%
+%   \begin{rawhtml}
+% <DIV class='SHRINK'>
+%   \end{rawhtml}
+% }{%
+%   \begin{rawhtml}
+% </DIV>
+%   \end{rawhtml}
+% }
+% \end{htmlonly}
+
+\newcommand{\DEVNOTE}[1]{\textcolor{red}{{\bf#1}}}
+\newcommand{\shaky}[1]{\textcolor{blue}{#1?}} % indicate that I'm not sure...
+
+%%%%%%%%%%% Work around a problem with multiple \captions in longtable environment
+%begin{latexonly}
+\def\subsequentpageheadings#1#2{\endfirsthead
+#1\\
+#2\\
+\hline %
+}
+%end{latexonly}
+% \begin{htmlonly}
+% \def\subsequentpageheadings#1#2{} % just gobble two arguments
+% \end{htmlonly}
+%%%%%%%End Work around a problem with multiple \captions in longtable environment
+
+
+\makeatletter
+\newcommand{\makeUsNormal}{\protect\catcode`\_12\relax}
+\newcommand{\makeUsMath}{\protect\catcode`\_8\relax}
+%%%%%%%%%%%% Special formatting of a text part, based on what it is %%%%%
+\newcommand{\code}[1]{{\tt#1}}
+\everymath{\catcode`\_=8\relax}
+\everydisplay{\catcode`\_=8\@displaytrue}
+\makeatother
+%\newcommand{\dfrac}[2]{\frac{\displaystyle#1}{\displaystyle#2}}
+\newcommand{\pder}[2]{\frac{\displaystyle\partial#1}{\displaystyle\partial#2}}
+
+
+%%\newcommand{\code}[1]{\ifmmode\mathtt{#1}\else\texttt{#1}\fi}
+
+\newcommand{\fcn}[1]{\code{#1}}
+\newcommand{\metavar}[1]{\textnormal{\emph{#1}}} % for meta-variables, not code vars (use \code there)
+%%\newcommand{\metavar}[1]{\emph{#1}} % for meta-variables, not code vars (use \code there)
+%% An alternative would be to use angle brackets:  \left< #1 \right> in math mode
+
+\newcommand{\unit}[1]{\code{#1}}  % for literal names of units
+%%\newcommand{\emterm}[1]{\textcolor{green}{\emph{#1}}} % emphasize a term being discussed
+\newcommand{\emterm}[1]{\textbf{#1}} % emphasize a term being discussed
+
+%%%%%%%% drawtree magic
+
+%begin{latexonly}
+%\usepackage[dvipsnames]{xcolor}  % allows additional color names to be used.  see xcolor.pdf
+\usepackage{tikz}
+\usepackage{pgflibrarytikztrees}
+\usepackage{pgflibraryshapes}
+
+% colors taken from texmf/xcolors/xcolor.pdf
+
+\tikzstyle{every child node}=[shape=rectangle, draw, color=black,
+         inner sep=5pt, minimum width=1.5cm, font=\footnotesize]
+\tikzstyle{level 1}=[level distance=1cm,sibling distance=2.5cm]  % here, Grid
+\tikzstyle{level 2}=[level distance=2cm,sibling distance=10.0cm]  % here, GridMain & GridParticles
+\tikzstyle{level 3}=[level distance=2cm,sibling distance=5.0cm]  % here, lower levels
+\tikzstyle{level 4}=[level distance=2cm,sibling distance=4.0cm]  % here, implementation levels
+\tikzstyle{level 5}=[level distance=2cm,sibling distance=2.5cm]  % here, kernel levels
+\tikzstyle{unit}=[fill=blue!70]
+\tikzstyle{implement}=[fill=Emerald]
+\tikzstyle{lowlevel}=[fill=red]
+\tikzstyle{organize}=[fill=Tan!50]
+\tikzstyle{subunit}=[fill=Cyan!50]
+\tikzstyle{kernel}=[fill=violet!50]
+\tikzstyle{test}=[fill=orange]
+
+% halo options
+\tikzstyle{halo}=[fill=gray!50]
+
+\pgfdeclarelayer{halo}
+\pgfsetlayers{halo,main}
+\newcommand{\halogap}{15pt}
+% end{latexonly}
+%begin{latexonly}
+% \newcommand{\drawtree}[2][]{
+% \begin{tikzpicture}[#1]
+% \input{#2}
+% \end{tikzpicture}
+% }
+%end{latexonly}
+% \begin{htmlonly}
+% \newcommand{\drawtree}[2][]{
+% {\leavevmode\includegraphics[#1]{#2}}
+% }
+% \end{htmlonly}
+% \newcommand{\drawtreePicHead}[2][]{
+% {\leavevmode\includegraphics[#1]{#2}}
+% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Enable the commented-out versions (after possible adjustments) before
+%% generating the online User's Guide to be published with the release!
+
+
+\newcommand{\realapi}[3]{\weblink{\makeAPIurl{#2}}{\fcn{#3}}\index[api]{#1}}
+\newcommand{\realcapi}[3]{\weblink{\makeCAPIurl{#2}}{\fcn{#3}}\index[api]{#1}}
+\newcommand{\realrpi}[3]{\weblink{\makeRPIurl{#2}}{\fcn{#3}}\index[rp]{#1}}
+\newcommand{\realapinoindex}[2]{\weblink{\makeAPIurl{#1}}{\fcn{#2}}}
+\newcommand{\realrpinoindex}[2]{\weblink{\makeRPIurl{#1}}{\fcn{#2}}}
+
+\newcommand{\tips}[2]{\weblink{\makeTIPurl{#1}}{#2}}
+
+%begin{latexonly}
+\newcommand{\api}[1]{[[api reference]]}
+\newcommand{\capi}[1]{[[C api reference]]}
+\newcommand{\rpi}[1]{[[rpi reference]]}
+%end{latexonly}
+
+%begin{latexonly}
+% Here we are using the hyperref's hyperref cmd
+\renewcommand{\chapterautorefname}{Chapter}
+\renewcommand{\sectionautorefname}{Section}
+%\renewcommand{\subsectionautorefname}{Subsection}
+\renewcommand{\subsectionautorefname}{Section}
+\renewcommand{\subsubsectionautorefname}{Section}
+\renewcommand{\figureautorefname}{Figure}
+\renewcommand{\tableautorefname}{Table}
+\renewcommand{\equationautorefname}{Equation}
+
+\newcommand{\chpref}[1]{\autoref{#1}}
+\newcommand{\secref}[1]{\autoref{#1}}
+\newcommand{\figref}[1]{\autoref{#1}}
+\newcommand{\tblref}[1]{\autoref{#1}}
+\newcommand{\eqnref}[1]{(\ref*{#1})}
+\newcommand{\Eqnref}[1]{\hyperref[#1]{Equation~(\ref*{#1})}}
+\newcommand{\eqnsref}[2]{Equations \ref{#1} -- \ref{#2}}
+%end{latexonly}
+
+% These commands affect the HTML
+% \begin{htmlonly}
+% % Here we are using the latex2html compatible version
+% %\newcommand{\chpref}[1]{\hyperref{Chapter \ref*{#1}}{}{}{#1}}
+% \newcommand{\chpref}[1]{\hyperref{\ref*{#1}}{}{}{#1}}
+% %%\newcommand{\chpref}[1]{Chapter~\ref{#1}}
+% %\newcommand{\secref}[1]{\hyperref{Section \ref*{#1}}{}{}{#1}}
+% \newcommand{\secref}[1]{\hyperref{\ref*{#1}}{}{}{#1}}
+% \newcommand{\figref}[1]{Figure~\ref{#1}}
+% \newcommand{\tblref}[1]{Table~\ref{#1}}
+% \newcommand{\eqnref}[1]{\hyperref{(\nameref*{#1})}{}{}{#1}}
+% \newcommand{\Eqnref}[1]{\hyperref{Equation (\ref*{#1})}{}{}{#1}}
+% \newcommand{\eqnsref}[2]{Equations \ref*{#1} -- \ref*{#2}}
+% \end{htmlonly}
+
+%begin{latexonly}
+%\newcommand{\weblink}[2]{\href{#1}{#2}}
+%end{latexonly}
+
+%\begin{htmlonly}
+%\newcommand{\weblink}[2]{\htmladdnormallink{#2}{#1}}
+%\end{htmlonly}
+
+
+%%%% Put this at begin or row in table to make row gray in color
+
+%begin{latexonly}
+\newcommand{\grayrow}{\rowcolor[gray]{0.85}}
+%end{latexonly}
+
+% \begin{htmlonly}
+% \newcommand{\grayrow}{}
+% \end{htmlonly}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Science Macros
+
+\newcommand{\B}{\textbf{B}\xspace}
+\newcommand{\V}{\textbf{v}\xspace}
+\newcommand{\grav}{\textbf{g}\xspace}
+\newcommand{\divB}{\nabla\cdot\B}
+\newcommand{\avg}[1]{\left<#1\right>}
+\newcommand{\avgsub}[2]{\left<#1\right>_{#2}}
+
+\def\drvf#1#2{{d#1\over d#2}}
+\def\dt#1{\dot{#1}}
+\def\avec#1{\textbf{#1}}
+\def\halfo{{1\over{2}}}
+\newcommand{\artanh}{{\mathrm {artanh}}}
+\newcommand{\eE}{\epsilon _{\mathrm e}}
+\newcommand{\eI}{\epsilon _{\mathrm i}}
+\newcommand{\eR}{\epsilon _{\mathrm r}}
+\newcommand{\sele}{s_{\mathrm ele}}
+\newcommand{\sE}{s_{\mathrm e}}
+\newcommand{\pE}{P_{\mathrm e}}
+\newcommand{\pI}{P_{\mathrm i}}
+\newcommand{\pR}{P_{\mathrm r}}
+\newcommand{\tE}{T_{\mathrm e}}
+\newcommand{\tI}{T_{\mathrm i}}
+\newcommand{\tR}{T_{\mathrm r}}
+
+\newcommand{\erf}{\mathrm{erf}}
+\newcommand{\erfc}{\mathrm{erfc}}
+
+\newcommand{\cm}{\ifmmode\mathord{\mathrm{cm}}\else cm\xspace\fi}
+\newcommand{\gram}{\ifmmode\mathord{{\mathrm g}}\else g\xspace\fi}
+%%%%%%%%%%%%%% End of Science Macros
+
+\makeUsNormal
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Other Abbreviations
+
+\newcommand{\thisFlashXVerNo}{alpha}
+\newcommand{\FORTRAN}{FORTRAN}  % no \xspace at the end!
+\newcommand{\Fortran}{F}    % no \xspace at the end!
+\newcommand{\Paramesh}{\code{PARAMESH}\xspace}
+\newcommand{\flashx}{\code{Flash-X}\xspace}
+\newcommand{\ie}{\emph{i.e.}}   % use always with comma following: \ie,
+\newcommand{\etc}{\emph{etc.}\xspace}
+\newcommand{\eg}{\emph{e.g.}}   % use always with comma following: \eg,
+\def\th{\textsuperscript{th}\xspace}
+
+\newcommand{\subunit}{subunit\xspace}
+\newcommand{\subunits}{subunits\xspace}
+\newcommand{\Subunits}{Subunits\xspace}
+\newcommand{\childunit}{alternative implementation\xspace}
+\newcommand{\childunits}{alternative implementations\xspace}
+\newcommand{\uid}{unit implementation directory\xspace}
+\newcommand{\uids}{unit implementation directories\xspace}
+
+
+\newcommand{\DS}{\displaystyle}
+\newcommand{\TS}{\textstyle}
+\newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}\cleardoublepage}}
+
+%       For tables
+% \begin{htmlonly}
+% \newcommand{\eor}{\\}
+% \newcommand{\ieor}{\\}
+% \end{htmlonly}
+%begin{latexonly}
+\newcommand{\eor}{\\*[1ex]}
+\newcommand{\ieor}{\\[2ex]}
+% end{latexonly}
+%       Bibliography format
+
+ \newenvironment{biblist}{
+  \begin{list}{}{
+    \leftmargin 0.5in       % was 0.325in
+    \rightmargin 0in
+    \listparindent -0.5in
+    \itemindent -0.5in
+    \labelwidth 0in
+    \labelsep 0in}
+  }{\end{list}}
+
+
+%%%%%%%%%%%%%%%% Margins
+
+\textwidth 6.5in
+\textheight 9in
+\oddsidemargin 0in
+\evensidemargin 0in
+\topmargin -0.75in
+
+% Dont display any underfull hboxes
+\hbadness=10000
+\vbadness=5000
+% Stretch a line by this amount if needed to fit (reduces overfull box warnings)
+\hfuzz=4pt
+% Still if there are overfull boxes mark those lines with a black box
+\overfullrule=5pt
+
+%%%%%%%%%% All the indices we want
+%\makeindex
+
+% Create an index we call "rp" and use extension "rdx" to store internal data
+% and read processed index data from file with extension "rnd". Title for index
+% is Runtime Parameters
+%\newindex{rp}{rdx}{rnd}{Runtime Parameters}
+% Now the API index
+%\newindex{api}{adx}{and}{Flash-X4 API}
+
+% CHANGE THIS LIST TO SUIT YOUR NEEDS
+% If you change the following line, you probably should do a ``make clean'' before you run make again.
+%\includeonly{sourceTerms}
+%\includeonly{setup,Hydro,IncompNS,Eos,materialProperties,sourceTerms,ProtonImaging,ThomsonScattering,Simulation,references}
+
+
+
+\begin{document}
+\author{}
+\frontmatter
+
+\thispagestyle{empty}
+
+\vspace*{2.5in}
+\begin{center}
+{\Huge Flash-X User's Guide}
+\vskip 0.25in
+
+{\Large Version \thisFlashXVerNo}
+
+(last updated \today)
+
+
+\end{center}
+\clearemptydoublepage
+\pagenumbering{roman}
+
+% \begin{htmlonly}
+% \setcounter{chapter}{-1} % somehow this is needed to set licence chapter # to 0 -
+%                          % in spite of the WARNING, it does have an effect.
+% \end{htmlonly}
+%\include{license}
+%\include{acknowledgment}
+
+\clearemptydoublepage
+
+\tableofcontents
+
+\cleardoublepage
+
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\setcounter{chapter}{0}
+\setcounter{secnumdepth}{5}
+
+\mainmatter
+
+
+\include{intro}
+
+\part{Getting Started}
+\include{quickstart}
+
+%\include{creatingProblems}
+%\part[Flash-X Software System]{The Flash-X Software System}
+\part{The Flash-X Software System} 
+\include{arch}
+\include{setup}
+\include{flashH}
+
+\part{Driver Unit}
+\include{Driver}
+
+\part{Infrastructure Units}
+\include{Grid}
+\include{IO}
+\include{RuntimeParameters}
+\include{Multispecies}
+\include{PhysicalConstants}
+
+\part{Physics Units}
+\include{Hydro}
+\include{IncompNS}
+\include{Eos}
+\include{sourceTerms}
+\include{Gravity}
+\include{Particles}
+%\include{Cosmology}
+%\include{materialProperties}
+%\include{physUtilities}
+
+\part{Monitor Units}
+\include{Logfile}
+
+\include{Profiler}
+
+
+%\part{Numerical Tools Units}
+%\include{Interpolate}
+%\include{Roots}
+%\include{RungeKutta}
+
+%\part{Simulation Units}
+%\include{Simulation}
+
+\part{Tools}\label{Prt:Tools}
+\include{sfocu}
+\end{document}
+\end{document}
+
+
+
+%Not included as sections in release
+%\part{Misc - Not sure how to categorize yet...}
+%\include{visualization}
+%\include{FlashTest} % -- to be separate document not part of this User's Guide.
+
+% \part{Going Further with Flash-X}
+% \include{addingSolvers}
+% \include{portingFlash}
+% %Not included in the pre-alpha release
+% %\include{troubleshooting}
+% \include{multithreadedFlash-X}
+
+% \backmatter
+% \part*{Back Matter}
+% \cleardoublepage
+% \phantomsection
+% \addcontentsline{toc}{chapter}{References}
+% \include{references}
+
+%  \cleardoublepage
+%  \phantomsection
+%  \addcontentsline{toc}{chapter}{Runtime Parameters} %
+%  \printindex[rp] %
+%  \cleardoublepage
+%  \phantomsection
+%  \addcontentsline{toc}{chapter}{API Index} %
+%  \printindex[api] %
+%  \cleardoublepage
+%  \phantomsection
+%  \addcontentsline{toc}{chapter}{Index} %
+%  \printindex %
+

@@ -1,0 +1,1704 @@
+\chapter{IO Unit} \label{Chp:IO}
+
+
+%\index{I/O}
+Flash-X uses parallel input/output (IO) libraries to simplify and manage the output of
+the large amounts of data usually produced. In addition to keeping the
+data output in a standard format, the parallel IO libraries also
+ensure that files will be portable across various platforms.  The
+mapping of Flash-X data-structures to records in these files is
+controlled by the Flash-X IO unit.  Flash-X can output data with two
+parallel IO libraries, HDF5%\index{HDF5|see{IO}}
+and Parallel-NetCDF.
+The data layout is different for each of these libraries.  
+Since \flashx we also offer direct serial FORTRAN IO, which
+can be used as a last resort if no parallel library is available.
+However, Flash-X post-processing tools such as fidlr  (\chpref{Chp:Flash-X IDL Routines
+(fidlr)}) and sfocu (\chpref{Chp:sfocu}) do not support the direct IO
+format.
+
+\begin{flashtip}[Note:]
+This release supports both
+HDF5 and Parallel-NetCDF, including particle IO for both
+implementations.  
+\end{flashtip}
+
+
+Various techniques can be used to write the data to disk when
+running a parallel simulation.  The first is to move all the data to
+a single processor for output; this technique is known as serial IO.
+Secondly, each processor can write
+to a separate file, known as direct IO.
+As a third option, each processor can use parallel access to
+write to a single file in a technique known as parallel IO. Finally,
+a hybrid method can be used where clusters of processors write to 
+the same file, though different clusters of processors output to 
+different files.
+In general, parallel access to a single file
+will provide the best parallel IO performance unless the number of
+processors is very large. On some platforms, such as Linux clusters,
+there may not be a parallel file system, so moving all the data to a
+single processor is the only solution. Therefore Flash-X supports HDF5
+libraries in both serial and parallel forms, where the serial version
+collects data to one processor before writing it, while the parallel
+version has every processor writing its data to the same file.
+
+
+\section{IO Implementations}\label{Sec:Flash-X output formats}
+
+\flashx supports multiple IO implementations: direct, serial and parallel
+implementations as well as support for different parallel libraries.
+In addition, \flashx also supports multiple (\chpref{Chp:Grid Unit})
+\unit{Grid} implementations. As a consequence, there are many
+permutations of the IO API implementation, and the selected
+implementation must match not only the correct IO library, but also
+the correct grid.  Although there are many IO options, the
+\code{setup} script in \flashx is quite `smart' and will not
+let the user setup a problem with incompatible \unit{IO} and \unit{Grid} unit
+implementations.
+\tblref{Tab:IO Implementations} summarizes the different
+implementation of the Flash-X IO unit in the current release.
+
+\label{Sec:IO example setups}%This is a label for this section
+\begin{longtable}{p{2.5in}p{3.5in}}
+\caption[Modules]{IO implementations available in Flash-X.  All implementations 
+begin at the /source directory.}\\
+\label{Tab:IO Implementations}Implementation Path                & Description \\
+\hline
+\subsequentpageheadings
+{\caption[]{Flash-X IO implementations (continued).}}
+{Implementation path                & Description }
+\endhead
+\code{IO/IOMain/HDF5/parallel/PM}             &Hierarchical Data Format (HDF) 5 output.
+                             A single HDF5 file is created, with each
+                             processor writing its data to the same
+                             file simultaneously.  This relies on the
+                             underlying MPI\-IO layer in HDF5.  This
+                             particular implementation only works with
+                             the \Paramesh grid package.\ieor
+
+\code{IO/IOMain/hdf5/parallel/UG}     &Hierarchical Data Format (HDF) 5 output.
+                             A single HDF5 file is created, with each
+                             processor writing its data to the same
+                             file simultaneously.  This relies on the
+                             underlying MPI\-IO layer in HDF5.  This
+                             particular implementation only works with
+                             the Uniform Grid.
+\ieor
+\code{IO/IOMain/hdf5/parallel/NoFbs}             &Hierarchical Data Format (HDF) 5 output.
+                             A single HDF5 file is created, with each
+                             processor writing its data to the same
+                             file simultaneously.  All data is written out as one block.
+                             This relies on the
+                             underlying MPI\-IO layer in HDF5.  This
+                             particular implementation only works in 
+                             non-fixedblocksize mode.\ieor
+
+\code{IO/IOMain/hdf5/serial/PM}   & Hierarchical Data Format (HDF) 5 output.
+                             Each processor passes its data to
+                             processor 0 through explicit MPI sends
+                             and receives. Processor 0 does all of the
+                             writing. The resulting file format is
+                             identical to the parallel version; the
+                             only difference is how the data is moved
+                             during the writing. This particular
+                             implementation only works with the
+                             \Paramesh grid package.\ieor
+
+
+\code{IO/IOMain/hdf5/serial/UG}   & Hierarchical Data Format (HDF) 5 output.
+                             Each processor passes its data to
+                             processor 0 through explicit MPI sends
+                             and receives. Processor 0 does all of the
+                             writing. The resulting file format is
+                             identical to the parallel version; the
+                             only difference is how the data is moved
+                             during the writing. This particular
+                             implementation only works with the
+                             Uniform Grid.\\
+
+
+ \\
+
+\code{IO/IOMain/pnetcdf/PM}   & Parallel\-NetCDF  output.
+                             A single file is created with each
+                             processor writing its data to the same
+                             file simultaneously.  This relies on the
+                             underlying MPI-IO layer in PNetCDF.  This
+                             particular implementation only works with
+                             the \Paramesh grid package.\\
+
+ \\
+\code{IO/IOMain/pnetcdf/UG}   & Parallel\-NetCDF  output.
+                             A single file is created with each
+                             processor writing its data to the same file
+                             simultaneously.  This relies on the underlying
+                             MPI-IO layer in PNetCDF.  This particular implementation only works with
+                             the Uniform Grid.\\
+
+
+ \\
+
+\code{IO/IOMain/direct/UG}   & Serial FORTRAN IO.  Each processor writes its own
+            data to a separate file.  Warning!  This choice can
+            lead to many many files!  Use only if neither HDF5
+            or Parallel-NetCDF is available.  The
+            Flash-X tools are not compatible with the direct
+            IO unit.
+
+ \\
+
+\code{IO/IOMain/direct/PM}   & Serial FORTRAN IO.  Each processor writes its own
+            data to a separate file.  Warning!  This choice can
+            lead to many many files!  Use only if neither HDF5
+            or Parallel-NetCDF is available.  The
+            Flash-X tools are not compatible with the direct
+            IO unit.
+
+\\
+
+
+
+
+%begin{latexonly}
+\\[1mm]
+
+\hline
+%end{latexonly}
+\end{longtable}
+\normalsize
+
+\flashx also comes with some predefined setup 
+\emterm{shortcuts}%\index{shortcuts}
+which make  choosing the correct
+IO significantly easier; see \chpref{Chp:The Flash-X configuration
+script} for more details about shortcuts. In \flashx HDF5 serial IO is
+included by default.  Since \Paramesh4.0 is the default grid, the
+included IO implementations will be compatible with \Paramesh4.0.  For
+clarity, a number or examples are shown below.
+
+\label{IO:example setups}
+
+An example of a basic setup with HDF5 serial IO and the \Paramesh grid, (both defaults) is:
+\begin{codeseg}
+./setup Sod -2d -auto
+\end{codeseg}
+
+To include a parallel implementation of HDF5 for a \Paramesh grid the
+\code{setup} syntax is:
+\begin{codeseg}
+./setup Sod -2d -auto -unit=IO/IOMain/hdf5/parallel/PM
+\end{codeseg}
+
+using the already defined shortcuts the \code{setup} line can be shortened to
+\begin{codeseg}
+./setup Sod -2d -auto +parallelio
+\end{codeseg}
+
+
+
+
+
+To set up a problem with the Uniform Grid and HDF5 serial IO,
+ the \code{setup} line is:
+\begin{codeseg}
+./setup Sod -2d -auto -unit=Grid/GridMain/UG -unit=IO/IOMain/hdf5/serial/UG
+\end{codeseg}
+
+using the already defined shortcuts the \code{setup} line can be shortened to
+\begin{codeseg}
+./setup Sod -2d -auto +ug
+\end{codeseg}
+
+
+
+To set up a problem with the Uniform Grid and HDF5 parallel IO,
+ the complete \code{setup} line is:
+\begin{codeseg}
+./setup Sod -2d -auto -unit=Grid/GridMain/UG -unit=IO/IOMain/hdf5/parallel/UG
+\end{codeseg}
+
+using the already defined shortcuts the \code{setup} line can be shortened to
+\begin{codeseg}
+./setup Sod -2d -auto +ug  +parallelio
+\end{codeseg}
+
+If you do \emph{not} want to use IO, you need to \emph{explicitly} specify on the
+\code{setup} line that it should not be included, as in this example:
+\begin{codeseg}
+./setup Sod -2d -auto +noio
+\end{codeseg}
+
+
+To setup a problem using the Parallel-NetCDF library the user should include either
+\begin{codeseg}
+-unit=IO/IOMain/pnetcdf/PM or -unit=IO/IOMain/pnetcdf/UG
+\end{codeseg}
+to the setup line.  The predefined shortcut for including the Parallel-NetCDF library is
+\begin{codeseg}
++pnetcdf
+\end{codeseg}
+Note that Parallel-NetCDF IO unit does not have a serial implementation.
+
+If you are using non-fixedblocksize the shortcut
+\begin{codeseg}
++nofbs
+\end{codeseg}
+will bring in both Uniform Grid,set the mode to nonfixed blocksize, and 
+choose the appropriate IO.
+\begin{flashtip}[Note:]
+Presently, nonfixed blocksize is only supported by HDF5 parallel IO.
+\end{flashtip}
+
+In keeping with the Flash-X code architecture, the \Fortran90 module
+\code{IO\_data} stores all the data with \unit{IO} unit scope. The routine
+\api{IO/IO_init} is called once by \api{Driver/Driver_initFlash} and
+initializes \unit{IO} data and stores any runtime parameters. See
+\chpref{Chp:Runtime Parameters Unit}.
+
+
+
+\section{Output Files}
+The IO unit can output 4 different types of files: checkpoint
+files, plotfiles, particle files and flash.dat, a text file holding
+the integrated grid quantities.  Flash-X also outputs a logfile, but this
+file is controlled by the Logfile Unit; see \chpref{Chp:Logfile Unit}
+for a description of that format.
+
+
+There are a number of runtime parameters that are used to control the
+output and frequency of IO files.  A list of all the runtime parameters and
+their descriptions for the \unit{IO} unit can be found online
+\rpi*{IO/all of them}.  Additional description is located in  
+\tblref{Tab:checkpoint parameters} for checkpoint parameters, 
+\tblref{Tab:plotfile parameters} for plotfile parameters,
+\tblref{Tab:particle file parameters} for particle file parameters, 
+\tblref{Tab:flash.dat parameters} for flash.dat parameters,
+and \tblref{Tab:parameters} for genereal IO parameters.
+ 
+
+\subsection{Checkpoint files - Restarting a Simulation}
+Checkpoint files are used to restart a simulation.  In a typical
+production run, a simulation can be interrupted for a number of
+reasons--- \eg, if the machine crashes, the present queue window
+closes, the machine runs out of disk space, or perhaps (gasp) there is a bug
+in Flash-X.  Once the problem is fixed, a simulation can be restarted
+from the last checkpoint file rather than the beginning of the run.  A
+checkpoint file%\index{IO!checkpoint file}
+contains all the
+information needed to restart the simulation.  The data is stored at
+full precision of the code (8-byte reals) and includes all of the
+variables, species, grid reconstruction data, scalar values,  as well
+as meta-data about the run.
+
+The API routine for writing a checkpoint file is
+\api{IO/IO_writeCheckpoint}.  Users usually will not need to call this
+routine directly because the Flash-X IO unit calls
+\fcn{IO\_writeCheckpoint} from the routine \api{IO/IO_output} which
+checks the runtime parameters to see if it is appropriate to write a
+checkpoint file at this time.  
+There are a number of ways to get Flash-X to
+produce a checkpoint file for restarting. 
+Within the flash.par, runtime parameters can be set to dump output.
+A checkpoint file can be
+dumped based on elapsed simulation time, elapsed wall clock time or
+the number of timesteps advanced.  A checkpoint file is also
+produced when the simulation ends, when the max simulation
+time \rpi{Driver/tmax}, the minimum cosmological redshift, or the total 
+number of steps \rpi{Driver/nend} has been reached.  A user can force a 
+dump to a checkpoint file at another time
+by creating a file named \code{.dump\_checkpoint} in the output
+directory of the master processor. This manual action causes Flash-X to write a
+checkpoint in the next timestep.  Checkpoint files will continue to
+be dumped after every timestep as long as the code finds a
+\code{.dump\_checkpoint}
+% \index{IO!.dump\_checkpoint@\code{.dump\_checkpoint}}%\index{.dump\_checkpoint@\code{.dump\_checkpoint}|see{IO}}
+file in the output directory, so the user must remember to remove the
+file once all the desired checkpoint files have been dumped.
+Creating a file named
+%\index{IO!.dump\_restart@\code{.dump\_restart}}%\index{.dump\_restart@\code{.dump\_restart}|see{IO}}
+\code{.dump\_restart} in the output directory will cause Flash-X to
+output a checkpoint file and then stop the simulation.  This technique is
+useful for producing one last checkpoint file to save time evolution
+since the last checkpoint, if the machine is going
+down or a queue window is about to end.
+These different methods can be combined without problems.  Each
+counter (number of timesteps between last checkpoint, amount of
+simulation time single last checkpoint, the change in cosmological redshift,
+and the amount of wall clock time elapsed since the last checkpoint) 
+is independent of the others, and are not influenced by the use of a 
+\code{.dump\_checkpoint} or \code{.dump\_restart}.
+
+
+Runtime Parameters used to control checkpoint file output include:
+
+
+
+\begin{center}
+\begin{longtable}{lllp{2.6in}}
+\caption[parameters]{Checkpoint IO parameters.} \\
+\label{Tab:checkpoint parameters}
+Parameter                & Type & Default value & Description \\
+\hline
+\subsequentpageheadings
+{\caption[]{Checkpoint IO parameters (continued).}}
+{Parameter                & Type & Default value & Description }
+\endhead
+
+\\
+\code{checkpointFileNumber} &  \code{INTEGER}  & \code{0}            & The number of the
+                    initial checkpoint file.  This number is
+                    appended to the end of the filename and incremented at each
+			subsequent output.   When restarting a
+simulation, this indicates                                  which checkpoint
+file to use.  \\
+
+
+
+\code{checkpointFileIntervalStep} & \code{INTEGER}  & \code{0} & The number of timesteps desired
+                                              between subsequent checkpoint
+                                              files. \\
+
+\\
+\code{checkpointFileIntervalTime} & \code{REAL}  & \code{1.} & The amount of simulation time desired
+                                       between subsequent checkpoint files.
+\\
+\code{checkpointFileIntervalZ} & \code{REAL}  & \code{HUGE(1.)} & The amount of cosmological redshift change that is desired between subsequent checkpoint files.\\
+\\
+
+\code{rolling_checkpoint} & \code{INTEGER} & 10000     & The number of checkpoint
+files to keep                                  available at any point in the
+                                 simulation.  If a checkpoint number
+                                 is greater than \code{rolling_checkpoint},
+                                 then the checkpoint number is reset
+                                 to 0.  There will be at most
+                 \code{rolling_checkpoint} checkpoint files
+                                 kept.  This parameter is intended to be
+                                 used when disk space is at a premium. \\
+
+\\
+\code{wall_clock_checkpoint}& \code{REAL}  & 43200.  & The maximum amount of
+                                 wall clock time (seconds) to elapse between
+                                 checkpoints.  When the
+                                 simulation is started, the current time is
+                                 stored.  If \code{wall_clock_checkpoint}
+                                 seconds elapse over the course of the
+                                 simulation, a checkpoint file is stored.
+                                 This is useful for ensuring that a checkpoint
+                                 file is produced before a queue closes.  \\
+
+\\
+\code{restart} &  \code{BOOLEAN} &  \code{.false.}    & A logical variable
+                                                     indicating whether the
+                                                     simulation is restarting
+                                                     from a checkpoint file
+                                                     (\code{.true.}) or starting
+                                                     from scratch
+                                                     (\code{.false.}). \\
+
+
+
+\hline
+\end{longtable}
+\end{center}
+
+
+Flash-X is capable of restarting from any of the checkpoint files it
+produces.  The user should make sure that the checkpoint file is
+valid (\eg, the code did not stop while outputting).  To
+tell Flash-X to restart, set the \rpi{Driver/restart}
+runtime parameter to \code{.true.} in the \code{flash.par}.  Also,
+set \rpi{IO/checkpointFileNumber} to the number of the file
+from which you wish to restart.  If plotfiles or particle files are
+being produced set \rpi{IO/plotfileNumber} and
+\rpi{IO/particleFileNumber} to the number of the \emph{next}
+plotfile and particle file you want Flash-X to output.  In \flashx
+plotfiles and particle file outputs are forced whenever a checkpoint
+file is written.  Sometimes several plotfiles may be produced after
+the last valid checkpoint file. Resetting \code{plotfileNumber} to
+the first plotfile produced after the checkpoint from which you are
+restarting will ensure that there are no gaps in the output.  See
+\secref{Sec:Plotfiles}
+\begin{comment}
+and \secref{Sec:Particle files}
+\end{comment}
+for more
+details on plotfiles.
+\begin{comment}
+and particle files.
+\end{comment}
+
+
+
+
+
+\subsection{Plotfiles}\label{Sec:Plotfiles}
+
+A plotfile%\index{IO!plotfile}
+contains all the information needed to
+interpret the grid data maintained by Flash-X.  The data in plotfiles, 
+including the grid metadata such as coordinates and block sizes,
+are stored at single precision to preserve space. This can, however, 
+be overridden by setting the runtime parameters \code{plotfileMetadataDP}
+and/or \code{plotfileGridQuantityDP} to true to set the grid metadata and the
+quantities stored on the grid (dens, pres, temp, etc.) to use double precision, 
+respectively.  Users must choose
+which variables to output with the runtime parameters
+\rpi{IO/plot_var_1},
+\rpi{IO/plot_var_2}, \etc, by
+setting them in the \code{flash.par} file.  For example:
+\begin{codeseg}
+plot_var_1 = "dens"
+plot_var_2 = "pres"
+\end{codeseg}
+
+Currently, we support a number of plotvars named \code{plot\_var\_\metavar{n}} 
+up to the number of \code{UNKVARS} in a given simulation.  Similarly, 
+scratch variables may be output to plot files \secref{lbl:OutputScratchVariables}.  At this time, the plotting of 
+face centered quantities is not supported.
+
+\begin{flashtip}
+In \flashx a few variables like density and pressure were output to the
+plotfiles by default.  Because \flashx supports a wider range of
+simulations, it makes no assumptions that density or pressure variables
+are even included in the simulation.  In \flashx a user \emph{must} define
+plotfile variables in the %\index{flash.par@\code{flash.par}}
+\code{flash.par} file, otherwise
+the plotfiles will not contain any variables.
+\end{flashtip}
+
+The interface for writing a plotfile is the routine
+\api{IO/IO_writePlotfile}.  As with
+checkpoint files, the user will not need to call this routine directly
+because it is invoked indirectly through calling
+\api{IO/IO_output} when, based on runtime parameters, 
+\flashx needs to write a plotfile.  Flash-X can produce plotfiles in much the same
+manner as it does with checkpoint files.  They can be dumped based on
+elapsed simulation time, on steps since the last plotfile dump or by
+forcing a plotfile to be written by hand by creating a\code{.dump\_plotfile}
+% \index{IO!.dump\_plotfile@\code{.dump\_plotfile}}
+in the output
+directory.  %\index{IO!forced Plotfile}
+A plotfile will also be written at the termination of a simulation
+as well.\\
+\\
+If plotfiles are being kept at particular intervals (such as time
+intervals) for purposes such as visualization or analysis, it is also
+possible to have Flash-X denote a plotfile as ``forced".  This designation places the
+word forced between the basename and the file format type identifier
+(or the split number if splitting is used).  These files are numbered
+separately from normal plotfiles.  By default, plotfiles are
+considered forced if output for any reason other than the change in
+simulation time, change in cosmological redshift, change in step
+number, or the termination of a simulation from reaching \code{nend} ,
+\code{zFinal}, or \code{tmax}.  This option can be disabled by setting
+\code{ignoreForcedPlot} to true in a simulations \code{flash.par}
+file. The following runtime parameters pertain to controlling
+plotfiles:
+
+\begin{center}
+\begin{longtable}{p{1.7in}llp{2.7in}}
+\caption[parameters]{Plotfile IO parameters.} \\
+\label{Tab:plotfile parameters}
+Parameter                & Type & Default value & Description \\
+\hline
+\subsequentpageheadings
+{\caption[]{Plotfile IO parameters (continued).}}
+{Parameter                & Type & Default value & Description }
+\endhead
+
+
+\\
+\code{plotFileNumber} & \code{INTEGER} &  \code{0} & The number of the starting (or restarting) plotfile.
+                                            This number is appended to
+                                            the filename. \\
+
+\\
+\code{plotFileIntervalTime}  & \code{REAL} & \code{1.} & The amount of simulation time desired
+                                      between subsequent plotfiles. \ieor
+
+\code{plotFileIntervalStep}  & \code{INTEGER} & \code{0} & The number of timesteps desired
+                                              between subsequent
+                                              plotfiles. \ieor
+
+\\
+\code{plotFileIntervalZ}  & \code{INTEGER} & \code{HUGE(1.)} & The change in cosmological redshift desired
+                                              between subsequent
+                                              plotfiles. \ieor
+
+\\
+
+\begin{comment}
+\code{corners} & \code{BOOLEAN} & \code{.false.} & A logical variable
+                                                    indicating whether
+                                                    to interpolate the
+                                                    data to cell
+                                                    corners before
+                                                    outputting.  This option
+                                                    only applies to
+                                                    plotfiles. \\
+
+\\
+\end{comment}
+
+\code{plot\_var\_1, ..., plot\_var\_n}& \code{STRING} & \code{"none"} & Name
+of the variables to store in a plotfile. Up to 12 variables can be
+selected for storage, and the standard 4-character variable name can
+be used to select them.
+\\
+
+\code{ignoreForcedPlot} & \code{BOOLEAN} & \code{.false.} & A logical variable
+ indicating whether or not to denote certain plotfiles as forced.
+\\
+\code{forcedPlotfileNumber} & \code{INTEGER} & \code{0} & An integer that sets 
+the starting number for a forced plotfile.
+\\
+\code{plotfileMetadataDP} & \code{BOOLEAN} & \code{.false.} & A logical variable 
+indicating whether or or not to output the normally single-precision grid metadata fields
+as double precision in plotfiles. This specifically affects \code{coordinates}, 
+\code{block size}, and \code{bounding box}.
+\\
+\code{plotfileGridQuantityDP}  & \code{BOOLEAN} & \code{.false.} & A logical variable that
+sets whether or not quantities stored on the grid, such as those stored in \code{unk}, are
+output in single precision or double precision in plotfiles.
+%begin{latexonly}
+\\
+\\
+\\
+\hline
+%end{latexonly}
+\hline
+\end{longtable}
+\end{center}
+
+
+
+
+
+\subsection{Particle files}
+\label{Sec:Particle files}
+\label{Sec:IOParticles}
+When Lagrangian particles are included in a simulation, the ParticleIO
+subunit controls input and output of the particle information.%\index{IO!particle file} 
+The particle files are stored in double precision.
+Particle data is written to
+the checkpoint file in order to restart the simulation, but is not written to plotfiles.  
+Hence analysis and metadata about particles is also written to the particle files.
+The particle
+files are intended for more frequent dumps.  The interface for writing
+the particle file is \api{IO/IO_writeParticles}.  Again the user will
+not usually call this function directly because the routine
+\fcn{IO\_output} controls particle output based on the runtime
+parameters controlling particle files.  They are controlled in much of
+the same way as the plotfiles or checkpoint files and can be dumped
+based on elapsed simulation time, on steps since the last particle
+dump or by forcing a particle file to be written by hand by creating a
+\code{.dump\_particle\_file}
+% \index{IO!.dump\_particle\_file@\code{.dump\_particle\_file}}
+in the
+output directory.  The following runtime parameters pertain to
+controlling particle files:
+
+\begin{center}
+\begin{longtable}{lllp{2.7in}}
+\caption[parameters]{Particle File IO runtime parameters.} \\
+\label{Tab:particle file parameters}
+Parameter & Type & Default value & Description \\
+\hline \subsequentpageheadings{\caption[]{Particle File IO parameters (continued).}}
+{Parameter                & Type & Default value & Description }
+\endhead
+
+
+\\
+\code{particleFileNumber} & \code{INTEGER} &  \code{0} & The number of the starting (or restarting) particle file.
+                                            This number is appended to
+                                            the end of the filename.\\
+
+
+\\
+\code{particleFileIntervalTime}  & \code{REAL} & \code{1.} & The amount of simulation time desired
+                                      between subsequent particle file
+                                      dumps. \\
+\\
+
+\\
+\code{particleFileIntervalStep}  & \code{INTEGER} & \code{0} & The number of timesteps desired
+                                              between subsequent
+                                              particle file dumps. \\
+
+
+\\
+\code{particleFileIntervalZ}  & \code{REAL} & \code{HUGE(1.)} & The change in cosmological redshift desired
+                                              between subsequent
+                                              particle file dumps. \\
+
+
+\\
+\hline
+\end{longtable}
+\end{center}
+
+
+
+\begin{flashtip}
+From \flashx on each particle dump is written to a separate file.  In \flashx
+the particles data structure was broken up into real and integer
+parts, where as in \flashx all particle properties are real values.  See
+\secref{Sec:Output formats} and \chpref{Chp:Particles} for more
+information about the particles data structure in \flashx.
+Additionally, filtered particles are not implemented in
+\flashx.
+\end{flashtip}
+
+All the code necessary to output particle data is contained in the \unit{IO}
+subunit called \unit{IOParticles}. Whenever the \unit{Particles} unit is included in
+a simulation the correct \unit{IOParticles} subunit will also be included.
+For example as setup:
+\begin{codeseg}
+./setup IsentropicVortex -2d -auto -unit=Particles +ug
+\end{codeseg}
+
+will include the \unit{IO} unit \code{IO/IOMain/hdf5/serial/UG} and the correct
+\unit{IOParticles} subunit
+\newline
+\code{IO/IOParticles/hdf5/serial/UG}.  The shortcuts
+\code{+parallelio}, \code{+pnetcdf}, \code{+ug} will also cause the setup script to pick up
+the correct \unit{IOParticles} subunit as long as a \unit{Particles} unit is
+included in the simulation.  
+
+\subsection{Integrated Grid Quantities  -- flash.dat}
+At each simulation time step, values which represent the overall state  (\eg, total energy and momentum)
+are computed by calculating over all cells in the computations domain.  These integral quantities are
+written to the ASCI file \code{flash.dat}.
+A default routine \api{IO/IO_writeIntegralQuantities} is provided to output standard measures for
+hydrodynamic simulations.
+The user should copy and modify the routine
+\code{IO_writeIntegralQuantities} into a given simulation directory to store any quantities other
+than the default values.  Two runtime parameters pertaining to the
+\code{flash.dat} file are listed in the table below.
+
+\begin{center}
+\begin{longtable}{p{1.7in}llp{2.7in}}
+\caption[runtime parameters for the flash.dat file]{flash.dat runtime parameters.} \\
+\label{Tab:flash.dat parameters}
+Parameter & Type & Default value & Description \\
+\hline \subsequentpageheadings{\caption[]{flash.dat parameters (continued).}}
+{Parameter & Type & Default value & Description }
+\endhead
+
+
+\\
+\code{stats\_file}  & \code{STRING} & \code{"flash.dat"} & Name of the file to which the integral quantities are written. \\
+
+
+\\
+\code{wr\_integrals\_freq} & \code{INTEGER} & \code{1} & The number of
+                               timesteps to elapse between outputs to
+                               the scalar/integral data file
+                               (\code{flash.dat})\\[2mm]
+
+
+\hline
+\end{longtable}
+\end{center}
+
+
+
+
+\subsection{General Runtime Parameters}
+
+There are several runtime parameters that pertain to the general IO
+unit or multiple output files rather than one particular output
+file. They are listed in the table below.
+
+
+\begin{center}
+\begin{longtable}{p{1.7in}llp{2.7in}}
+\caption[parameters]{General IO runtime parameters.} \\
+\label{Tab:parameters}
+Parameter                & Type & Default value & Description \\
+\hline \subsequentpageheadings{\caption[]{Flash-X IO parameters (continued).}}
+{Parameter                & Type & Default value & Description }
+\endhead
+
+
+\code{basenm} &  \code{STRING} & \code{"flash\_"} & The main part of the output
+                                 filenames. The full filename consists
+                                 of the base name, a series of
+                                 three-character abbreviations
+                                 indicating whether it is a plotfile,
+                                 particle file or checkpoint file, the
+                                 file format, and a 4-digit file
+                                 number.  See \secref{Sec:Output file names} for
+                                 a description of how Flash-X output
+                                 files are named.  \\
+\\
+\begin{comment}
+\code{outputSplitNum}  & \code{INTEGER} & \code{1.} & !Not fully implemented.
+                                Intended to Split checkpoint, plotfiles and particle files into
+                                this many files per dump.  Verify implementation works.
+
+\\
+\end{comment}
+\code{output\_directory} & \code{STRING} & \code{""} & Output
+directory for plotfiles, particle files and checkpoint files.
+                                    The
+                                    default
+                                    is the 
+                                    directory
+                                    in
+                                    which
+                                    the
+                                    executable
+                                    sits.
+                                    \code{output\_directory}
+                                    can
+                                    be
+                                    an
+                                    absolute
+                                    or
+                                    relative
+                                    path.\ieor
+
+
+\code{memory\_stat\_freq} & \code{INTEGER} & \code{100000} & The number of
+                               timesteps to elapse between memory
+                               statistic dumps to the log file
+                               (\code{flash.log}).\\
+
+\\
+\code{useCollectiveHDF5} &\code{BOOLEAN}&\code{.true.} & When using the parallel
+HDF5 implementation of IO, will enable collective mode for HDF5.\\
+
+\\
+\code{summaryOutputOnly} &\code{BOOLEAN}&\code{.false.} & When set to
+.true. write an integrated grid quantities file only.  Checkpoint,
+plot and particle files are not written unless the user creates a
+.dump\_plotfile, .dump\_checkpoint, .dump\_restart or .dump\_particle
+file.\\
+
+\hline
+\end{longtable}
+\end{center}
+
+
+\begin{comment}
+\begin{flashtip}
+Although consistency of runtime parameters was attempted 
+between \flashx and \flashx, a number of them caused confusion in \flashx.
+These names were clarified in \flashx.
+\begin{center}
+\begin{longtable}{p{1.7in}p{2.7in}}
+\caption[parameters name changes from \flashx to \flashx]{\label{Tab:parameters name changes}Parameter name changes} \\
+\flashx & \flashx \\
+\hline
+\subsequentpageheadings{\caption[]{Parameter name changes (continued).}}
+{\flashx               & \flashx }
+\endhead
+
+
+\\
+\code{cpnumber} & \code{checkpointFileNumber} \\
+\code{trstrt} & \code{checkpointFileIntervalTime} \\
+\code{nrstrt} & \code{checkpointFileIntervalStep} \\
+\code{ptnumber} & \code{plotFileNumber} \\
+\code{tplot} & \code{plotfileFileIntervalTime} \\
+\code{pptnumber} & \code{particleFileNumber} \\
+\code{ptplot} & \code{particleFileIntervalTime} \\
+\code{nppart} & \code{particleFileIntervalStep} \\
+
+\hline
+\end{longtable}
+\end{center}
+
+\end{flashtip}
+\end{comment}
+
+\section{Restarts and Runtime Parameters}\label{Sec:runtime parameters}
+
+\flashx outputs the runtime parameters of a simulation to all checkpoint files.
+When a simulation is restarted, these values are known by the \unit{RuntimeParameters} unit while
+the code is running.  On a restart, all values from the checkpoint used in the
+restart are stored as previous values in the lists kept by the
+\unit{RuntimeParameters} unit.  All current values are taken from the
+defaults used by \flashx and any simulation parameter files (\eg, \code{flash.par}).  If needed, the previous
+values from the checkpoint file can be obtained using the routines 
+\api{RuntimeParameters/RuntimeParameters_getPrev}.
+
+\section{Output Scalars}\label{Sec:output scalars}
+
+In \flashx, each unit has the opportunity to request scalar data to be
+output to checkpoint or plotfiles.  Because there is no central
+database, each unit ``owns" different data in the
+simulation. For example, the \unit{Driver} unit owns the timestep variable
+\code{dt}, the simulation variable \code{simTime}, and the simulation
+step number \code{nStep}.  The \unit{Grid} unit owns the sizes of each
+block, \code{nxb}, \code{nyb}, and \code{nzb}.  The \unit{IO} unit owns
+the variable \code{checkpointFileNumber}.  Each of these
+quantities are output into checkpoint files. Instead of hard coding the values into
+checkpoint routines, \flashx offers a more flexible interface whereby
+each unit sends its data to the \unit{IO} unit.  The \unit{IO} unit then stores
+these values in a linked list and writes them to the checkpoint file or
+plotfile.  Each unit has a routine called ``\code{\metavar{Unit}\_sendOutputData}", \eg,
+\api{Driver/Driver_sendOutputData} and
+\api{Grid/Grid_sendOutputData}. These routines in turn call
+\api{IO/IO_setScalar}.  For example, the routine
+\api{Grid/Grid_sendOutputData} calls
+
+\begin{codeseg}
+ IO_setScalar("nxb", NXB)
+ IO_setScalar("nyb", NYB)
+ IO_setScalar("nzb", NZB)
+\end{codeseg}
+
+To output additional simulation scalars in a checkpoint file, the user should 
+override one of the ``\code{\metavar{Unit}\_\-send\-Output\-Data}" or 
+\code{Simulation_sendOutputData}.
+
+After restarting a simulation from a checkpoint file, a unit might
+call \api{IO/IO\_getScalar} to reset a variable value.  For example,
+the \unit{Driver} unit calls \code{IO\_getScalar("dt", dr\_dt)}
+to get the value of the timestep \code{dt} reinitialized from the
+checkpoint file.  A value from the checkpoint file can be obtained by calling
+\api{IO/IO_getPrevScalar}.  This call can take an optional argument to find out if an
+error has occurred in finding the previous value, most commonly because the value
+was not found in the checkpoint file.  By using this argument, the user can then
+decide what to do if the value is not found.  If the scalar value is not found 
+and the optional argument is not used, then the subroutine will call \api{Driver/Driver_abortFlash} and terminate the run.
+
+
+
+\section{Output User-defined Arrays}
+\label{Sec: Output user defined arrays}
+
+Often in a simulation the user needs to output additional information to a checkpoint or plotfile
+which is not a grid scope variable.  In \flashx any additional information had to be hard coded
+into the simulation.  In \flashx, we have provided a general interface \api{IO/IO_writeUserArray}
+and \api{IO/IO_readUserArray} which allows the user to write and read any generic array needed to
+be stored.  The above two functions do not have any implementation and it is up to the user to
+fill them in with the needed calls to the HDF5 or pnetCDF C routines.  We provide implementation
+for reading and writing integer and double precision arrays with the helper routines
+\fcn{io\_h5write\_generic\_iarr}, \fcn{io\_h5write\_generic\_rarr}, \fcn{io\_ncmpi\_write\_generic\_iarr}, and
+\fcn{io\_ncmpi\_write\_generic\_rarr}.  Data is written
+out as a 1-dimensional array, but the user can write multidimensional arrays simply by passing a
+reference to the data and the total number of elements to write. See these
+routines and the simulation \code{StirTurb} for details on their usage.
+
+
+\section{Output Scratch Variables}
+\label{lbl:OutputScratchVariables}
+In \flashx a user can allocate space for a scratch or temporary
+variable with grid scope using one of the
+\code{Config} keywords \code{SCRATCHVAR}, \code{SCRATCHCENTERVAR},
+\code{SCRATCHFACEXVAR},\code{SCRATCHFACEYVAR} or
+\code{SCRATCH\-FACEZ\-VAR} (see \secref{Sec:ConfigFileSyntax}). 
+To output these scratch variables, the user
+only needs to set the values of the runtime parameters
+\rpi{IO/plot_grid_var_1},
+\rpi{IO/plot_grid_var_2}, \etc, by
+setting them in the \code{flash.par} file.
+For example to output the magnitude of vorticity
+with a declaration in a \code{Config} file of \code{SCRATCHVAR mvrt}:
+\begin{codeseg}
+plot_grid_var_1 = "mvrt"
+\end{codeseg}
+Note that the post-processing routines like \code{fidlr} do not display these variables,
+although they are present in the output file.  Future implementations may support this visualization.
+
+\section{Face-Centered Data}
+Face-centered variables are now output to checkpoint files, when they are declared in a configuration file.  Presently, up to nine face-centered variables are supported in checkpoint files.  Plotfile output of face-centered data is not yet supported.
+
+\section{Output Filenames}
+\label{Sec:Output file names}
+
+
+Flash-X constructs the output filenames%\index{IO!output file names}
+based on the user-supplied basename, (runtime parameter \code{basenm})
+and the file counter that is incremented after each output.
+Additionally, information about the file type and data storage is
+included in the filename.  The general checkpoint filename is:
+\medskip
+
+\texttt{
+basename\_s0000\_$\left\{\begin{array}{c}\mathtt{hdf5}\\ \mathtt{ncmpi}\\
+             \end{array}\right\}$\_chk\_0000}\enskip,
+\medskip
+
+\noindent
+where \code{hdf5} or \code{ncmpi} (prefix for PnetCDF) is picked
+depending on the particular IO implementation, the number following the ``s'' is 
+the split file number, if split file IO is in use, 
+and the number at the end of the
+filename is the current checkpointFileNumber.  (The PnetCDF function
+prefix "\code{ncmpi}" derived from the serial NetCDF calls beginning with
+"\code{nc}")
+
+The general plotfile filename is:
+\medskip
+
+\code{basename\_s0000\_$\left\{\begin{array}{c}
+                                       \mathtt{hdf5}\\
+                                       \mathtt{ncmpi}\\
+                                       \end{array}\right\}$\_plt\_$\left\{
+                                       \begin{array}{c}\mathtt{crn}\\
+                                       \mathtt{cnt}\\
+                                       \end{array}\right\}$\_0000}\enskip,
+\medskip
+
+
+
+\noindent
+where \code{hdf5} or \code{ncmpi} is picked depending on the IO
+implementation used,
+\code{crn} and \code{cnt} indicate data stored at the
+cell corners or centers respectively, the number following ``s'' is the split file 
+number, if used, and the number at the end of the
+filename is the current value of \code{plotfileNumber}.  \code{crn} is reserved, even though 
+corner data output is not presently supported by \flashx's IO.
+
+\begin{comment}
+Similarly, the general particle filename is:
+\medskip
+
+\texttt{
+basename\_$\left\{\begin{array}{c}\mathtt{hdf5}\\ \mathtt{ncmpi}\\
+             \end{array}\right\}$\_part\_0000}\enskip,
+\medskip
+
+\noindent
+where \code{hdf5} or \code{ncmpi} is picked depending on the IO
+implementation
+used, and the number at the end of the filename is the current value in 
+\code{particleFileNumber}.
+\end{comment}
+
+
+\begin{flashtip}
+In \flashx the correct format of the names of the checkpoint,
+plotfile and particle file were necessary in order to read the files
+with the Flash-X fidlr visualization tool.  In
+\flashx the name of the file is irrelevant to fidlr3.0
+(see \chpref{Chp:Flash-X IDL Routines (fidlr)}).  We have kept
+the same naming convention for consistency but the user is free to
+rename files.  This can be helpful during post-processing or when comparing
+two files.
+\end{flashtip}
+
+
+
+\section{Output Formats}\label{Sec:Output formats}
+
+
+HDF5 is our most most widely used IO library although
+Parallel-NetCDF is rapidly gaining acceptance among the high
+performance computing community.  In \flashx we also offer a serial
+direct FORTRAN IO which is currently only implemented for the
+uniform grid.  This option is intended to provide users a way to output data
+if they do not have access to HDF5 or PnetCDF.  Additionally,
+if HDF5 or PnetCDF are not performing well on a given platform the
+direct IO implementation can be used as a last resort.  Our tools,
+fidlr and sfocu (\chpref{Prt:Tools}), do not currently support the
+direct IO implementation, and the output files from this mode are not portable
+across platforms.
+
+
+
+\subsection{HDF5}
+\label{Sec:HDF5}
+HDF5%\index{IO!HDF5}
+is supported on a large variety of platforms and
+offers large file support and parallel IO via MPI-IO.  Information
+about the different versions of HDF can be found at
+\url{https://support.hdfgroup.org/documentation/}.
+The IO in \flashx
+implementations require HDF5 1.4.0 or later.  Please note that HDF5
+1.6.2 requires IDL 1.6 or higher in order to use fidlr3.0 for post processing.
+
+
+Implementations of the \code{HDF5}%\index{IO!HDF5}
+\unit{IO} unit use the
+HDF application programming interface (API) for organizing data in a
+database fashion.  In addition to the raw data, information about the
+data type and byte ordering (little- or big-endian), rank, and
+dimensions of the dataset is stored.  This makes the HDF format
+extremely portable across platforms.  Different packages can query the
+file for its contents without knowing the details of the routine that
+generated the data.
+
+
+
+Flash-X provides different HDF5 IO unit implementations -- the serial
+and parallel versions for each supported grid, Uniform Grid and
+\Paramesh. It is important to remember to match the IO
+implementation with the correct grid, although the \code{setup} script generally
+takes care of this matching.   \Paramesh2, \Paramesh4.0, and \Paramesh4dev all work
+with the \Paramesh (PM) implementation of IO.  Nonfixed blocksize IO has 
+its own implementation in parallel, and is presently not supported in serial
+mode.
+Examples are given below for the five different HDF5 IO implementations.
+
+\begin{codeseg}
+./setup Sod -2d -auto -unit=IO/IOMain/hdf5/serial/PM (included by default)
+./setup Sod -2d -auto -unit=IO/IOMain/hdf5/parallel/PM
+./setup Sod -2d -auto -unit=Grid/GridMain/UG -unit=IO/IOMain/hdf5/serial/UG
+./setup Sod -2d -auto -unit=Grid/GridMain/UG -unit=IO/IOMain/hdf5/parallel/UG
+./setup Sod -2d -auto -nofbs -unit=Grid/GridMain/UG -unit=IO/IOMain/hdf5/parallel/NoFbs
+\end{codeseg}
+
+The default IO implementation is \code{IO/IOMain/hdf5/serial/PM}.
+It can be included simply by adding \code{-unit=IO} to the \code{setup}
+line.  In \flashx, the user can set up
+shortcuts%\index{setup!shortcuts} for various implementations.
+See
+\chpref{Chp:The Flash-X configuration script} for
+more information about creating shortcuts.
+
+
+The format of the HDF5 output files produced by these various IO
+implementations is identical; only the method by which they are
+written differs.  It is possible to create a checkpoint file with the
+parallel routines and restart Flash-X from that file using the serial
+routines or vice-versa.  (This switch would require resetting up and compiling a code to
+get an executable with the serial version of IO.)
+When outputting with the Uniform Grid, some
+data is stored that isn't explicitly necessary for data analysis or
+visualization, but is retained to keep the output format of \Paramesh
+the same as with the Uniform Grid.  See \secref{Sec:Data Format} for
+more information on output data formats.  For example, the refinement
+level in the Uniform Grid case is always equal to 1, as is the
+nodetype array.  A tree structure for the Uniform Grid is `faked' for visualization purposes.
+In a similar way, the non-fixedblocksize mode outputs all of the data stored by the grid as 
+though it is one large block.  This allows restarting with differing numbers of processors
+and decomposing the domain in an arbitrary fashion in Uniform Grid.
+
+Parallel HDF5 mode has two runtime parameters useful for debugging:
+\rpi{IO/chkGuardCellsInput} and \rpi{IO/\-chk\-Guard\-Cells\-Output}.  When 
+these runtime parameters
+are true, the \flashx input and output routines read and/or output the guard cells
+in addition to the normal interior cells.  Note that the HDF5 files produced are {\em not} 
+compatible with the visualization and analysis tools provided with \flashx.
+
+
+\begin{flashtip}
+We recommend that HDF5 version 1.6 or later be used with the HDF5 IO 
+implementations with \flashx.  While it is possible to use any version of
+HDF5 1.4.0 or later, files produced with versions predating version 1.6 will 
+not be compatible with code using the libraries post HDF5 1.6. 
+\end{flashtip}
+
+\begin{flashtip}[Caution]
+If you are using version HDF5 $\ge$ 1.8 then you must explicitly use
+HDF5 1.6 API bindings.  Either build HDF5 library with
+``--with-default-api-version=v16'' configure option or compile Flash-X
+with the C preprocessor definition \code{H5\_USE\_16\_API}%\index{H5\_USE\_16\_API@\code{H5\_USE\_16\_API}}.
+Our preference is
+to set the \code{CFLAGS\_HDF5} Makefile.h variable, \eg, for compilation with most compilers:
+\begin{verbatim}
+CFLAGS_HDF5 = -I${HDF5_PATH}/include -DH5_USE_16_API
+\end{verbatim}
+\end{flashtip}
+
+
+\subsubsection{Collective Mode}
+\label{sec:IOCollectiveMode}
+By default, the parallel mode of HDF5 uses an independent access pattern for 
+writing datasets and performs IO without aggregating the disk access for 
+writing.  Parallel HDF5 can also be run so that the writes to the file's 
+datasets are aggregated, allowing the data
+from multiple processors to be written to disk in fewer operations.  This can 
+greatly increase the performance of IO on filesystems that support this behavior.
+  \flashx can make use of this mode by setting the runtime parameter \code{useCollectiveHDF5} to true.
+
+
+\subsubsection{Machine Compatibility}
+The HDF5 modules have been tested successfully on the ASC platforms
+and on a Linux clusters.  Performance varies widely across the
+platforms, but the parallel version is usually faster than the serial
+version.  Experience on performing parallel IO on a Linux Cluster
+using PVFS is reported in Ross {\it et al.} (2001).  Note that for
+clusters without a parallel filesystem, you should not use the
+parallel HDF5 IO module with an NFS mounted filesystem.  In this
+case, all of the information will still have to pass through the node
+from which the disk is hanging, resulting in contention.  It is
+recommended that a serial version of the HDF5 unit be used instead. 
+
+\subsubsection{HDF5 Data Format}\label{Sec:Data Format}
+The HDF5 data format for \flashx is identical to \flashx for all
+grid variables and datastructures used to recreate the tree and
+neighbor data with the exception that \code{bounding box}, \code{coordinates}, and \code{block size}
+are now sized as \code{mdim}, or the maximum dimensions supported by Flash-X's 
+grids, which is three, rather than \code{ndim}.
+\Paramesh4.0 and \Paramesh4dev, however, do requires a few additional tree data structures
+to be output which are described below.  The format of the metadata stored in the HDF5 files
+has changed to reduce the number of `writes' required. Additionally,
+scalar data, like \code{time, dt, nstep}, \etc, are now stored in a
+linked list and written all at one time.  Any unit can add scalar
+data to the checkpoint file by calling the routine
+\api{IO/IO\_setScalar}.  See
+\secref{Sec:output scalars} for more details.  The \flashx HDF5 format is
+summarized in \tblref{Tab:hdf5}.
+
+
+% begin a table that splits over multiple pages
+\begin{longtable}{p{2.2in}p{3.5in}}
+\caption[HDF5]{Flash-X HDF5 file format.}  \\
+\label{Tab:hdf5}
+Record label     & Description of the record \\
+\hline
+\subsequentpageheadings
+{\caption[]{HDF5 format (continued).}}
+{Record label    & Description of the record }
+\endhead
+
+\multicolumn{2}{l}{\em Simulation Meta Data: included in all files} \\
+\\
+sim info & Stores simulation meta data in a user defined C structure.
+Structure datatype and attributes of the structure are described below.\\
+
+\begin{center}
+\begin{codeseg}
+typedef struct sim_info_t {
+  int file_format_version;
+  char setup_call[400];
+  char file_creation_time[MAX_STRING_LENGTH];
+  char flash_version[MAX_STRING_LENGTH];
+  char build_date[MAX_STRING_LENGTH];
+  char build_dir[MAX_STRING_LENGTH];
+  char build_machine[MAX_STRING_LENGTH];
+  char cflags[400];
+  char fflags[400];
+  char setup_time_stamp[MAX_STRING_LENGTH];
+  char build_time_stamp[MAX_STRING_LENGTH];
+} sim_info_t;
+
+sim_info_t sim_info;
+\end{codeseg}
+\end{center}\\
+
+                   \code{sim\_info.file\_format\_version}: & An
+                   integer giving the version number of the HDF5 file
+                   format.  This is incremented anytime changes are
+                   made to the layout of the file. \\ \\
+
+                   \code{sim\_info.setup\_call}: &The complete syntax
+                   of the \code{setup} command used when creating the
+                   current Flash-X executable. \\ \\
+
+                   \code{sim\_info.file\_creation\_time}: & The time
+                   and date that the file was created.\\ \\
+
+                   \code{sim\_info.flash\_version}: & The version of
+                   Flash-X used for the current simulation.  This is
+                   returned by routine \code{setup_flashVersion}. \\ \\
+
+                   \code{sim\_info.build\_date}: & The date and time
+                   that the Flash-X executable was compiled.\\ \\
+
+                   \code{sim\_info.build\_dir}: & The complete path to
+                   the Flash-X root directory of the source tree used
+                   when compiling the Flash-X executable.  This is
+                   generated by the subroutine \fcn{setup\_buildstats} which
+                   is created at compile time by the Makefile.\\ \\
+
+                   \code{sim\_info.build\_machine}: & The name of the
+                   machine (and anything else returned from
+                   \code{uname -a}) on which Flash-X was compiled. \\ \\
+
+                   \code{sim\_info.cflags}: & The c compiler flags
+                   used in the given simulation.  The routine
+                   \fcn{setup\_buildstats} is written by the \code{setup}
+                   script at compile time and also includes the \code{fflags}
+		   below.\\ \\
+
+                   \code{sim\_info.fflags}: & The f compiler flags
+                   used in the given simulation. \\ \\
+
+                   \code{sim\_info.setup\_time\_stamp}: & The date and
+                   time the given simulation was setup.  The routine
+                   \fcn{setup\_buildstamp} is created by the \code{setup}
+                   script at compile time.\\ \\
+
+                    \code{sim\_info.build\_time\_stamp}: & The date
+                    and time the given simulation was built.  The
+                    routine \fcn{setup\_buildstamp} is created by the
+                    \code{setup} script at compile time.\\ \\
+
+\hline \\
+
+\multicolumn{2}{l}{\em RuntimeParameter and Scalar data}  \\
+
+\multicolumn{2}{l}{Data are stored in linked lists with the nodes of each entry for each type listed below.} \\
+
+\begin{center}
+\begin{codeseg}
+typedef struct int_list_t {
+  char name[MAX_STRING_LENGTH];
+  int value;
+} int_list_t;
+
+typedef struct real_list_t {
+  char name[MAX_STRING_LENGTH];
+  double value;
+} real_list_t;
+
+typedef struct str_list_t {
+  char name[MAX_STRING_LENGTH];
+  char value[MAX_STRING_LENGTH];
+} str_list_t;
+
+typedef struct log_list_t {
+  char name[MAX_STRING_LENGTH];
+  int value;
+} log_list_t;
+
+int_list_t  *int_list;
+real_list_t  *real_list;
+str_list_t  *str_list;
+log_list_t  *log_list;
+\end{codeseg}
+\end{center}\\
+
+
+
+integer runtime parameters & \code{int\_list\_t
+int\_list(numIntParams)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the integer runtime
+                       parameters. \\ \\
+
+
+
+real runtime parameters & \code{real\_list\_t
+real\_list(numRealParams)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the real runtime
+                       parameters. \\ \\
+
+
+string runtime parameters & \code{str\_list\_t
+str\_list(numStrParams)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the string runtime
+                       parameters. \\ \\
+
+
+logical runtime parameters & \code{log\_list\_t
+log\_list(numLogParams)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the logical runtime
+                       parameters. \\ \\
+
+
+integer scalars & \code{int\_list\_t int\_list(numIntScalars)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the integer scalars. \\ \\
+
+
+
+real scalars & \code{real\_list\_t real\_list(numRealScalars)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the real scalars. \\ \\
+
+
+string scalars & \code{str\_list\_t str\_list(numStrScalars)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the string scalars. \\ \\
+
+
+logical scalars & \code{log\_list\_t log\_list(numLogScalars)} \\[2mm]
+
+                       & A linked list holding the names and
+                       values of all the logical scalars. \\ \\
+
+
+
+
+\hline \\
+
+\multicolumn{2}{l}{\em Grid data: included only in checkpoint files and plotfiles} \\
+
+unknown names & \code{character*4 unk\_names(nvar)} \\[2mm]
+
+                   & This array contains four-character names
+                   corresponding to the first index of the \code{unk}
+                   array.  They serve to identify the variables stored
+                   in the `unknowns' records. \\ \\
+
+refine level & \code{integer lrefine(globalNumBlocks)} \\[2mm]
+
+                   & This array stores the refinement level for each
+                   block. \\ \\
+
+node type & \code{integer nodetype(globalNumBlocks)} \\[2mm]
+
+                   & This array stores the node type for a block.
+                   Blocks with node type 1 are leaf nodes, and their
+                   data will always be valid.  The leaf blocks contain
+                   the data which is to be used for plotting
+                   purposes. \\ \\
+
+gid & \code{integer gid(nfaces+1+nchild,globalNumBlocks)} \\[2mm]
+
+                   & This is the global identification array.  For a
+                   given block, this array gives the block number of
+                   the blocks that neighbor it and the block numbers
+                   of its parent and children.  \\ \\
+
+coordinates & \code{real coord(mdim,globalNumBlocks)} \\[2mm]
+
+                   & This array stores the coordinates of the center
+                   of the block. \\
+
+                   & \quad \code{coord(1,blockID)} = {\it
+                   x}-coordinate \\ & \quad \code{coord(2,blockID)} =
+                   {\it y}-coordinate \\ & \quad
+                   \code{coord(3,blockID)} = {\it z}-coordinate \\ \\
+
+block size & \code{real size(mdim,globalNumBlocks)} \\[2mm]
+
+                   & This array stores the dimensions of the current
+                   block. \\
+
+                   & \quad \code{size(1,blockID)} = {\it x} size \\ &
+                   \quad \code{size(2,blockID)} = {\it y} size \\ &
+                   \quad \code{size(3,blockID)} = {\it z} size \\
+
+\\
+bounding box & \code{real bnd\_box(2,mdim,globalNumBlocks)} \\[2mm]
+
+                   & This array stores the minimum
+                   (\code{bnd\_box(1,:,:)}) and maximum
+                   (\code{bnd\_box(2,:,:)}) coordinate of a block in
+                   each spatial direction. \\
+
+\\
+which child (\emph{Paramesh4.0 and Paramesh4dev only!}) & \code{integer which\_child(globalNumBlocks)} \\[2mm]
+
+                   & An integer array identifying which part of the parents' volume
+                   this child corresponds to.\\
+
+
+\\
+\emph{variable}     & \code{real unk(nxb,nyb,nzb,globalNumBlocks)} \\[2mm]
+
+                   & \quad \code{nx} = number of cells/block in {\it
+                   x} \\ & \quad \code{ny} = number of cells/block in
+                   {\it y} \\ & \quad \code{nz} = number of
+                   cells/block in {\it z} \\[2mm]
+
+                   & This array holds the data for a single variable.
+                   The record label is identical to the four-character
+                   variable name stored in the record {\it unknown
+                   names}.  Note that, for a plot file with
+           \code{CORNERS=.true.} in the parameter file, the
+                   information is interpolated to the cell corners and
+                   stored. \\
+\\
+\hline \\
+\multicolumn{2}{l}{\em Particle Data: included in checkpoint files and particle files}   \\
+
+localnp &\code{integer localnp(globalNumBlocks)} \\[2mm]
+
+            &This array holds the number of particles on
+            each processor. \\ \\
+
+particle names & \code{character*24 particle\_labels(NPART\_PROPS)}
+\\[2mm]
+
+        & This array contains twenty four-character names
+        corresponding to the attributes in the particles
+        array.  They serve to identify the variables stored in
+        the 'particles' record. \\ \\
+
+
+tracer particles & \code{real particles(NPART\_PROPS,
+globalNumParticles} \\[2mm]
+
+            & Real array holding the particles data
+            structure.  The first dimension holds the
+            various particle properties like, velocity,
+            tag etc.  The second dimension is sized as the
+            total number of particles in the simulation.
+            Note that all the particle properties are real
+            values.\\ \\
+
+\hline
+
+\end{longtable}
+
+\subsubsection{Split File IO}
+On machines with large numbers of processors, IO may perform better if, 
+all processors write to a limited number of separate
+files rather than one single file.
+This technique can help mitigate IO bottlenecks and contention issues on these 
+large machines better than even parallel-mode IO can.  
+In addition this technique has the benefit of keeping the number of output files much lower than if every processor 
+writes its own file.  
+Split file IO can be enabled by setting the \rpi{IO/outputSplitNum} parameter to the number of files desired
+(i.e. if \code{outputSplitNum} is set to 4, every checkpoint, plotfile and particle
+file will be broken into 4 files, by processor number).  This 
+feature is only available with the HDF5 parallel IO mode, and is still 
+experimental.  Users should use this at their own risk.  
+
+\subsection{Parallel-NetCDF}
+\label{Sec:PnetCDF IO}
+Another implementation of the IO unit uses the Parallel-NetCDF library
+available at
+\newline % prevent overfull
+\url{http://www.mcs.anl.gov/parallel-netcdf/}.  At this time, the
+Flash-X code requires version 1.1.0 or higher.  Our testing shows
+performance of PNetCDF library to be very similar to HDF5 library when
+using collective I/O optimizations in parallel I/O mode.
+
+
+There are two different PnetCDF IO unit implementations.  Both are
+parallel implementations, one for each supported grid, the Uniform
+Grid and \Paramesh.  It is important to remember to match the IO
+implementation with the correct grid. To include PnetCDF IO in a simulation
+the user should add \code{-unit=IO/\-IOMain/\-pnetcdf.....} to the \code{setup}
+line.  See examples below for the two different PnetCDF IO
+implementations.
+
+\begin{codeseg}
+./setup Sod -2d -auto -unit=IO/IOMain/pnetcdf/PM
+./setup Sod -2d -auto -unit=Grid/GridMain/UG -unit=IO/IOMain/pnetcdf/UG
+\end{codeseg}
+
+The paths to these IO implementations can be long and tedious to type,
+users are advised to set up shortcuts%\index{setup!shortcuts}
+for
+various implementations.  See \chpref{Chp:The Flash-X configuration script} for
+information about creating shortcuts.
+
+
+To the end-user, the PnetCDF data format is very similar to the HDF5
+format.  (Under the hood the data storage is quite different.)  In
+HDF5 there are datasets and dataspaces, in PnetCDF there are
+dimensions and variables.  All the same data is stored in the PnetCDF
+checkpoint as in the HDF5 checkpoint file, although there are some
+differences in how the data is stored.  The grid data is stored in
+multidimensional arrays, as it is in HDF5.
+These are unknown names, refine level, node type, gid, coordinates,
+proc number, block size and bounding box.  The particles data
+structure is also stored in the same way. The simulation metadata,
+like file format version, file creation time, \setup command line,
+\etc, are
+stored as global attributes.  The runtime parameters and the output
+scalars are also stored as attributes.  The \code{unk} and particle labels
+are also stored as global attributes.  In PnetCDF, all global quantities must
+be consistent across all processors involved in a write to a file, or else the
+write will fail.  All IO calls are run in a collective mode in PnetCDF.  
+
+
+\subsection{Direct IO}
+As mentioned above, the direct IO implementation has been added
+so users can always output data even if the HDF5 or pnetCDF libraries are unavailable.
+The user should examine the two
+helper routines \code{io_writeData} and \code{io_readData}.  Copy the base implementation
+to a simulation directory, and modify them in order to
+write out specifically what is needed.  To include the direct IO
+implementation add the following to your setup line:
+\begin{codeseg}
+-unit=IO/IOMain/direct/UG or -unit=IO/IOMain/direct/PM
+\end{codeseg}
+
+\subsection{Output Side Effects}
+In \flashx when plotfiles or checkpoint files are output by 
+\api{IO/IO_output}, the grid is fully restricted and user variables are
+computed prior to writing the file.  \api{IO/IO_writeCheckpoint} and 
+\api{IO/IO_writePlotfile} by default, do not do this step themselves.  The restriction
+can be forced for all writes by setting runtime parameter \rpi{IO/alwaysRestrictCheckpoint} to 
+true and the user variables can always be computed prior to output by setting
+\rpi{IO/alwaysComputeUserVars} to true.  
+
+
+\section{Working with Output Files}
+
+The checkpoint file output formats offer great flexibility when
+visualizing the data. The visualization program does not have to
+know the details of how the file was written; rather it can query
+the file to find the number of dimensions, block sizes, variable
+data etc that it needs to visualize the data. \code{IDL} routines
+for reading HDF5 and PnetCDF formats are provided in
+\code{tools/fidlr3/}.  These can be used interactively though the
+\code{IDL} command line (see \chpref{Chp:Flash-X IDL Routines (fidlr)}).
+In addition, ViSit version 10.0 and higher (see \secref{Sec:visit}) can natively read 
+\flashx HDF5 output files by using the command line option
+\code{-assume_format Flash-X}.
+
+
+\section{Unit Test}\label{Sec:IO Unit Test}
+The \unit{IO} unit test is provided to test IO performance on various platforms
+with the different Flash-X IO implementations and parallel libraries.
+\begin{flashtip}
+The \unit{IO} unit test replaces the simulation setup \code{io\_benchmark} in \flashx.
+\end{flashtip}
+
+The \code{unitTest} is setup like any other \flashx simulation.  It can be run
+with any IO implementation as long as the correct Grid implementation
+is included.  This \code{unitTest} writes a checkpoint file, a plotfile, and
+if particles are included, a particle file.
+Particles IO can be
+tested simply by including particles in the simulation.  Variables needed
+for particles should be uncommented in the \code{Config} file.
+
+
+Example setups:
+
+\begin{codeseg}
+#setup for PARAMESH Grid and serial HDF5 io
+./setup unitTest/IO -auto
+
+#setup for PARAMESH Grid with parallel HDF5 IO (see shortcuts docs for explanation)
+./setup unitTest/IO -auto +parallelIO     (same as)
+./setup unitTest/IO -auto -unit=IO/IOMain/hdf5/parallel/PM
+
+#setup for Uniform Grid with serial HDF5 IO, 3d problem, increasing default number of zones
+./setup unitTest/IO -3d -auto +ug -nxb=16 -nyb=16 -nzb=16  (same as)
+./setup unitTest/IO -3d -auto -unit=Grid/GridMain/UG -nxb=16 -nyb=16 -nzb=16
+
+
+#setup for PM3 and parallel netCDF, with particles
+./setup unitTest/IO -auto -unit=Particles +pnetcdf
+
+
+#setup for UG and parallel netCDF
+./setup unitTest/IO -auto +pnetcdf +ug
+\end{codeseg}
+
+Run the test like any other Flash-X simulation:
+\begin{codeseg}
+mpirun -np numProcs flash3
+\end{codeseg}
+
+There are a few things to keep in mind when working with the IO unit test:
+\begin{itemize}
+\item The Config file in unitTest/IO declares some dummy grid scope
+variables which are stored in the unk array.  If the user wants a more
+intensive IO test, more variables can be added.  Variables are
+initialized to dummy values in \code{Driver_evolveFlash}. 
+
+\item Variables will only be output to the plotfile if they are declared in
+the \code{flash.par} (see the example \code{flash.par} in the unit test).
+
+\item The only units besides the simulation unit included in this
+simulation are \unit{Grid, IO, Driver, Timers, Logfile, RuntimeParameters}
+and \unit{PhysicalConstants}. 
+
+\item If the \Paramesh Grid implementation is being used, it is important to
+note that the grid will not refine on its own.  The user should set
+\code{lrefine_min} to a value $>$ 1 to create more blocks.  The user could also
+set the runtime parameters \code{nblockx}, \code{nblocky}, \code{nblockz} to make a bigger
+problem. 
+
+\item Just like any other simulation, the user can change the number of
+zones in a simulation using \code{-nxb=\-numZones} on the setup line.
+\end{itemize}
+
+
+
+
+\section{Derived data type I/O}
+
+In \flashx we introduced an alternative I/O implementation for
+both HDF5 and Parallel-NetCDF which is a slight spin on the standard
+parallel I/O implementations.  In this new implementation we select
+the data from the mesh data structures directly using HDF5 hyperslabs
+(HDF5) and MPI derived datatypes (Parallel-NetCDF) and then write the
+selected data to datasets in the file.  This eliminates the need for
+manually copying data into a Flash-X allocated temporary buffer and then
+writing the data from the temporary buffer to disk.
+
+You can include derived data type I/O in your Flash-X application by
+adding the setup shortcuts \code{+hdf5TypeIO} for HDF5 and
+\code{+pnetTypeIO} for Parallel-NetCDF to your setup line.  If you are
+using the HDF5 implementation then you need a parallel installation of
+HDF5.  All of the runtime parameters introduced in this chapter should
+be compatible with derived data type I/O.
+
+A nice property of derived data type I/O is that it eliminates a lot
+of the I/O code duplication which has been spreading in the Flash-X I/O
+unit over the last decade.  The same code is used for UG, NoFBS and
+Paramesh Flash-X applications and we have also shared code between the
+HDF5 and Parallel-NetCDF implementations.  A technical reason for
+using the new I/O implementation is that we provide more information
+to the I/O libraries about the exact data we want to read from / write
+to disk.  This allows us to take advantage of recent enhancements to
+I/O libraries such as the nonblocking APIs in the Parallel-NetCDF
+library.  We discuss experimentation with this API and other ideas in
+the paper ``A Case Study for Scientific I/O: Improving the Flash-X
+Astrophysics Code''
+\url{www.mcs.anl.gov/uploads/cels/papers/P1819.pdf}
+
+The new I/O code has been tested in our internal Flash-X regression
+tests from before the \flashx release and there are no known
+issues, however, it will probably be in the release following
+\flashx when we will recommend using it as the default
+implementation.  We have made the research ideas from our case study
+paper usable for all Flash-X applications, however, the code still needs
+a clean up and exhaustive testing with all the Flash-X runtime
+parameters introduced in this chapter.
+
+%There are a whole host of runtime parameters that we created during
+%our experimentation phase.  You should not need to modify these
+%parameters, but they are shown for completeness.
+
+%\begin{center}
+%\begin{longtable}{p{1.7in}llp{2.7in}}
+%\caption[parameters]{Derived data type IO parameters.} \\
+%\label{Tab:plotfile parameters}
+%Parameter                & Type & Default value & Description \\
+%\hline
+%\subsequentpageheadings
+%{\caption[]{Derived data type IO parameters (continued).}}
+%{Parameter                & Type & Default value & Description }
+%\endhead
+
+%\\ \code{fileFormatVersion} & \code{INTEGER} & \code{9} & The Flash-X
+%file layout.  Setting the value to 10 is an experimental layout in
+%which all mesh variables are written into the same dataset. \\
+
+%\\ \code{typeMatchedXfer} & \code{BOOLEAN} & \code{.true.} & Ensures
+%that floating point data transfers are type matched when using HDF5.
+%This prevents HDF5 reverting to independent parallel I/O. \\
+
+%\\ \code{packMeshPlotWriteHDF5} & \code{BOOLEAN} & \code{.true.} &
+%Ensures that floating point data transfers are type matched when using
+%HDF5.  This prevents HDF5 reverting to independent parallel I/O. \\
+
+%\\ \hline
+%\hline
+%\end{longtable}
+%\end{center}
+
+%\begin{comment}
+%Another way to restart the Flash-X code is to specify the checkpoint file on the command line
+%using the Flash-X executable command-line option (\code{-chk\_file} $<$filename$>$).
+%If the \code{-chk\_file} option is found, Flash-X assumes that it is starting from restart, and it gets the
+%runtime parameters from the file specified on the command line. In
+%this situation the \code{flash.par} is ignored whether or not it is specified on the command line with
+%the \code{-par\_file} argument.
+
+%In Flash-X2.4 and beyond,the \code{restart} script in \code{
+%tools/scripts/jobs/} will automatically modify your \code{flash.par} to
+%pick up where a simulation left off by examining the logfile.  To use
+%it, make sure that it is set as executable and that it is in your path and
+%type
+
+%\begin{codeseg}
+%% restart -logfile my_simulation.log
+%\end{codeseg}
+%where \code{my\_simulation.log} is the name of the Flash-X logfile (usually \code{
+%flash.log}, unless renamed with the \code{logfile} runtime parameter).
+%\end{comment}
+
+%
+
+%

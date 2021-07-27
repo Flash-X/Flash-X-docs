@@ -1,0 +1,438 @@
+
+%       Introduction
+
+
+\chapter{Introduction}
+\label{Sec:Introduction}
+
+The Flash-X code is a modular, parallel multiphysics simulation code capable of
+handling general compressible flow problems found in many
+astrophysical environments. It is a set of independent code units put
+together with a Python language setup tool to form various applications. 
+% Python should always be capitalized.  See http://docs.python.org/doc/style-guide.html
+The code is written in FORTRAN90 and C.  It uses the Message-Passing
+Interface (MPI) library for inter-processor communication and the HDF5
+or Parallel-NetCDF library for parallel I/O to achieve portability and
+scalability on a variety of different parallel computers. \flashx
+has three interchangeable discretization grids: a Uniform Grid, and a
+block-structured oct-tree based adaptive grid using the \Paramesh
+library.
+The code's
+architecture is designed to be flexible and easily extensible.  Users
+can configure initial and boundary conditions, change algorithms, and
+add new physics units with minimal effort.
+
+The Flash Center was founded at the University of Chicago in 1997 under
+contract to the United States Department of Energy as part of its
+Accelerated Strategic Computing Initiative (ASCI) (now the Advanced
+Simulation and Computing (ASC) Program). The scientific goal of the
+Center then was to address several problems related to thermonuclear
+flashes on the surface of compact stars (neutron stars and white
+dwarfs), in particular Type Ia supernovae, and novae.  The software
+goals of the center were to develop new simulation tools capable of
+handling the extreme resolution and physical requirements imposed by
+conditions in these explosions and to make them available to the
+community through the public release of the Flash-X code. Since 2009 the
+several new scienfic and computational code development projects have
+been added to the Center, the notable one among them are: Supernova
+Models, High-Energy Density Physics (HEDP), Fluid-Structure
+Interaction, and Implicit Solvers for stiff parabolic and hyperbolic
+systems with AMR. 
+
+
+The Flash-X code has become a key hydrodynamics application used to test
+and debug new machine architectures because of its modular structure,
+portability, scalability and dependence on parallel I/O libraries. It
+has a growing user base and has rapidly become a shared code for the
+astrophysics community and beyond, with hundreds of active users who
+customize the code for their own research.
+
+\section{What's New in \flashx}
+
+This Guide describes the release version \thisFlashXVerNo\ of \flashx.
+\flashx includes
+all the well tested capabilities of \flashx. There were a few
+modules in the official releases of Flash-X2 which were added and tested
+by local users, but did not have standardized setups that could be
+used to test them after the migration to \flashx. Those modules are
+not included in the official releases of \flashx or \flashx,
+however, they are being made available to download ''as is'' from the
+Flash Center's website. 
+% Reduce verbiage here... - KW
+We have ensured that they have been imported
+into \flashx to the extent that they conform to the architecture
+and compile. We cannot guarantee that they work correctly; they are
+meant to be useful starting points for users who need their
+functionality. We also welcome setups contributed  by the users that
+can meaningfully test these units. If such setups become available to
+us, the units will be released in future.
+
+In terms of the code architecture, \flashx closely follows
+\flashx. The major changes from \flashx are
+several new capabilities in both physics solvers and infrastructure.
+Major effort went into the design of the \flashx architecture to
+ensure that the code can be easily modified and extended by internal as well
+as external developers. Each code unit in \flashx, like in
+\flashx has a well defined interface and follows the rules for
+inheritance and encapsulation defined in \flashx. One of the
+largest achievements of \flashx was the separation of the
+discretized `grid' architecture from the actual  physics. 
+
+Because of the increasing
+importance of software verification and validation, the Flash code
+group has developed a test-suite application for \flashx. The application is
+called FlashTest and can be used to setup, compile, execute, and test
+a series of Flash-X code simulations on a regular basis.  FlashTest is
+available without a license and can be downloaded from the
+% \weblink{\codeSuppURL}{Code Support Web Page}.
+There is also
+a more general open-source version of FlashTest which
+can be used to test any software in which an application is configured
+and then executed under a variety of different conditions. The results of
+the tests can then be visualized in a browser with FlashTestView, a
+companion to FlashTest that is also open-source.
+
+
+Many but not all parts of \flashx are backwards compatible with
+Flash-X2, and they are all compatible with \flashx.   
+The Flash code group has written extensive documentation detailing how to 
+make the transition from \flashx to \flashx as smooth as
+possible.  The user should follow the "Name changes from \flashx to
+\flashx'' link on the %\weblink{\codeSuppURL}{Code Support Web Page}
+for help on transitioning to \flashx from \flashx. The transition
+from \flashx to \flashx does not require much effort from the
+users except in any custom implementation they may have. 
+
+\bigskip
+\noindent The new capabilities in \flashx that were not included
+in \flashx include
+\begin{itemize}
+\item 3T capabilities in the split and unsplit Hydro
+  solvers. There is support for non-cartesian geometry and
+  the unsplit solver also supports stationary rigid body.
+\item Upwind biased constrained transport (CT) scheme in the unsplit staggered mesh MHD solver
+\item Full corner transport upwind (CTU) algorithm in the unsplit hydro/MHD solver
+\item Cylindrical geometry support in the unsplit staggered mesh 
+  MHD solver on UG and AMR. A couple of MHD simulation setups 
+  using cylindrical geometry. 
+\item Units for radiation diffusion, conduction, and heat exchange.
+\item Equation-of state unit includes table based multi-material
+  multi-temperature implementation.
+\item The Opacities unit with the ability to use hot and cold opacities.
+\item The laser drive with threading for performance
+\item Ability to replicate mesh for multigroup diffusion or other
+  similar applications.
+\item Several important solvers have been threaded at both
+  coarse-grain (one block per thread) and fine-grain (threads within a
+  block) levels.
+\item Several new HEDP simulation setups.
+\item A new multipole solver
+\item Ability to add particles during evolution
+\end {itemize}
+
+\noindent The enhancements and bug fixes to the existing capabilities
+since Flash-X4-beta release are : 
+
+\begin {itemize}
+\item The HLLD Riemann solver has been improved to handle MHD degeneracy.
+\item PARAMESH's handling for face-centered variables in order to ensure divergence-free
+magnetic fields evolution on AMR now uses \code{gr_pmrpDivergenceFree=.true.}
+and \code{gr_pmrpForceConsistency=.true.} by default.
+\item The HEDP capabilities of the code have been exercised and are
+  therefore more robust.
+\item Laser 3D in 2D ray tracing has been added. The code traces rays in a
+  real 3D cylindrical domain using a computational 2D cylindrical domain
+  and is based on a polygon approximation to the angular part.
+\item In non-fixedblocksize mode %\index{NONFIXEDBLOCKSIZE mode},
+  restart with particles did not work
+  when starting with a different processor count. This bug has now
+  been fixed.
+\item All I/O implementations now support reading/writing 0 blocks and
+  0 particles.
+\item There is support for particles and face variables in PnetCDF
+\item Initializaton of of the computation domain has been optimized by
+  eliminating unnecessary invocations of PARAMESH's ``digital orrery'' algorithm at simulation startup. It
+  is possible to run the orrery in a reduced communicator in order to 
+  speed up Flash-X initialization.  
+\item The custom region code and corresponding Grid API routines have
+  been removed.
+\item PARAMESH4DEV is now the default PARAMESH implementation. 
+\end{itemize}
+
+\noindent The new capabilities in Flash-X4.2 \ldots\ Flash-X4.2.2 since Flash-X4.0.1 include: 
+\begin{itemize}
+\item New Core-Collapse Super Nova (CCSN) physics, with complete 
+  nuclear EOS routines, local neutrino heating/cooling and multispecies neutrino leakage.
+\item New unsplit Hydro and MHD implementations, highly optimized for performance. These implementations
+  are now the default option. We have retained the old implementations as an
+  \code{unsplit\_old} alternative for compatibility reasons.
+\item New support for 3T magnetohydrodynamics, designed for HEDP problems.
+\item A new magnetic resistivity implementation, \code{SpitzerHighZ}, for HEDP problems.
+  We have also extended the support for resistivity in cylindrical geometry in the unsplit solver.  
+\item New threading capabilities for unsplit MHD, compatible with all threading strategies 
+  followed by the code.
+\item New, improved multipole Poisson solver, implementing the algorithmic 
+  refinements described in \url{http://dx.doi.org/10.1088/0004-637X/778/2/181} 
+  and \url{http://arxiv.org/abs/1307.3135}.
+\item Reorganization of the \unit{EnergyDeposition} unit. A new feature has been 
+  included that allows EnergyDeposition to be called once every $n$ time steps.
+\end{itemize}
+
+\noindent The new capabilities in Flash-X4.3 since Flash-X4.2.2 include: 
+\begin{itemize}
+\item The sink particles implementation now has
+ support for particles to remain active when leaving the grid domain (in case of outflow boundary conditions).
+\item New Proton Imaging unit: The new unit is a simulated diagnostic of the Proton Radiography used in HEDP experiments. 
+\item Flux-limited-diffusion for radiation (implemented in
+  RadTransMain/MGD) is now available for astrophysical
+  problem setups:
+  \begin{itemize}
+  \item MatRad3 (matter+rad [2T] stored in three components)
+    implementations for several Eos types: \code{Gamma}, \code{Multigamma},
+    and (experimentally) \code{Helmholtz/SpeciesBased}.
+  \item Implemented additional terms in FLD Rad-Hydro equations
+    to handle streaming and transition-to-streaming regimes
+    better - including radiation pressure.
+    This is currently available as a variant of the unsplit Hydro
+    solver code, under HydroMain/unsplit\_rad .
+    We call this RADFLAH - Radiation Flux-Limiter Aware Hydro.
+    Setup with shortcut \code{+uhd3tR} instead of \code{+uhd3t} .
+    This has had limited testing, mostly in 1D spherical geometry.
+  \item New test setups under \code{Simulation/SimulationMain/radflaHD}:
+    \code{BondiAccretion}, \code{RadBlastWave}
+  \item Various fixes in Eos implementations.
+  \item New "outstream" diffusion solver boundary condition for
+    streaming limit. (currently 1D spherical only)
+  \item Added Levermore-Pomraning flux limiter.
+  \item More flexible setup combinations are now easily possible -
+    can combine, \eg, species declared on setup command line
+    with SPECIES in Config files and initialized with
+    Simulation\_initSpecies, by setup with \code{ManualSpeciesDirectives=True}.
+  \item Created an "\code{Immediate}" HeatExchange implementation.
+  \item EXPERIMENTAL: ExpRelax variant of \unit{RadTrans} diffusion solver,
+    implements the algorithm described in Gittings et al (2008)
+    for the RAGE code, good for handling strong matter-radiation
+    coupling; for one group (grey) only.
+  \item EXPERIMENTAL: Unified variant of RadTrans diffusion solver,
+    for handling several coupled scalar equations with HYPRE.
+  \item EXPERIMENTAL: More accurate implementation of flux limiting
+    (and evaluation of diffusion coeffs): apply limiter to
+    face values, not cell centered values.
+  \end{itemize}
+\item Gravity can now be used in 3T simulations.
+\item Laser Energy Deposition:
+  New ray tracing options added based on cubic interpolation techniques.
+  Two variants: 1) Piecewise Parabolic Ray Tracing (PPRT) and 2) Runge
+  Kutta (RK) ray tracing.
+\item Introduction of new numerical tool units: 1) Interpolate: currently
+  contains the routines to set up and perform cubic interpolations
+  on rectangular 1D,2D,3D grids, 2) Roots: (will) contain all routines
+  that solve $f(x)=0$ (currently contains quadratic, cubic and quartic
+  polynomial root solvers, 3) Runge Kutta: sets up and performs Runge
+  Kutta integration of arbitrary functions (passed as arguments).
+\item Unsplit Hydro/MHD: Local CFL factor using \code{CFL\_VAR}.
+  (Declare a "\code{VARIABLE cfl}" and initialize it appropriately.)
+\item Unsplit Hydro/MHD: Significant reorganization.
+  \begin{itemize}
+  \item reorganized definition and use of scratch data. Memory savings.
+  \item use \code{hy\_memAllocScratch} and friends.
+  \item \code{hy\_fullRiemannStateArrays} (instead of \code{Flash-X\_UHD\_NEED\_SCRATCHVARS})
+  \item New runtime parameter hy\_fullSpecMsFluxHandling, default TRUE.
+    resulting in flux-corrected handling for species and
+    mass scalars, including USM.
+  \item Use \code{shockLowerCFL} instead of \code{shockDetect} runtime parameter.
+  \item Revived \code{EOSforRiemann} option.
+  \item More accurate handling of geometric effects close to the origin
+    in 1D spherical geometry.
+  \end{itemize}
+
+\end{itemize}
+
+\noindent Important changes in Flash-X4.4 since Flash-X4.3 include: 
+\begin{itemize}
+\item The default Hydro implementation has changed from split PPM to
+  unsplit Hydro. A new shortcut \code{+splitHydro}
+  can be used to request a split Hydro implementation.
+\item Updated values of many physical constants to 2014 CODATA values.
+  This may cause differences from previously obtained results. The
+  previous values of constants provided by the PhysicalConstants unit
+  can be restored by replacing the file PhysicalCosntants_init.F90
+  with an older version; the version from Flash-X4.3 is included as
+  \code{PhysicalConstants_init.F90.flash43}. This should only be done to
+  reproduce previous simulation results to bit accuracy.
+\item An improved Newton-Raphson search in the 3T Multi-type Eos
+  implemention (MTMMMT, including Eos based on IONMIX tables) can
+  prevent some cases of convergence failure by bounding the search.
+  This implementation follows original improvements made to the
+  \code{Helmholtz} \unit{Eos} implementation by Dean Townsley.
+\item Added new Poisson solvers (Martin-Cartwright Geometric Multigrid
+  and BiPCGStab, which uses multigrid aspreconditioner).
+  Combinations of homogeneous Dirichlet, Neumann, and periodic boundary
+  conditions are supported (although not yet ``isolated'' boundaries for
+  self-gravity).
+\item Added the \unit{IncompNS} physics unit, which provides a solver for
+  incompressible flow problems on rectangular domains. Multistep and
+  Runge-Kutta explicit projection schemes are used for time integration.
+  Implementations on staggered
+  grid arrangement for both uniform grid (UG) and adaptive mesh
+  refinement (AMR) are provided. The new Poisson solvers are employed
+  for AMR cases, whereas the homogeneous trigonometric solver + PFFT can
+  be used in UG. Typical velocity boundary conditions for this problem
+  are implemented.
+\item The ProtonImaging diagnostics code has been improved. Time resolved
+  proton imaging is now possible, where protons are traced through
+  the domain during several time steps. The original version (tracing
+  of protons during one time step with fixed domain) is still available.
+\item The code for Radiation-Fluxlimiter-Aware Hydro has been updated.
+  Smoothing of the flux-limiter function within the enhanced Hydro
+  implementation has been implemented and  has been shown effective
+  in increasing stability in 1D simulations.
+\item New Opacity implementations: \code{BremsstrahlungAndThomson} and \code{OPAL}.
+  These are for gray opacities.
+\item  In addition to the \flashx release, the publicly available Python
+  module \code{opacplot2} has received significant development (credit to
+  JT Laune). It can assist in handling EoS/opacity tables, and
+  includes command line tools to convert various table formats to
+  IONMIX and to compare between different tables. More information
+  can be found in the Flash Center's GitHub repository at
+  \url{https://github.com/flash-center/opacplot2}.
+
+\end{itemize}
+
+
+\noindent New additions in Flash-X4.5 since Flash-X4.4 include: 
+\begin{itemize}
+\item New implementation for synthetic Thomson scattering simulated diagnostic.
+
+\item A new 1D simulation of a 2-temperature Supernova evolution using the
+  flux-limiter-aware hydro treatment of radiation, and related code changes.
+
+\item A new timestep limiter, which ensures that a given list
+  of variables remains positive-definite during hydrodynamic advection.
+  This can be used as an alternative to lowering the Hydro unit's CFL
+  runtime parameter, and has been shown useful for 3T simulations in
+  particular, where non-conservative equations are considered. This will
+  obviate negative temperature errors when using 3T Hydro and MHD.
+  See \secref{Sec:dr_posdef} in the Driver chapter for more information.
+
+\item Expanded the Sedov simulation to be initialized from a
+  quasi-analytical profile, and added diagnostic variables to keep
+  track of various simulation error measures.
+
+\item New flux limiter \code{"vanLeeer1.5"} for unsplit Hydro and MHD.
+
+\item Fixed an issue in which PARAMESH block distribution failed to settle down
+  because of message delay, reported for some machines. This is done 
+  by inserting \code{sleep(1.)} calls in extreme cases.
+
+\item Implement saving of laser irradiation (to "lase" variable) for 2DCyl3D ray
+  tracing, too. Previously was 3D only.
+
+\item We have included detailed instructions that outline how to easily
+  install Flash-X on Windows, Mac OS, and Linux distributions, using Docker.
+  See \secref{Sec:qs-docker} in the "Quick Start" chapter.
+
+
+\item \emterm{Flash-X Interface} is a new graphical interface (GUI) for managing parameter files.
+  and is now available for download. The code was developed by Christopher Walker
+  (cnwalker@uchicago.edu). It currently supports:
+    \begin{itemize}
+   \item Configuring and editing existing \code{flash.par} files;
+   \item Generating new flash.par files by choosing among the full set of
+     possible parameters;
+   \item Filtering the full set of possible Flash-X parameters (found in
+     \code{setup\_params}) via categories;
+   \item Searching for Flash-X params by name, and viewing full descriptions of
+     each parameter's role and function.
+    \end{itemize}
+  The source code, along with download and build instructions can be found at 
+  \url{https://github.com/cnwalker/Flash-X-Interface}.
+  Compiled executables for a number of operating systems can be found at 
+  \url{http://flash.uchicago.edu/site/flashcode/Flash-X-Interface}
+  
+\item The \emterm{PRaLine} code for Proton Radiography Linear reconstruction is now included
+  with the Flash-X code tarball and is available for download at
+  \url{https://github.com/flash-center/PRaLine}
+  This standalone Python code was originally developed for the magnetic field
+  reconstruction method using proton radiography, discussed
+  in Graziani et al. 2017 (in press), \url{https://arxiv.org/abs/1603.08617}
+  Alemayehu Solomon Bogale (alemsolobog@uchicago.edu) restructured the code and
+  made it suitable for public release. For more information see the README files
+  in \code{tools/protonRad} and \code{tools/protonRad/PRaLine}~.
+
+\end{itemize}
+
+\noindent New additions in Flash-X4.6 since Flash-X4.5 include: 
+\begin{itemize}
+\item Implementation of new nonideal MHD effects: Hall term (Cartesian
+   1D/2D/3D and cylindrical 2D), and Biermann battery (Cartesian 2D/3D
+   and cylindrical 2D) as a source term and a flux-based formulation
+   for 3T.
+
+\item Corrections on SpitzerHighZ magnetic resistivity. Now using the NRL
+  plasma formulary equation.
+
+\item New high-order reconstruction methods in unsplit Hydro / MHD solvers:
+  \begin{itemize}
+  \item PCM: Piecewise Cubic Method, see Lee et al, JCP 341, 230, 2017
+  \item GP:  Gaussian Process, see Reyes et al., JCP 381, 189, 2019;
+         Reyes et al., JSC 76, 443, 2018
+  \end{itemize}
+
+\item Added support for anisotropic thermal conduction.
+  Anisotropic conductivities depend on the direction of
+  a magnetic field, so anisotropic conduction is meant
+  to be used together with MHD.
+  Currently only available with the uniform Grid (UG)
+  implementation.
+
+\item New implementation for simulated Thomson scattering
+  experimental diagnostic using ray tracing.
+  (source/diagnostics/ThomsonScattering)
+
+\item Implementation of X-ray imaging simulated
+  experimental diagnostic using ray tracing.\\
+  (source/diagnostics/XrayImaging)
+
+\item Implementation of proton emission simulated
+  experimental diagnostic using ray tracing.\\
+  (source/diagnostics/ProtonEmission)
+
+\item Enabled support for 1D cylindrical laser energy deposition.
+
+\item Applied all known patches for working with HDF5 versions 1.10.x.
+
+\item Compatibility updates to the setup utility so it works with Python2
+  and Python3 versions.
+
+\item Updated various Config files for Python3 compatibility.
+
+\end{itemize}
+
+\noindent These are the changes from Flash-X4.6 to Flash-X4.6.1:
+\begin{itemize}
+\item Corrected Ohmic heating term for nonideal MHD in \code{hy\_uhd\_unsplitUpdate}:
+  erroneous multiplication by density
+
+\item New runtime parameter for optionally specifying laser beam intensities in
+  1D and 2D Cartesian simulations in a more natural way by determining the
+  beam power profile via beam power, not power per length or area unit.
+
+\item Enabled and updated XrayImaging unit, included new unit tests.
+
+\item Fixed occasional generation of invalid refinement pattern by PARAMESH in
+  2D and 3D spherical coordinates.
+
+\item Disabled \code{PM_OPTIMIZE_MORTONBND_FETCHLIST} to avoid rare runtime error in
+  guard cell communication.
+
+\item Added modifications to make setup work better with Python3, including
+  removing 8bit characters and TAB character consistency. We have also
+  added some extra features in the setup command.
+
+\item Improved detection of case-insensitive file system by setup to avoid
+  unnecessary recompilation by make in some Docker environments.
+
+\item Disabled use of 1D profile in default configuration of Sedov example.
+\end{itemize}
+
