@@ -3,19 +3,22 @@
 
 \newcommand{\setup}{\code{setup}\xspace}
 
-The \setup script%\index{setup@\code{setup}}, found in the Flash-X root
-directory, provides the primary command-line interface to configuring
-the Flash-X source code. It is important to remember that the Flash-X code
-is not a single application, but a set of independent code units which
-can be put together in various combinations to create a multitude of
-different simulations. It is through the setup script that the user
-controls how the various units are assembled.
-
-
-The primary job of the \setup script is to
+The \setup tool is the most important component of the \OS. It
+implements the inheritance and composability of the \flashx software
+system. It traverses the Flash-X source tree starting from the
+directory hosting the specific application definition. This starting
+directory is essentially the selected implementation of the
+``Simulation'' unit. While traversing the source three the setup tool
+does the following:
 \begin{itemize}
-\item traverse the Flash-X source tree and link necessary files for a given
-application to the \code{object/} directory
+\item arbitrate on map from a key to its definition, in particular if
+  alternative definitions exist
+\item arbitrate on which implementation of a function to use 
+\item link selected files (include source code and the key
+  definitions) to the \code{object/} directory
+\item invoke macroprocessor to translate keys and generate source
+  file
+\item alter index order if desired
 \item find the target \code{Makefile.h} %\index{Makefile.h} for a given machine.
 \item generate the \code{Makefile} that will build the Flash-X executable.
 \item generate the files needed to add runtime parameters to a given simulation.
@@ -24,106 +27,6 @@ application to the \code{object/} directory
 
 More description of how \setup and the \flashx architecture interact  may be found in
 \chpref{Chp:Architecture}. Here we describe its usage.
-
-% \begin{comment}
-% 
-% % if someone wanted this they would run ./setup -help
-% 
-% \begin{verbatim}
-%  prompt> ./setup -help
-%  Processing Shortcut file: /home/username/Flash-X3/bin/setup_shortcuts.txt
-%  usage:  setup <problem-name> [options] [VAR=VALUE]...
-% 
-%    problem-name: see source/Simulation/SimulationMain directory
-%    options:
-% 
-%    (Science Options)
-%             -auto -[123]d
-%             -maxblocks=<#> -nxb=<#> -nyb=<#> -nzb=<#>
-%             -with-unit=<unit> -with-library=<libname>[,args]
-%             -without-unit=<unit> -without-library=<libname>
-% 
-%    (Setup and Make Options)
-%             -verbose=[DEBUG|INFO|WARN|IMPINFO|ERROR]
-%             [-site=<site> | -ostype=<ostype>]
-%             -makefile=<extension>
-%             [-opt | -debug | -test ]
-%             -objdir=<relative obj directory>
-%             -defines=<defines> -unitsfile=<filename>
-%             -datafiles=<wildcard> -parfile=<filename>
-%             -append-parfiles=<filenames>
-%             -fbs -nofbs -tau=<makefile>
-% 
-%    (Misc Options)
-%             -makehide -noclobber -portable -help
-% 
-%    * For GNU compatibility, options may be prefixed by a double dash (--opt) as well
-%      as well as a single dash (-opt)
-%    * -unit and -library are considered equivalent to
-%      -with-unit and -with-library respectively.
-%    * For information regarding the [VAR=VALUE] options and using 'setup variables'
-%      refer to User's Guide.
-%    * To read how shortcuts work see README.shortcuts in your bin directory
-% 
-%    To use a shortcut add '+shortcut' to your setup line.
-%    For example ./setup Sod -auto +ug
-% 
-%    8wave            --with-unit=physics/Hydro/HydroMain/split/MHD_8Wave +grid --gridinterpolation=native
-%    cartesian        --geometry=cartesian
-%    cube16           --nxb=16 --nyb=16 --nzb=16
-%    cube32           --nxb=32 --nyb=32 --nzb=32
-%    cube64           --nxb=64 --nyb=64 --nzb=64
-%    curvilinear      --curvilinear
-%    cylindrical      --geometry=cylindrical
-%    default          --with-library=mpi +io +grid --gridinterpolation=monotonic
-%    dynamicmem-pm40  +pm40 ParameshLibraryMode=True
-%    gravPfft         +ug +nofbs --with-unit=physics/Gravity/GravityMain/Poisson/Pfft
-%    gravMgrid        +pm3 --with-unit=physics/Gravity/GravityMain/Poisson/Multigrid
-%    gravMpole        +pm3 --with-unit=physics/Gravity/GravityMain/Poisson/Multipole
-%    grid             --unit=Grid
-%    hdf5             IO=hdf5
-%    io               --with-unit=IO
-%    longRange        --with-unit=Particles/ParticlesMain/active/longRange/gravity/ParticleMesh
-%    mpole            --with-unit=physics/Gravity/GravityMain/Poisson/Multipole
-%    noio             --without-unit=IO
-%    nolog            --without-unit=monitors/Logfile
-%    npg              npg=True
-%    parallelio       parallelIO=True
-%    pm2              +grid Grid=PM2
-%    pm3              +pm40
-%    pm40             +grid Grid=PM40
-%    pm4dev           +grid Grid=PM4DEV ParameshLibraryMode=True
-%    pnetcdf          IO=pnetcdf
-%    polar            --geometry=polar
-%    ptdens           --unit=Particles/ParticlesMain --unit=Particles/ParticlesInitialization/WithDensity --unit=Particles/ParticlesMapping
-%    ptio             +ug --with-unit=Particles
-%    rnf              --3d --nxb=8 --nyb=16 --nzb=32 --nofbs +ug
-%    serialio         parallelIO=False
-%    spherical        --geometry=spherical
-%    spherical-pm2    +pm2 +spherical
-%    spherical-pm3    +curv-pm3
-%    ug               +grid Grid=UG
-%    usm              --with-unit=physics/Hydro/HydroMain/unsplit/MHD_StaggeredMesh --without-unit=physics/Hydro/HydroMain/split/MHD_8Wave
-% \end{verbatim}
-% %
-% 
-% \end{comment}
-
-% The \code{source/Simulation/SimulationMain} directory contains all example
-% problems that come with the Flash-X code, and is where users should create
-% their own custom problems (see \chpref{Chp:Creating new problems} for more
-% information on this topic).
-% 
-% A ``problem'' consists of a specification of the code units to be
-% used, a  set of initial and boundary conditions, possibly additional
-% physics (\eg, a subgrid model for star formation), and a set of
-% adjustable runtime parameters. A subdirectory of \code{SimulationMain}
-% that has the same name as the problem contains source code
-% implementing initial conditions and, in a few cases, the boundary
-% conditions and extra physics. It also contains a fragment Makefile and a
-% configuration file
-% \code{Config}, read by \setup, which contains the information about
-% required units and runtime parameters.
 
 The \setup script determines site-dependent configuration information
 by looking for a directory
@@ -134,22 +37,15 @@ has multiple hostnames, setup tries them all} Failing this, it looks in
 \code{sites/Prototypes/} for a directory with the same name as the output
 of the \code{uname} command.  The site and operating system type can be
 overridden with the \code{-site} and \code{-ostype} command-line options to
-the \setup command.
+the \setup command. 
 Only one of these options can be used at one time.
 The directory for each site and operating system type contains a makefile
 fragment \code{Makefile.h} that sets command names, compiler flags,
 library paths, and any replacement or additional source files needed
 to compile Flash-X for that specific machine and machine type.
 
-The \setup script uses the contents of the problem directory and the site/OS type,
-together with a \code{Units} file, 
-to generate the \code{object/} directory,
-which contains links to the appropriate source files and makefile fragments.
-The \code{Units} file lists the names of all units which need to be
-included while building the Flash-X application. This file is automatically
-generated when the user commonly provides the command-line \code{-auto} option, although it may be
-assembled by hand. When \code{-auto} option is used, the \setup script
-starts with the \code{Config} file of the problem specified, finds its
+The \setup script starts with the \code{Config} file of the specified
+application in the Simulation unit, finds its
 \code{REQUIRED} units and then works its way through their
 \code{Config} files. This process continues until all the dependencies
 are met and a self-consistent set of units has been found. At the end
@@ -164,11 +60,6 @@ directory.
 Note that the Flash-X build system assumes that the command \code{make} invokes GNU Make
 and is unlikely to work properly with other implementations of the \code{make}
 command. On some systems it may be necessary to invoke GNU Make under the name \code{gmake}.
-
-\begin{flashtip}
-In \flashx, the \code{Units} file was located in the Flash-X root directory.
-In \flashx, this file is found in the \code{object/} directory. 
-\end{flashtip}
 
 
 \begin{flashtip}[Save some typing]
@@ -206,14 +97,6 @@ For detailed examples of I/O shortcuts please see
 \end{itemize}
 \end{flashtip}
 
-
-\begin{flashtip}[Reduce compilation time]
-\begin{itemize}
-%\item Use \code{gmake -j} to enable parallel builds in gmake.
-\item To reuse compiled code when changing setup configurations, use the \code{-noclobber} setup option.
-For details see \secref{Sec:ListSetupArgs}.
-\end{itemize}
-\end{flashtip}
 
 \section{Setup Arguments}
 
