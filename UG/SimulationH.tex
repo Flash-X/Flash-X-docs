@@ -1,0 +1,403 @@
+\chapter{The \code{Simulation.h} file}
+\label{Chp:Simulation.h}
+
+\code{Simulation.h}%\index{Simulation.h}
+is a critical header file in \flashx which
+holds many of the key quantities related to the particular
+simulation. The \code{Simulation.h} file is written by the setup script
+and should not be modified by the user.  
+The \code{Simulation.h} file will be different
+for various applications.  When the setup script is building an
+application, it parses the \code{Config} files, collects definitions of
+variables, fluxes, grid vars, species, and mass scalars, and writes 
+a symbol (an index into one of the data structures maintained by
+the \unit{Grid} unit)
+for each defined entity to the \code{Simulation.h} header file.
+This chapter explains these symbols and some of the other 
+important quantities and indices defined in the \code{Simulation.h} file.
+
+%%\section{Flash Pre-processor symbols}
+
+%begin{latexonly}
+\newcommand{\htabopt}[1]{\multicolumn{2}{l}{\code{#1}}\\*[1ex]}
+\newcommand{\htr}{\\[1ex]}
+%end{latexonly}
+% \begin{htmlonly}
+% \newcommand{\htabopt}[1]{\multicolumn{2}{l}{\code{#1}}\\}
+% \newcommand{\htr}{\\}
+% \end{htmlonly}
+
+
+\section{\code{UNK}, \code{FACE(XYZ)} Dimensions}
+\label{Sec:FlashHdimensions}
+Variables in a simulation are stored and manipulated by the
+\unit{Grid} unit.  The basic data structures in the \unit{Grid} unit are
+5-dimensional arrays: \code{unk}, \code{facex}, \code{facey}, and
+\code{facez}.  The
+array \code{unk} stores the cell-centered values of various quantities
+(density, pressure, etc.).  The \code{facex}, \code{facey} and
+\code{facez} variables store face-centered values of some or all of
+the same quantities.  Face centered variables are commonly used in Magnetohydrodynamics (MHD)
+simulations to hold vector-quantity fields.  The first dimension of
+each of these arrays indicates the variable, the 2nd, 3rd, and 4th
+dimensions indicate the cell location in a block, and the 5th dimension is
+the block identifier for the local processor.  The size of the block,
+dimensions of the domain, and other parameters which influence the
+\unit{Grid} data structures are defined in \code{Simulation.h}.
+
+\begin{longtable}{p{0.04\textwidth}p{0.9\textwidth}}
+ \htabopt{NXB,NYB,NZB} & The number of interior cells in the x,y,z-dimension
+per block \htr
+ \htabopt{MAXCELLS} & The maximum of (NXB,NYB,NZB)\htr
+
+ \htabopt{MAXBLOCKS} & The maximum number of blocks
+which can be allocated in a single processor \htr
+ \htabopt{GRID\_(IJK)LO} & The index of the lowest numbered cell in the
+x,y,z-direction in a block (not including guard cells) \htr
+ \htabopt{GRID\_(IJK)HI} & The index of the highest numbered cell in the
+x,y,z-direction in a block (not including guard cells) \htr
+ \htabopt{GRID\_(IJK)LO\_GC} & The index of the lowest numbered cell in the
+x,y,z-direction in a block (including guard cells) \htr
+ \htabopt{GRID\_(IJK)HI\_GC} & The index of the highest numbered cell in the
+x,y,z-direction in a block (including guard cells) \htr
+ \htabopt{NGUARD} & The number of guard cells in each dimension.
+
+\end{longtable}
+All of these constants have meaning when operating in FIXEDBLOCKSIZE
+mode%\index{FIXEDBLOCKSIZE mode} only.
+FIXEDBLOCKSIZE mode is when the sizes and the 
+block bounds are determined at compile time.  In NONFIXEDBLOCKSIZE 
+mode%\index{NONFIXEDBLOCKSIZE mode},
+the block sizes and the block
+bounds are determined at runtime.  \Paramesh always runs in
+FIXEDBLOCKSIZE mode, while the Uniform Grid can be run in either FIXEDBLOCKSIZE or
+NONFIXEDBLOCKSIZE mode.  See \secref{Sec:ListSetupArgs} and 
+\secref{Sec:NONFIXEDBLOCKSIZE} for more information.
+
+\section{Property Variables, Species and Mass Scalars}
+\label{Sec:FlashHvariables}
+The \code{unk} data structure stores, in order, property variables (like density,
+pressure, temperature), the mass fraction of species, and 
+mass scalars \footnote{See \eqref{eq:massscalar} for more information about mass scalars}.  
+However, in \flashx the user does not need to be intimately aware
+of the \code{unk} array layout, as starting
+and ending indices of these groups of quantities are defined in \code{Simulation.h}.  
+The following
+pre-processor symbols define the indices of the various quantities
+related to a given cell. These symbols are primarily used to perform
+some computation with all property variables, species mass fractions,
+or all mass scalars.
+
+\begin{longtable}{p{0.04\textwidth}p{0.9\textwidth}}
+ \htabopt{NPROP\_VARS} & The number of property variables in the simulation
+ \htr
+ \htabopt{NSPECIES} & The total number of species in the simulation \htr
+ \htabopt{NMASS\_SCALARS} & The number of mass scalars in the simulation \htr
+ \htabopt{NUNK\_VARS} & The total number of quantities stored for
+ each cell in the simulation. This equals \code{NPROP\_VARS + NSPECIES + NMASS\_SCALARS} \htr
+ \htabopt{PROP\_VARS\_BEGIN,PROP\_VARS\_END} &
+ The indices in the \code{unk} array used for property variable data \htr
+ \htabopt{SPECIES\_BEGIN,SPECIES\_END} &
+ The indices in the \code{unk} array used for species data \htr
+ \htabopt{MASS\_SCALARS\_BEGIN,MASS\_SCALARS\_END} &
+ The indices in the \code{unk} array used for mass scalars data \htr
+ \htabopt{UNK\_VARS\_BEGIN,UNK\_VARS\_END} &
+ The low and high indices for the \code{unk} array \htr
+\end{longtable}
+
+The indices where specific properties (\eg, density) are stored can
+also be accessed via pre-processor symbols.  All properties are
+declared in \code{Config} files and consist of 4 letters. For example, 
+if a \code{Config} file declares a ``dens'' variable, its index in
+the \code{unk} array is available via the pre-processor symbol
+\code{DENS\_VAR} (append \code{\_VAR} to the uppercase name of the variable)
+which is guaranteed to be an integer. The same is true for species and mass
+scalars. In the case of species, the pre-processor symbol is created by
+appending \code{\_SPEC} to the uppercase name of the species (\eg,
+\code{SF6\_SPEC}, \code{AIR\_SPEC}). Finally, for mass scalars,
+\code{\_MSCALAR} is appended to the uppercase name of the mass
+scalars.  
+
+
+
+\section{Fluxes}
+\label{Sec:FlashHfluxes}
+The fluxes are stored in their own data structure and are only necessary
+when an adaptive grid is in use.  The index order works in much the
+same way as with the \code{unk} data structure.  There are the traditional
+property fluxes, like density, pressure, \etc  Additionally, there are 
+species fluxes and mass scalars fluxes. The name of the pre-processor symbol is
+assembled by 
+appending \code{\_FLUX} to the uppercase name of the declared flux (\eg,
+\code{EINT\_FLUX}, \code{U\_FLUX}). 
+For flux species and flux mass scalars,
+the suffix \code{\_FLUX\_SPECIES} and \code{\_FLUX\_MSCALAR} are appended to 
+the uppercase names of flux species and flux mass scalars, respectively, as declared in the
+\code{Config} file.
+Useful defined variables are calculated as follows:
+
+
+\begin{longtable}{p{0.04\textwidth}p{0.9\textwidth}}
+ \htabopt{NPROP\_FLUX} & The number of property variables in the simulation
+ \htr
+ \htabopt{NSPECIES\_FLUX} & The total number of species in the simulation \htr
+ \htabopt{NMASS\_SCALARS\_FLUX} & The number of mass scalars in the simulation \htr
+ \htabopt{NFLUXES} & The total number of quantities stored for
+ each cell in the simulation. This equals \code{(NPROP\_FLUX + NSPECIES\_FLUX + NMASS\_SCALARS\_FLUX)} \htr
+%%% This previously said  NFLUX_VARS   and       NPROP\_FLUXES + NFLUX\_SPECIES + NFLUX\_MASS\_SCALARS
+ \htabopt{PROP\_FLUX\_BEGIN,PROP\_FLUX\_END} &
+ The indices in the \code{fluxes} data structure used for property variable data \htr
+ \htabopt{SPECIES\_FLUX\_BEGIN,SPECIES\_FLUX\_END} &
+ The indices in the \code{fluxes} data structure used for species data \htr
+ \htabopt{MASS\_SCALARS\_FLUX\_BEGIN,MASS\_SCALARS\_FLUX\_END} &
+ The indices in the \code{fluxes} data structure used for mass scalars data \htr
+ \htabopt{FLUXES\_BEGIN} &
+ The first index for the \code{fluxes} data structure \htr
+\end{longtable}
+
+
+\section{Fluid Variables Example}
+The snippet of code below shows a \code{Config} file and
+parts of a corresponding \code{Simulation.h} file.  
+
+\begin{codeseg}
+# Config file for explicit split PPM hydrodynamics.
+# source/physics/Hydro/HydroMain/split/PPM  
+
+REQUIRES physics/Hydro/HydroMain/utilities
+REQUIRES physics/Eos
+
+DEFAULT PPMKernel
+
+VARIABLE dens TYPE: PER_VOLUME       # density
+VARIABLE velx TYPE: PER_MASS         # x-velocity
+VARIABLE vely TYPE: PER_MASS         # y-velocity
+VARIABLE velz TYPE: PER_MASS         # z-velocity
+VARIABLE pres TYPE: GENERIC          # pressure
+VARIABLE ener TYPE: PER_MASS         # specific total energy (T+U)
+VARIABLE temp TYPE: GENERIC          # temperature
+VARIABLE eint TYPE: PER_MASS         # specific internal energy
+
+FLUX rho
+FLUX u
+FLUX p
+FLUX ut
+FLUX utt
+FLUX e
+FLUX eint
+
+SCRATCHVAR otmp
+SCRATCHCENTERVAR ftmp
+.....
+\end{codeseg}
+
+The \code{Simulation.h} files would declare the property variables, fluxes
+and scratch variables as:
+(The setup script alphabetizes the names.)
+
+\begin{codeseg}
+#define DENS_VAR 1
+#define EINT_VAR 2
+#define ENER_VAR 3
+#define PRES_VAR 4
+#define TEMP_VAR 5
+#define VELX_VAR 6
+#define VELY_VAR 7
+#define VELZ_VAR 8
+
+#define E_FLUX 1 
+#define EINT_FLUX 2 
+#define P_FLUX 3
+#define RHO_FLUX 4 
+#define U_FLUX 5
+#define UT_FLUX 6 
+#define UTT_FLUX 7 
+
+#define OTMP_SCRATCH_GRID_VAR 1
+
+#define FTMP_SCRATCH_CENTER_VAR 1
+
+\end{codeseg}
+
+
+%%\subsection{Particle Properties}
+\section{Particles }
+\label{Sec:FlashHparticles}
+\subsection{Particles Types}
+\label{Sec:FlashHparttypes}
+\flashx now supports the co-existence of multiple particle types
+in the same simulation. To facilitate this ability, the particles are
+now defined in the \code{Config} files with \code{PARTICLETYPE}
+keyword, which is also accompanied by an associated initialization and
+mapping method. The following example shows a Config file with passive
+particles, and the corresponding generated \code{Simulation.h} lines
+\begin{codeseg}
+
+Config file :
+
+PARTICLETYPE passive INITMETHOD lattice MAPMETHOD quadratic ADVMETHOD rungekutta
+
+REQUIRES Particles/ParticlesMain
+REQUESTS Particles/ParticlesMain/passive/RungeKutta
+REQUESTS Particles/ParticlesMapping/Quadratic
+REQUESTS Particles/ParticlesInitialization/Lattice
+REQUESTS IO/IOMain/
+REQUESTS IO/IOParticles
+
+Simulation.h :
+
+#define PASSIVE_PART_TYPE 1
+#define PART_TYPES_BEGIN CONSTANT_ONE
+#define NPART_TYPES 1
+#define PART_TYPES_END (PART_TYPES_BEGIN + NPART_TYPES - CONSTANT_ONE)
+
+\end{codeseg} 
+
+One line desribing the type, initialization, and mapping methods must be
+provided for {\em each} type of particle included in the simulation.
+
+\subsection {Particles Properties}
+\label{Sec:FlashHpartprops}
+Particle properties are defined within the \code{particles} data structure.
+The individual properties will be listed in \code{Simulation.h} if the
+\unit{Particles} unit is defined in a simulation.  The variables 
+\code{NPART_PROPS}, \code{PART_PROPS_BEGIN} and \code{PART_PROPS_END}
+indicate the number and location of particle properties indices.
+For example if a Config file has the following specifications
+\begin{codeseg}
+
+PARTICLEPROP dens
+PARTICLEPROP pres
+PARTICLEPROP velx
+
+\end{codeseg}
+
+then the relevant portion of \code{Simulation.h} will contain
+\begin{codeseg}
+#define DENS_PART_PROP 1
+#define PRES_PART_PROP 2
+#define VELX_PART_PROP 3
+...
+#define PART_PROPS_BEGIN CONSTANT_ONE
+#define NPART_PROPS 3
+#define PART_PROPS_END (PART_PROPS_BEGIN + NPART_PROPS - CONSTANT_ONE)
+\end{codeseg}
+
+\section{Non-Replicated Variable Arrays}
+\label{Sec:FlashHnonrep}
+For each non-replicated variable array defined in the \code{Config} file
+(see \secref{Sec:ConfigFileSyntax}), various macros and constants are defined
+to assist the user in retrieving the information from the \code{NONREP} line as
+well as determining the distribution of array element variables across the meshes.
+
+\subsection{Per-Array Macros}
+For each non-replicated variable array \metavar{FOO} as defined by the following
+\code{Config} line:
+
+\code{
+NONREP \metavar{unktype} FOO \metavar{localmax} \metavar{globalparam} \metavar{ioformat}
+}
+
+the following will be placed into \code{Simulation.h}:
+\begin{itemize}
+\item \code{\#define \metavar{FOO}_NONREP}\\
+An integer constant greater than zero to be used as an id for this array.
+The user should rarely ever need to use this value.  Instead, it is much more
+likely that the user would just query the preprocessor for the existence of
+this symbol (via \code{\#ifdef \metavar{FOO}_NONREP}) to enable sections of code.
+\item \code{\#define \metavar{FOO}_NONREP_LOC2UNK(loc)}\\
+Given the 1-based index into this mesh's local subset of the global
+array, returns the \code{UNK} index where that variable is stored.
+\item \code{\#define \metavar{FOO}_NONREP_MAXLOCS}\\
+The integer constant \metavar{localmax} as supplied in the \code{Config} file
+\code{NONREP} line.
+\item \code{\#define \metavar{FOO}_NONREP_RPCOUNT}\\
+The string literal value of \metavar{globalparam} from the \code{NONREP} line.
+\end{itemize}
+
+\subsection{Array Partitioning Macros}
+These are the macros used to calculate the subset of indices into the global
+variable array each mesh is responsible for:
+\begin{itemize}
+\item \code{\#define NONREP_NLOCS(mesh,meshes,globs)}\\
+Returns the number of elemenets in the mesh's local subset.  This value will always
+be less than or equal to \metavar{FOO}_NONREP_MAXLOCS.
+\item \code{\#define NONREP_LOC2GLOB(loc,mesh,meshes)}\\
+Maps an index into a mesh's local subset to its index in the global array.
+\item \code{\#define NONREP_GLOB2LOC(glob,mesh,meshes)}\\
+Maps an index of the global array to the index into a mesh's local subset.  If the
+mesh provided does not have that global element the result is undefined.
+\item \code{\#define NONREP_MESHOFGLOB(glob,meshes)}\\
+Returns the mesh that owns a given global array index.
+\end{itemize}
+
+Descriptions of arguments to the above macros:
+\begin{itemize}
+\item \code{loc}:  1-based index into the mesh-local subset of the global array's indices.\\
+\item \code{glob}:  1-based index into the global array.\\
+\item \code{globs}:  Length of the global array.  This should be the value read from
+the array's runtime parameter \metavar{FOO}_NONREP_RPCOUNT.
+\item \code{mesh}:  0-based index of the mesh in question.  For a processor, this is
+its rank in the \code{MESH_ACROSS_COMM} communicator.\\
+\item \code{meshes}:  The number of meshes.  This should be the value of the runtime parameter
+\code{meshCopyCount}, or equivalently the number of processors in the
+\code{MESH_ACROSS_COMM} communicator.\\
+\end{itemize}
+
+\subsection{Example}
+In this example the global array \code{FOO} has eight elements, but there are three meshes, so
+two of the meshes will receive three elements of the array and one will get two.  How
+that distribution is decided is hidden from the user.  The output datasets will contain
+variables \code{foo1 \dots foo8}.
+
+Config:
+\begin{fcodeseg}
+NONREP MASS_SCALAR FOO 3 numFoo foo?
+\end{fcodeseg}
+
+flash.par:
+\begin{fcodeseg}
+meshCopyCount = 3
+numFoo = 8
+\end{fcodeseg}
+
+Fortran 90:
+\begin{fcodeseg}
+\#include "Simulation.h"\\
+! this shows how to iterate over the UNKs corresponding to this 
+! processor's subset of FOO
+integer :: nfooglob, nfooloc ! number of foo vars, global and local
+integer :: mesh, nmesh ! this mesh number, and total number of meshes
+integer :: fooloc, fooglob ! local and global foo indices
+integer :: unk\\
+call Driver_getMype(MESH_ACROSS_COMM, mesh)
+call Driver_getNumProcs(MESH_ACROSS_COMM, nmesh)
+call RuntimeParameters_get(FOO_NONREP_RPCOUNT, nfooglob)
+nfooloc = NONREP_NLOCS(mesh, nmesh, nfooglob)\\
+! iterate over the local subset for this mesh
+do fooloc=1, nfooloc
+    ! get the location in UNK
+    unk = FOO_NONREP_LOC2UNK(fooloc)
+    ! get the global index
+    fooglob = NONREP_LOC2GLOB(fooloc, mesh, nmesh)\\
+    ! you have what you need, do your worst...
+end do
+\end{fcodeseg}
+
+%%\subsection{Other Preprocessor Symbols}
+\section{Other Preprocessor Symbols}
+\label{Sec:FlashHother}
+The constants \code{FIXEDBLOCKSIZE} and \code{NDIM} are both included
+for convenience in this file. \code{NDIM} gives the dimensionality of
+the problem, and \code{FIXEDBLOCKSIZE} is defined if and only if fixed blocksize mode is
+selected at compile time.
+
+Each \code{Config} file can include the \code{PPDEFINE} keyword to
+define additional preprocessor symbols. Each ``\code{PPDEFINE
+\metavar{symbol} \metavar{[value]}}'' gets translated to a 
+``\code{\#define \metavar{symbol} \metavar{[value]}}''.
+This mechanism can be used to write code that depends on which
+units are included in the simulation. 
+See \chpref{Sec:ConfigFileSyntax} for concrete usage examples.
+
+%\index{FIXEDBLOCKSIZE mode}

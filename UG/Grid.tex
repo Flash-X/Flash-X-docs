@@ -1,0 +1,1742 @@
+
+\chapter{Grid Unit}
+\label{Chp:Grid Unit}
+
+
+%------------------------------------------------------------------------
+% Introduction
+%------------------------------------------------------------------------
+\section{Overview}
+\label{Sec:GridIntroduction}
+
+The \unit{Grid} unit has four subunits: \unit{GridMain} is responsible
+for maintaining the Eulerian grid used to discretize the spatial dimensions of
+a simulation; \unit{GridParticles} manages the data movement
+related to active, and Lagrangian tracer particles;
+\unit{GridBoundaryConditions}  
+handles the application of boundary conditions at the physical
+boundaries of the domain; 
+and \unit{GridSolvers} provides services for solving some types
+of partial differential equations on the grid. In the Eulerian grid,
+discretization is achieved by dividing the computational domain into
+one or more sub-domains or blocks%\index{block},
+and using these blocks
+as the primary computational entity visible to the physics units.  A
+block%\index{block}
+contains a number of computational cells
+(\code{nxb} in the $x$-direction, \code{nyb} in the $y$-direction, and
+\code{nzb} in the $z$-direction). A perimeter of
+guardcells%\index{guardcells}%\index{grid!guardcells|see{guardcells}},
+of width \code{nguard} cells in each coordinate direction,
+surrounds each block of local data, providing it with data from the
+neighboring blocks or with boundary conditions, as shown in
+\figref{Fig:single_block.eps}. Since the majority of physics solvers
+used in Flash-X are explicit, a block with its surrounding guard cells
+becomes a self-contained computational domain. Thus the physics units
+see and operate on only one block at a time, and this abstraction is
+reflected in their design.
+
+Therefore any mesh package that can present a self contained block as
+a computational domain to a client unit can be used with
+Flash-X. However, such interchangeability of grid packages  also
+requires a careful design of the \unit{Grid} API to make the
+underlying management of the discretized grid completely transparent
+to outside units.  The data structures for physical variables, the
+spatial coordinates, and the management of the grid are kept private
+to the \code{Grid} unit, and client units can access them only through
+accessor functions.  This strict protocol for data management along
+with the use of blocks as computational entities enables Flash-X to
+abstract the grid from physics solvers and facilitates the ability of
+Flash-X to use multiple mesh packages.
+\begin{figure}
+\begin{center}
+{\leavevmode\includegraphics[width=3in]{Grid_single_block}}
+\end{center}
+\caption[A 2-D block with guard cells]{\label{Fig:single_block.eps} A
+single 2-D block showing the
+interior cells (shaded) and the perimeter of guard cells.}
+\end{figure}
+
+Any unit in the code can retrieve all or part of a block of data from
+the \unit{Grid} unit along with the coordinates of corresponding
+cells; it can then use this information for internal computations, and
+finally return the modified data to the \unit{Grid} unit. The
+\unit{Grid} unit also manages the parallelization of Flash-X. It
+consists of a suite of subroutines which handle distribution of work
+to processors and guard cell filling. When using an adaptive mesh, the
+Grid unit is also responsible for refinement/derefinement and
+conservation of flux across block boundaries. 
+
+Flash-X can interchangeably use either
+a \emterm{uniform} or \emterm{adaptive grid} for most
+problems. Additionally, a new feature in \flashx is an option to
+replicate the mesh; that is processors are assumed to be partitioned
+into groups, each group gets a copy of the entire domain mesh. This
+feature is useful when it is possible to decompose the computation
+based upon certain compute intensive tasks that apply across the
+domain. One such example is radiation transfer with multigroup flux
+limited diffusion where each group needs an implicit solve. Here the 
+state variable of the mesh are replicated on each group of processors,
+while the groups are unique. Thus at the cost of some memory
+redundancy, it becomes possible to compute a higher fidelity problem
+(see \chpref{chp:RadTrans} for an example). 
+Because of this feature, the parallel environment of the simulation is
+now controlled by the Driver which differentiates between global
+communicators and mesh communicators. The Grid unit queries the Driver
+unit for mesh communicators. In all other respects this change is
+transparent to the Grid unit. Mesh replication can be invoked through
+the runtime parameter \rpi{Driver/meshCopyCount}
+
+The uniform grid supported in Flash-X discretizes the physical domain by
+placing grid points at regular intervals defined by the geometry of
+the problem. The grid configuration remains unchanged throughout the
+simulation, and exactly one block is mapped per processor.
+An adaptive grid changes the discretization over the course of the
+computation, and several blocks can be mapped to each computational
+processor. Two AMR packages are currently supported in Flash-X for
+providing adaptive grid capbility. The block-structured oct-tree based
+AMR package, \Paramesh%\index{paramesh}
+has been the work horse since
+the beginning of the code. 
+
+\begin {flashtip}
+The following two commands will create the same (identical) application:
+a simulation of a Sod shock tube in 3 dimensions with \Paramesh4
+managing the grid.
+\begin{codeseg}
+./setup Sod -3d -auto
+
+./setup Sod -3d -auto -unit=Grid/GridMain/paramesh/paramesh4/Paramesh4.0
+\end{codeseg}
+However, if the command is changed to
+\begin{codeseg}
+./setup Sod -3d -auto -unit=Grid/GridMain/UG
+\end{codeseg}
+the application is set up with a uniform grid instead.
+Additionally, because two different grids types are supported in Flash-X, the user
+must match up the correct \unit{IO} \childunit with the correct \unit{Grid} \childunit.
+Please
+see \chpref{Chp:IO} for more details.
+Note that the \code{setup} script has capabilities to let the user set up
+shortcuts, such as ``\code{+ugio}'', which makes sure that the appropriate
+branch of \unit{IO} is included when the uniform grid is being used. Please see
+\chpref{Sec:SetupShortcuts} for more information. Also see
+% \tips{grid}{grid tips}
+for shortcuts useful for the Grid unit.
+\end{flashtip}
+
+\section{\unit{GridMain} Data Structures}
+The \unit{Grid} unit is the most extensive infrastructure unit in the
+Flash-X code, and it owns data that most other units wish to fetch and
+modify. Since the data layout in this unit has implications on the
+manageability and performance of the code, we describe it in some
+detail here. 
+
+% First, unlike other units, \code{Grid} has two different
+% \Fortran90 modules which contain the data variables.  In common with
+% the structure of other units, there is
+% \code{Grid_data.F90}. Additionally, there is the
+% \code{physicaldata.F90} module, which contains the data types for all
+% the physical-mesh based data. The split structure is necessary because
+% Flash-X shares the \code{physicaldata.F90} module with \Paramesh.  
+% To lessen confusion, the same name \code{physicaldata.F90} module is also defined in the \code{UG}
+% (uniform grid) implementation.
+
+Flash-X can be run with a grid discretization that assumes cell-centered data,
+face-centered data, or a combination of the two. Paramesh and Uniform
+Grid store physical data in multidimensional \Fortran90 arrays;
+cell-centered variables in \code{unk}, short for ``unknowns'', and 
+face-centered variables in arrays 
+called \code{facevarx}, \code{facevary}, and \code{facevarz},
+which contain the face-centered data along the
+$x$, $y$, and $z$
+dimensions, respectively. The cell-centered array \code{unk} is dimensioned as
+\code{array(\code{NUNK_VARS},nxb,nyb,nzb,\metavar{blocks})},
+ where \code{nxb}, \code{nyb}, \code{nzb} are the spatial dimensions
+of a single block, and \metavar{blocks} is the number of blocks per
+processor (\code{MAXBLOCKS} for \Paramesh and 1 for UG). The
+face-centered arrays have one extra data point along the dimension
+they are representing, for example \code{facevarx} is dimensioned as
+\code{array(\code{NFACE_VARS},nxb+1,nyb,nzb,\metavar{blocks})}. 
+ Some or all of the  actual values dimensioning these arrays are
+determined at application setup time. The number of variables and the
+value of \code{MAXBLOCKS} are always determined at setup time. The
+spatial dimensions \code{nxb},\code{nyb},\code{nzb} can either be
+fixed at setup time, or they may be determined at runtime. These two
+modes are referred to as FIXEDBLOCKSIZE and
+NONFIXEDBLOCKSIZE. 
+
+All values determined at setup time are defined as constants in
+a file \code{Simulation.h} generated by the setup tool. This file contains
+all application-specific global constants such as the number and
+naming of physical variables, number and naming of fluxes and species,
+\etc; it is described in detail in \chpref{Chp:Simulation.h}.
+
+For cell-centered variables, the \unit{Grid} unit
+also stores a \emterm{variable type} that can be retrieved using 
+the \api{Simulation/Simulation_getVarnameType} routine; see
+\secref{Sec:ConfigFileSyntax} for the syntax and meaning
+of the optional \code{TYPE} attribute that can be specified
+as part of a \code{VARIABLE} definition read by the setup tool.
+
+In addition to the primary physical variables, the \unit{Grid} unit has
+another set of data structures for storing auxiliary fluid variables. 
+This set of data structures provides a mechanism for storing such
+variables whose spatial scope is the entire 
+physical domain, but who do not need to maintain their guard cells
+updated at all times. The data structures in this set include:
+\code{SCRATCHCENTERVAR}, which has the same shape as the cell
+centered variables data structure;  and \code{SCRATCHFACEXVAR},
+\code{SCRATCHFACEYVAR} and \code{SCRATCHFACEZVAR}, which have
+the same shape as the corresponding face centered variables
+data structures. Early releases of Flash-X3 had \code{SCRATCHVAR},
+dimensioned
+\code{array(\code{NSCRATCH_GRID_VARS},nxb+1,nyb+1,nzb+1,blocks)}, as  
+the only grid scope scratch data structure.  For reasons of backward
+compatibility, and to maximize reusability of space, \code{SCRATCHVAR}
+continues to exist as a supported data structure, though its use is
+deprecated.  The
+datastructures  
+for face variables, though supported, are not used anywhere in the
+released code base.  The unsplit MHD solver
+\code{StaggeredMesh} discussed in \secref{Sec:usm_algorithm} gives an
+example of the use of some of these data structures. It is important
+to note that there is no guardcell filling for the scratch variables,
+and the values in the scratch variables become invalid after a grid
+refinement step. While users can define scratch variables to be
+written to the plotfiles, they are not by default written to 
+checkpoint files. The \unit{Grid} unit also stores the metadata
+necessary for work distribution, load balancing, and other
+housekeeping activities. These activities are further discussed in 
+\secref{Sec:Grid UG} and \secref{Sec:Grid AMR}, which describe
+individual implementations of the \unit{Grid} unit.
+
+
+\section{Computational Domain}
+\label{Sec:computational domain}
+The size of the computational domain%\index{computational domain}
+in
+physical units is specified at runtime through the
+(\rpi{Grid/xmin}, \rpi{Grid/xmax})%\index{grid!xmin/xmax@\code{xmin/xmax}},
+(\rpi{Grid/ymin}, \rpi{Grid/ymax})%\index{grid!ymin/ymax@\code{ymin/ymax}}, and
+(\rpi{Grid/zmin}, \rpi{Grid/zmax})%\index{grid!zmin/zmax@\code{zmin/zmax}}
+runtime parameters.
+When working with curvilinear coordinates (see
+below in \secref{Sec:Grid geometry}), the extrema for angle
+coordinates%\index{angular coordinates}
+are specified in
+degrees. Internally all angles are represented in radians, so angles
+are converted to radians at \unit{Grid} initialization. 
+
+The physical domain is mapped into a computational domain at problem
+initialization through routine \api{Grid/Grid_initDomain} in
+\Paramesh and \api{Grid/Grid_init} in \code{UG}.When
+using the uniform grid \code{UG}, the mapping is easy: one block is
+created for each 
+processor in the run, which can be sized either at build time or
+runtime depending upon the mode of UG use. \footnote{Note that the
+term processor, as used here and elsewhere in the 
+documentation, does not necessarily correspond to a separate hardware
+processor. It is also possible to have several logical ``processors''
+mapped to the same hardware, which can be useful for debugging and
+testing; this is a matter for the operating environment to regulate.} 
+Further description can be found in \secref{Sec:Grid UG}.
+When using the AMR grid \Paramesh, the mapping is non-trivial.
+The adaptive mesh \code{gr\_createDomain} function creates an
+initial mesh of \code{nblockx * nblocky * nblockz} top level blocks,
+where \rpi{Grid/nblockx}, \rpi{Grid/nblocky}, and \rpi{Grid/nblockz}
+are runtime parameters which default to 1.\footnote{The
+\code{gr\_createDomain} function also can remove certain blocks of
+this initial mesh, if this is requested by a non-default
+\api{Simulation/Simulation_defineDomain} implementation.}
+The resolution of the computational domain is usually very coarse and
+unsuitable for computation after the initial mapping. The
+\code{gr\_expandDomain} routine remedies the situation by applying the
+refinement process to the initial domain until a satisfactory level of
+resolution is reached everywhere in the domain. This method of mapping
+the physical domain to computational domain is effective because the
+resultant resolution in any section is related to the demands of the
+initial conditions there. 
+
+
+
+%------------------------------------------------------------------------
+% Boundary conditions - text in separate file.
+%------------------------------------------------------------------------
+%using \input because of LaTeX Error: \include cannot be nested.
+\input{GridBoundaryConditions} 
+
+%------------------------------------------------------------------------
+% UG
+%------------------------------------------------------------------------
+\section{Uniform Grid} 
+\label{Sec:Grid UG} 
+
+The Uniform Grid has the same resolution in all the blocks throughout
+the domain, and each processor has exactly one block.  The uniform
+grid can operate in either of two modes: fixed block size
+(FIXEDBLOCKSIZE) mode, and non-fixed block size (NONFIXEDBLOCKSIZE)
+mode. The default fixed block size grid is statically defined at
+compile time and can therefore take advantage of compile-time
+optimizations. The non-fixed block size version uses dynamic memory
+allocation of grid variables. 
+
+\subsection{FIXEDBLOCKSIZE Mode} 
+\code{FIXEDBLOCKSIZE}%\index{FIXEDBLOCKSIZE mode}
+mode, also called
+static mode, is the default for the uniform grid. In this mode, the
+block size is specified at compile time as
+\code{NXB}$\times$\code{NYB}$\times$\code{NZB}. These variables
+default to $8$ if the dimension is defined and $1$ otherwise -- \eg
+for a two-dimensional simulation, the defaults are \code{NXB}$=8$,
+\code{NYB}$=8$, \code{NZb}$=1$. To change the static dimensions,
+specify the desired values on the command line of the \code{setup}
+script; for example 
+\begin{codeseg} 
+./setup Sod -auto -3d -nxb=12 -nyb=12 -nzb=4 +ug
+\end{codeseg} 
+The distribution of processors along the three dimensions is given at 
+run time as $iprocs\times jprocs\times kprocs$ with the constraint 
+that this product must be equal to the number of processors that the 
+simulation is using. The global domain size in terms of number of grid
+points is $\code{NXB}*iprocs \times \code{NYB}*jprocs \times 
+\code{NZB}*kprocs$.  For example, if $iprocs=jprocs=4$ and $kprocs=1$,
+the execution command should specify $np=16$ processors.
+\begin{codeseg} 
+mpirun -np 16 flash3 
+\end{codeseg} 
+When working in static mode, the simulation is constrained to run on 
+the same number of processors when restarting, since any different 
+configuration of processors would change the domain size. 
+
+At Grid initialization time, the domain is created and the 
+communication machinery is also generated. This initialization 
+includes MPI communicators and datatypes for directional guardcell 
+exchanges. If we view processors as arranged in a three-dimensional 
+processor grid, then a row of processors along each dimension becomes 
+a part of the same communicator. We also define MPI datatypes for each
+of these communicators, which describe the layout of the block on the
+processor to MPI. The communicators and datatypes, once generated, 
+persist for the entire run of the application. Thus the 
+\code{MPI\_SEND/RECV} function with specific communicator and its 
+corresponding datatype is able to carry out all data exchange for 
+guardcell fill in the selected direction in a single step. 
+
+Since all blocks exist at the same resolution in the Uniform Grid, 
+there is no need for interpolation%\index{grid!interpolation}
+while
+filling the guardcells. Simple exchange of correct data between
+processors, and the application of boundary conditions where needed is
+sufficient. The guard cells along the face of a block are filled with
+the layers of the interior cells of the block on the neighboring
+processor if that face is shared with another block, or calculated
+based upon the boundary conditions if the face is on the physical
+domain boundary. Also, because there are no jumps in refinement in the
+Uniform Grid, the flux conservation step across processor boundaries
+is unnecessary. For correct functioning of the Uniform Grid in Flash-X, 
+this conservation step should be explicitly turned off with  a runtime
+parameter \rpi{Grid/flux_correct} which controls whether or not to run
+the flux conservation step in the PPM Hydrodynamics
+implementation. AMR sets it by default to true, while UG sets
+it to false. Users should exercise care if they wish to override the 
+defaults via their ``\code{flash.par}'' file. 
+
+\subsection{NONFIXEDBLOCKSIZE  mode}\label{Sec:NONFIXEDBLOCKSIZE}%\index{NONFIXEDBLOCKSIZE mode}
+Up ot version 2, Flash-X always ran in a mode where all blocks have
+exactly the same number of grid points in exactly the same shape, and these
+were fixed at compile time. Flash-X was limited to use the fixed block
+size mode described above. With \flashx this constraint was eliminated
+through an option at setup time. The two main reasons for this
+development were: one, to allow a uniform grid based simulation to be
+able to restart with different number of processors, and two, to open up
+the possibility of using other AMR packages with
+Flash-X. Patch-based packages typically have different-sized
+block configurations at different times. This mode,
+called the ``NONFIXEDBLOCKSIZE'' mode, can currently be selected for
+use with Uniform Grid. To run an
+application in ``NONFIXEDBLOCKSIZE'' mode%\index{NONFIXEDBLOCKSIZE mode},
+the ``\code{-nofbs}'' option must be used when invoking the setup
+tool; see \chpref{Chp:The Flash-X configuration script} for more information.
+For example:
+\begin{codeseg}
+./setup Sod -3d -auto -nofbs
+\end{codeseg}
+Note that \code{NONFIXEDBLOCKSIZE} mode requires the use of its own IO implementation, 
+and a convenient shortcut has been provided to ensure that this mode is used as 
+in the example below:
+\begin{codeseg}
+./setup Sod -3d -auto +nofbs
+\end{codeseg}
+
+In this mode, the blocksize in UG is determined at execution
+from runtime parameters \rpi{Grid/iGridSize},
+\rpi{Grid/jGridSize} and
+\rpi{Grid/kGridSize}. These parameters specify the global
+number of grid points in the computational domain along each
+dimension. The blocksize then is
+$(iGridSize/iprocs)\times(jGridSize/jprocs)\times(kGridSize/kprocs)$.
+
+Unlike \code{FIXEDBLOCKSIZE} mode, where memory %\index{memory}
+is allocated
+at compile time, in the \code{NONFIXEDBLOCKSIZE}
+mode%\index{NONFIXEDBLOCKSIZE mode}  all memory%\index{memory}
+allocation is dynamic.  The global data structures are allocated when
+the simulation initializes and deallocated when the simulation
+finalizes, whereas the local scratch space is allocated and
+deallocated every time a unit is invoked in the simulation. Clearly
+there is a trade-off between flexibility and performance as the
+\code{NONFIXEDBLOCKSIZE} mode typically runs about 10-15\% slower.  We
+support both to give choice to the users. The amount of memory
+consumed by the Grid data structure of the Uniform Grid is
+$\code{nvar} \times (2*\code{nguard}+\code{nxb}) \times
+(2*\code{nguard}+\code{nyb})\times(2*\code{nguard}+\code{nzb})$
+irrespective of the mode.  Note that this is not the total amount of
+memory used by the code, since fluxes, temporary variables, coordinate
+information and scratch space also consume a large amount of memory.
+
+The example shown below gives two possible ways to define parameters
+in \code{flash.par} for a 3d problem of global domain size $64 \times
+64 \times 64$, being run on 8 processors.
+\begin{codeseg}
+iprocs = 2
+jprocs = 2
+kprocs = 2
+iGridSize = 64
+jGridSize = 64
+kGridSize = 64
+\end{codeseg}
+This specification will result in each processor getting a block of
+size $32 \times 32 \times 32$. Now consider the following
+specification for the number of processors along each dimension,
+keeping the global domain size the same.
+\begin{codeseg}
+iprocs = 4
+jprocs = 2
+kprocs = 1
+\end{codeseg}
+In this case, each processor will now have blocks of size $ 16 \times 32 \times 64$.
+
+
+
+%------------------------------------------------------------------------
+% AMR
+%------------------------------------------------------------------------
+\section{Adaptive Mesh Refinement (AMR) Grid with Paramesh}
+\label{Sec:Grid AMR}
+
+
+The default package in Flash-X is
+\Paramesh%\index{PARAMESH}%\index{adaptive mesh}
+(MacNeice {\it et al.}\ 1999) for implementing the adaptive mesh
+refinement (AMR) grid. \Paramesh uses a block-structured adaptive mesh
+refinement scheme similar to others in the literature (\eg, Parashar
+1999; Berger \& Oliger 1984; Berger \& Colella 1989; DeZeeuw \& Powell
+1993).  It also shares ideas with schemes which refine on an
+individual cell basis (Khokhlov 1997).  In block-structured AMR, the
+fundamental data structure is a block of cells arranged in a logically
+Cartesian fashion. ``Logically Cartesian'' implies that each
+cell can be specified using a block identifier
+(processor number and local block number) and a coordinate triple
+$(i,j,k)$, where $i=1\ldots\code{nxb}$, $j=1\ldots\code{nyb}$, and
+$k=1\ldots\code{nzb}$ refer to the $x$-, $y$-, and $z$-directions,
+respectively.   It does not require a physically rectangular coordinate system;
+for example a spherical grid can be indexed in this same manner.
+%Note, however, that this release of Flash-X3 only supports logically- and
+%physically-Cartesian problems.
+
+The complete computational grid consists of a collection
+of blocks with different physical cell sizes, which are related to
+each other in a hierarchical fashion using a tree data structure. The
+blocks at the root of the tree have the largest cells, while their
+children have smaller cells and are said to be refined. Three rules
+govern the establishment of refined child blocks in \Paramesh. First, a
+refined child block must be one-half as large as its parent block in
+each spatial dimension. Second, a block's children must be nested;
+\ie, the child blocks must fit within their parent block and cannot
+overlap one another, and the complete set of children of a block must
+fill its volume. Thus, in $d$ dimensions a given block has either zero
+or $2^d$ children.  Third, blocks which share a common border may not
+differ from each other by more than one level of refinement.
+
+A simple two-dimensional domain is shown in
+\figref{Fig:block_structure.eps}, illustrating the rules above. Each
+block contains $\code{nxb}\times\code{nyb}\times\code{nzb}$ interior
+cells and a set of guard cells. The guard cells contain boundary
+information needed to update the interior cells. These can be obtained
+from physically neighboring blocks, externally specified boundary
+conditions, or both.
+\begin{figure}
+\begin{center}
+{\leavevmode\includegraphics[width=3in]{Grid_block_structure}}
+\end{center}
+\caption{\label{Fig:block_structure.eps} A simple computational domain showing
+varying levels of refinement in a total of 16 blocks.  The dotted lines outline the
+guard cells for the block marked with a circle.}
+\end{figure}
+The number of guard cells needed depends upon the interpolation schemes
+and the differencing stencils used by the various physics units (usually
+hydrodynamics). For the explicit PPM algorithm distributed with Flash-X,
+four guard cells are needed in each direction, as illustrated in
+\figref{Fig:single_block.eps}. The blocksize while using the adaptive
+grid is fixed at compile time, resulting in static
+memory%\index{memory}
+allocation.  The total number of blocks a
+processor can manage is determined by
+\code{MAXBLOCKS}%\index{MAXBLOCKS@\code{MAXBLOCKS}},
+which can be
+overridden at setup time with the \code{setup \ldots -maxblocks=\#}
+argument. The amount of memory consumed by the Grid data structure of
+code when running with \Paramesh is $\code{NUNK\_VARS} \times
+(2*\code{nguard}+\code{nxb}) \times
+(2*\code{nguard}+\code{nyb}) \times
+(2*\code{nguard}+\code{nzb}) \times \code{MAXBLOCKS}$. \Paramesh
+also needs memory to store its tree data structure for adaptive mesh
+management, over and above what is already mentioned with Uniform
+Grid. As the levels of refinement increase, the size of the tree also
+grows.
+
+%%%%%%%%%%%%%%  next 2 paras anticipate INTERP subsection %%%%%%%%%%%%
+\Paramesh handles the filling of guard cells with information from
+other blocks or, at the boundaries of the physical domain, from an
+external boundary routine (see \secref{Sec:BndryCond}).
+If a block's neighbor exists and has the same level of refinement,
+\Paramesh fills the corresponding guard cells using a direct copy from
+the neighbor's interior cells. If the neighbor has a different level
+of refinement, the data from the neighbor's cells must be adjusted by
+either interpolation%\index{grid!interpolation}
+(to a finer level of
+resolution) or averaging (to a coarser level)%\index{grid!data averaging}
+---see \secref{Sec:gridinterp} below for more information.
+If the block and its neighbor are stored in the memory of
+different processors, \Paramesh handles the appropriate parallel
+communications (blocks are never split between processors).
+The filling of guard cells is a global operation that is
+triggered by calling \api{Grid/Grid_fillGuardCells}.
+
+Grid Interpolation%\index{grid!interpolation}
+is also used when filling
+the blocks of children newly created in the course of automatic
+refinement. This happens during \api{Grid/Grid_updateRefinement}
+processing. Averaging%\index{grid!data averaging}
+is also used 
+to regularly update the solution data in at least one level of parent
+blocks in the oct-tree. This ensures that after leaf nodes are
+removed during automatic refinement processing (in regions of the
+domain where the mesh is becoming coarser), the new leaf nodes
+automatically have valid data.
+This averaging happens as an initial step in
+\api{Grid/Grid_fillGuardCells} processing.
+
+\Paramesh also enforces flux conservation %\index{flux
+                                %conservation}\label{Sec:PARAMESH flux
+                                %conservation}
+at jumps
+in refinement, as described by Berger and Colella (1989).  At jumps
+in refinement, the fluxes of mass, momentum, energy (total and
+internal), and species density in the fine cells across boundary
+cell faces are summed and passed to their parent.  The parent's
+neighboring cell will be at the same level of refinement as the summed
+flux cell because \Paramesh limits the jumps in refinement to one level
+between 
+blocks.  The flux in the parent that was computed by the more
+accurate fine cells is taken as the correct flux through the
+interface and is passed to the corresponding coarse face on the
+neighboring block (see \figref{Fig:flux_conservation_fig}). The
+summing allows a geometrical weighting to be implemented for
+non-Cartesian geometries, which ensures that the proper volume-corrected
+flux is computed.
+
+\begin{figure}
+\begin{center}
+\includegraphics[height=2.5in]{Grid_flux_cons}
+\caption{\label{Fig:flux_conservation_fig}
+        Flux conservation at a jump in refinement.  The fluxes in the fine
+        cells are added and replace the coarse cell flux (F).}
+\end{center}
+\end{figure}
+
+\subsection{Additional Data Structures}
+\label{Sec:amr data struct}
+\Paramesh maintains much additional information about the mesh.
+In particular, oct-tree related information is kept 
+in various arrays which are declared in a
+\Fortran90 module called ``\code{tree}''.
+It includes
+% information about a block's Morton number,
+the physical coordinate of a block's center, its physical size,
+level of refinement, and
+much more. These data structures also acts as temporary storage while
+updating refinement in the grid and moving the blocks.
+This metadata should in general not be accessed directly by application code.
+The \unit{Grid} API contains subroutines for accessing the most important
+pars of this metadata on a block by block basis, like
+\api{Grid/Grid_getBlkBoundBox},
+\api{Grid/Grid_getBlkCenterCoords},
+\api{Grid/Grid_getBlkPhysicalSize},
+\api{Grid/Grid_getBlkRefineLevel}, and
+\api{Grid/Grid_getBlkType}.
+
+Flash-X has its
+own \code{oneBlock} data structure that stores block specific
+information. This data structure keeps the physical coordinates of
+each cell in the block. For each dimension, the coordinates are stored
+for the \code{LEFT_EDGE}, the \code{RIGHT_EDGE} and the center of the cell. The
+coordinates are determined from ``{\it cornerID}'' which is also a part of
+this data structure.
+
+The concept of \code{cornerID} was introduced in \flashx; it serves three
+purposes. First, it creates a unique global identity for every cell
+that can come into existence at any time in the course of the
+simulation.   Second, it can prevent machine precision error from
+creeping into the spatial coordinates calculation. Finally, it can
+help pinpoint the location of a block within the oct-tree of
+\Paramesh. Another useful integer variable is the concept of a {\it
+stride}. A stride indicates the spacing factor between one cell and
+the cell directly to its right when calculating the cornerID.   At the
+maximum refinement level, the stride is $1$, at the next higher level
+it is $2$, and so on. Two consecutive cells at refinement level $n$
+are numbered with a stride of $2^{lrefine\_max-n}$ where $1 \le n \le
+lrefine\_max$.
+
+The routine \api{Grid/Grid_getBlkCornerID} provides a convenient way
+for the user to retrieve the location of a block or cell.  A usage
+example is provided in the  documentation for that routine.
+The user should retrieve accurate physical and grid coordinates by
+calling the routines \api{Grid/Grid_getBlkCornerID},
+\api{Grid/Grid_getCellCoords}, \api{Grid/Grid_getBlkCenterCoords} and
+\api{Grid/Grid_getBlkPhysicalSize}, instead of calculating their own
+from local block information, since they take advantage of the
+\code{cornerID} scheme, and therefore avoid the possibility of
+introducing machine precision induced numerical drift in the calculations.
+
+
+%------------------------------------------------------------------------
+% INTERPOLATION
+%------------------------------------------------------------------------
+\subsection[Grid Interpolation]{Grid Interpolation (and Averaging)}
+\label{Sec:gridinterp}
+The adaptive grid requires data \emterm{interpolation} or
+\emterm{averaging} when the refinement level 
+(\ie, mesh resolution) changes in space or in time.
+\footnote{Particles and Physics units may make additional use of
+interpolation as part 
+of their function, and the algorithms may or may not be different.
+This subsection only discusses interpolation automatically performed by the
+\unit{Grid} unit on the fluid variables in a way that should be transparent to other units.}
+If during guardcell filling a block's neighbor has a coarser level of
+refinement, the neighbor's cells are used to \emterm{interpolate}
+guard cell values to the cells of the finer block. 
+Interpolation%\index{grid!interpolation}
+is also used when filling the blocks
+of children newly created in the course of automatic refinement.
+Data \emterm{averaging} is used to adapt data in the opposite direction, \ie,
+from fine to coarse.
+
+In the AMR context, the term \emterm{prolongation}%\index{grid!prolongation}
+is used to refer to data interpolation
+(because it is used when the tree of blocks grows longer).
+Similarly, the term \emterm{restriction}%\index{grid!restriction}
+is used to refer to fine-to-coarse data averaging.
+
+The algorithm used for restriction is straightforward (equal-weight)
+averaging in Cartesian coordinates, but has to
+take cell volume factors into account for curvilinear coordinates;
+see \secref{Sec:Non-Cart Prol/Rest}.
+
+
+\Paramesh supports various interpolation%\index{grid!interpolation}
+schemes, to which user-specified interpolation schemes can be added.
+\flashx currently allows to choose between two interpolation schemes:
+\begin{enumerate}
+\item monotonic
+\item native
+\end{enumerate}
+The choice is made at \code{setup} time, see \secref{Sec:ListSetupArgs}.
+
+
+%for guard cell filling at jumps at refinement
+
+The versions of \Paramesh supplied with \flashx supply their own
+default interpolation scheme, which is used when \flashx is
+configured with the \code{-gridinterpolation=native} \code{setup}
+option (see \secref{Sec:ListSetupArgs}). The default schemes are only
+appropriate for Cartesian coordinates. If \flashx is configured
+with curvilinear support, an alternative scheme (appropriate for all
+supported geometries) is compiled in. This so-called
+``\emterm{monotonic}'' interpolation attempts to ensure that
+interpolation does not introduce small-scale non-monotonicity in the
+data. The order of ``monotonic'' interpolation can be chosen with the
+\rpi{Grid/interpol_order}%\index{grid!interpolation!order}
+runtime
+parameter. See \secref{Sec:Non-Cart Prol/Rest} for some more details
+on prolongation for curvilinear coordinates.  At setup time, monotonic
+interpolation is the default interpolation used.
+
+
+\subsubsection{Interpolation for mass-specific solution variables}
+\label{Sec:InterpMassSpecific}
+To accurately preserve the total amount of conserved quantities,
+the interpolation routines have to be applied to solution data in
+\emterm{conserved}, \ie, volume-specific, form. However, many variables
+are usually stored in the \code{unk} array in mass-specific form,
+\eg, specific internal and total energies, velocities, and mass
+fractions. See \secref{Sec:ConfigFileSyntax} for how to use
+the optional \code{TYPE} attribute in a \code{Config} file's
+\code{VARIABLE} definitions to inform the \unit{Grid} unit
+which variables are considered mass-specific.
+
+\flashx provides three ways to deal with this:
+\begin{enumerate}
+\item Do nothing---\ie, assume that ignoring the difference between
+mass-specific and conserved form is a reasonable approximation.
+Depending on the smoothness of solutions in regions where refinement,
+derefinement, and jumps in refinement level occur, this assumption may
+be acceptable.
+This behavior can be forced 
+by setting the
+%\newline
+\rpi{Grid/convertToConsvdInMeshInterp} runtime parameter to \code{.false.}
+
+\item Convert mass-specific variables to conserved form
+\emph{in all blocks throughout the physical domain}
+before invoking a \unit{Grid} function that may
+result in some data interpolation or restriction (refinement,
+derefinement, guardcell filling); and convert back after these
+functions return. Conversion is done by cell-by-cell multiplication
+with the density (\ie, the value of the ``\code{dens}'' variable, which should be declared as
+\begin{codeseg}
+VARIABLE dens TYPE: PER_VOLUME
+\end{codeseg}
+in a \code{Config} file).
+
+This behavior is available in both \Paramesh2  and \Paramesh4.
+It is enabled by setting the 
+\newline 
+\rpi{Grid/convertToConsvdForMeshCalls}
+runtime parameter and corresponds roughly to \flashx with
+\newline
+\code{conserved_var} enabled.
+
+\item Convert mass-specific variables to conserved form
+only where and when necessary, from the \code{Grid} user's
+point of view \emph{as part of data interpolation}.
+Again, conversion is done by cell-by-cell multiplication
+with the value of density.
+In the actual implementation of this approach, the
+conversion and back-conversion operations are
+closely bracketing the interpolation (or restriction) calls.
+The implementation avoids spurious back-and-forth
+conversions (\ie, repeated successive
+multiplications and divisions of data by the density)
+in blocks that should not be modified by interpolation or restriction.
+
+This behavior is available only for \Paramesh4.
+As of \flashx, this is the default behavior whenever available.
+It can be enabled explicitly 
+(only necessary in setups that change the default) by setting the
+\newline
+\rpi{Grid/convertToConsvdInMeshInterp} runtime parameter.
+
+\end{enumerate}
+
+
+
+
+\subsection{Refinement}
+\label{Sec: refinement}
+%------------------------------------------------------------------------
+% Refinement criteria
+%------------------------------------------------------------------------
+\subsubsection{Refinement Criteria}
+The refinement criterion used by \Paramesh is adapted from L\"ohner (1987).
+L\"ohner's error estimator was originally developed for finite element
+applications and has the advantage that it uses a mostly  local
+calculation. Furthermore, the estimator is dimensionless and can be
+applied with complete generality to any of the field variables of the
+simulation or any combination of them.
+
+\begin{flashtip}
+\flashx does not define any refinement variables by default.
+Therefore simulations using AMR have to make the appropriate runtime parameter
+definitions in \code{flash.par}, or in the simulation's \code{Config} file.
+If this is not done, the program generates a warning at startup, and no
+automatic refinement will be performed. The mistake of
+not specifying refinement variables
+is thus easily detected.
+To define a refinement variable, use \rpi{Grid/refine_var_\#}
+(where \code{\#} stands for a number from 1 to 4)
+in the \code{flash.par} file.
+\end{flashtip}
+
+L\"ohner's estimator is a modified second
+derivative, normalized by the average of the gradient over one
+computational cell. In one dimension on a uniform mesh, it is given by
+
+\begin{equation}
+E_{i} = { \frac{ \mid u_{i+1} - 2u_{i} + u_{i-1} \mid}
+%          \over
+         { \mid u_{i+1} - u_{i} \mid + \mid u_{i} - u_{i-1} \mid +
+              \epsilon [ \mid u_{i+1} \mid + 2 \mid  u_{i} \mid +
+                          \mid u_{i-1} \mid ] }\ } ,
+%E_{i} = { \mid u_{i+1} - 2u_{i} + u_{i-1} \mid
+%          \over  % warning about Foreign over from amsmath
+%          \mid u_{i+1} - u_{i} \mid + \mid u_{i} - u_{i-1} \mid +
+%              \epsilon [ \mid u_{i+1} \mid + 2 \mid  u_{i} \mid +
+%                          \mid u_{i-1} \mid ] }\ ,
+\end{equation}
+where $u_i$ is the refinement test variable's value in the $i$th
+cell. The last term in the denominator of this expression acts as a
+filter, preventing refinement of small ripples, where $\epsilon$
+should be a small constant.
+
+When extending this criterion to
+multidimensions, all cross derivatives are computed, and the
+following generalization of the above expression is used
+
+\begin{equation}
+E_{i_1i_2i_3} = \left\{
+            {\displaystyle
+%            \sum_{pq}\left({\partial^2 u\over\partial x_p\partial x_q}
+            \sum_{pq}\left({ \frac{\partial^2 u}{\partial x_p\partial x_q}}
+                           \Delta x_p\Delta x_q\right)^2
+            }
+            \over
+            {\displaystyle
+            \sum_{pq}\left[\left(
+                         \left|{\partial u\over\partial x_p}\right|_{i_p+1/2}
+                         + \left|{\partial u\over\partial x_p}\right|_{i_p-1/2}
+                           \right)\Delta x_p
+                           + \epsilon{\partial^2 |u|\over
+                           \partial x_p\partial x_q}
+                           \Delta x_p\Delta x_q
+                     \right]^2
+            }
+          \right\}^{1/2},
+\end{equation}
+where the sums are carried out over coordinate directions, and where,
+unless otherwise noted, partial
+derivatives are evaluated at the center of the $i_1i_2i_3$-th cell.
+
+%==================================================================================
+The estimator actually used in \flashx's default refinement criterion is
+a modification of the above, as follows:
+
+\begin{equation}
+E_{i} = { \mid u_{i+2} - 2u_{i} + u_{i-2} \mid
+          \over
+          \mid u_{i+2} - u_{i} \mid + \mid u_{i} - u_{i-2} \mid +
+              \epsilon [ \mid u_{i+2} \mid + 2 \mid  u_{i} \mid +
+                          \mid u_{i-2} \mid ] }\ ,
+\end{equation}
+where again $u_i$ is the refinement test variable's value in the $i$th
+cell. The last term in the denominator of this expression acts as a
+filter, preventing refinement of small ripples, where $\epsilon$
+is a small constant.
+
+When extending this criterion to
+multidimensions, all cross derivatives are computed, and the
+following generalization of the above expression is used
+
+\begin{equation}
+E_{i_Xi_Yi_Z} = \left\{
+            {\displaystyle
+            \sum_{pq}\left({\partial^2 u\over\partial x_p\partial x_q}
+                                               \right)^2
+            }
+            \over
+            {\displaystyle
+            \sum_{pq}\left[ \frac{1}{2\,\Delta x_q}\left(
+                         \left|{\partial u\over\partial x_p}\right|_{i_q+1}
+                         + \left|{\partial u\over\partial x_p}\right|_{i_q-1}
+                           \right)
+                           + \epsilon{\bar{\left|u_{pq}\right|}\over
+                           \Delta x_p\Delta x_q}
+                     \right]^2
+            }
+          \right\}^{1/2},
+\end{equation}
+where again the sums are carried out over coordinate directions, where,
+unless otherwise noted, partial
+derivatives are actually finite-difference approximations
+evaluated at the center of the $i_Xi_Ji_K$-th cell,
+and $\bar{\left|u_{pq}\right|}$ stands for an \emph{average} of the values of $\left|u\right|$ over several
+neighboring cells in the $p$ and $q$ directions.
+
+%---------------------------------------------------------------------
+
+The constant
+$\epsilon$ is by default given a value of $10^{-2}$, and can be overridden
+through the \rpi{Grid/refine\_filter_\#} runtime parameters.
+Blocks are marked for refinement when the value of $E_{i_Xi_Yi_Z}$ for any of the
+block's cells exceeds a threshold given by the runtime parameters
+\rpi{Grid/refine_cutoff_\#}, where the number \code{\#}
+matching the number of the \rpi{Grid/refine_var_\#} runtime parameter
+selecting the refinement variable.
+Similarly, blocks are marked for derefinement when the values of $E_{i_Xi_Yi_Z}$ for \emph{all}
+of the
+block's cells lie below another threshold given by the runtime parameters
+\rpi{Grid/derefine_cutoff_\#}.
+
+
+Although PPM
+is formally second-order and its leading error terms scale as the
+third derivative, we have found the second derivative criterion to
+be very good at detecting discontinuities and sharp features in the
+flow variable $u$. When \unit{Particles} (active or tracer) are being
+used in a simulation, their count in a block can also be used as a
+refinement criterion by setting \rpi{Grid/refine_on_particle_count} to true
+and setting \rpi{Grid/max_particles_per_blk} to the desired count.
+
+
+%=====================================================================
+
+
+
+% In Flash-X, several different interpolation methods can be chosen at
+% setup time.  Each interpolation scheme is stored in a subdirectory
+% under \code{/source/mesh/amr/paramesh2.0}.  You should choose a
+% method that matches the geometry of the simulation. Once each
+% block's guard cells are filled, it can be updated independently of
+% the other blocks.
+
+
+
+%------------------------------------------------------------------------
+% Refinement processing
+%------------------------------------------------------------------------
+\subsubsection{Refinement Processing}
+Each processor decides when to refine or derefine its blocks by
+computing a user-defined error estimator for each block. Refinement
+involves creation of either zero or $2^d$ refined child blocks,
+while derefinement involves deletion of all of a parent's child
+blocks ($2^d$ blocks). As child blocks are created, they are
+temporarily placed at the end of the processor's block list. After
+the refinements and derefinements are complete, the blocks are
+redistributed among the processors using a work-weighted Morton
+space-filling curve in a manner similar to that described by Warren
+and Salmon (1987) for a parallel treecode. An example of a Morton
+curve is shown in \figref{Fig:f3}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=3in]{Grid_f3}
+\caption{\label{Fig:f3}
+        Morton space-filling curve for adaptive mesh grids.}
+\end{center}
+\end{figure}
+
+During the distribution step, each block is assigned a weight which
+estimates the relative amount of time required to update the block.
+The Morton number of the block is then
+computed by interleaving the bits of its integer coordinates,
+as described by Warren and Salmon (1987).  This reordering determines its
+location along the space-filling curve.
+Finally, the list of all
+blocks is partitioned among the processors using the block weights,
+equalizing the estimated workload of each processor.  By default, all leaf-blocks 
+are weighted twice as heavily as all other blocks in the simulation.
+
+
+%------------------------------------------------------------------------
+% Refinement routines
+%------------------------------------------------------------------------
+\subsubsection{Specialized Refinement Routines}
+\label{Sec:MarkRefLib}
+Sometimes, it may be desirable to refine a particular region of
+the grid independent of the second derivative of the variables.
+This criterion might be, for example, to better resolve the flow at the
+boundaries of the domain, to refine a region where there is vigorous
+nuclear burning, or to better resolve some smooth initial condition.
+For curvilinear coordinates, regions around the coordinate origin
+or the polar $z$-axis may require special consideration for refinement.
+A collection of methods that can refine a (logically) rectangular region
+or a circular region in Cartesian coordinates, or can automatically
+refine by using some variable threshold, are available through the 
+\api{Grid/Grid_markRefineSpecialized}.
+It  is intended to be called from 
+ the \api{Grid/Grid_markRefineDerefine} routine.  The interface works
+by allowing the calling routine to pick one of the routines in the
+suite through an integer argument. The calling routine is also
+expected to populate the data structure \code{specs} before making the
+call. A copy of the file \code{Grid\_markRefineDerefine.F90} should be
+placed in the \code{Simulation} directory, and the interface
+file \code{Grid_interface.F90} should be used
+in the header of the function.
+
+
+
+\section{GridMain Usage}
+\label{Sec:usage}
+
+The \unit{Grid} unit has the largest API of all units, since it is the
+custodian of the bulk of the simulation data, and is responsible for most
+of the code housekeeping. The \api{Grid/Grid_init} routine, like all
+other \code{Unit\_init} routines, collects the runtime parameters needed by
+the unit and stores values in the data module. If using UG, the
+\api{Grid/Grid_init} also creates the computational domain and the
+housekeeping data structures and
+initializes them. If using AMR, the computational domain is created
+by the \api{Grid/Grid_initDomain} routine, which also makes a call to
+mesh package's own initialization routine. The physical variables are all
+owned by the \unit{Grid} unit, and it initializes them by
+calling the \api{Simulation/Simulation_initBlock}
+routine which applies the specified initial conditions to the
+domain. If using an adaptive grid, the initialization routine also goes
+through a few refinement iterations to bring the grid to desired
+initial resolution, and then applies the \api{physics/Eos/Eos}
+function to bring all simulation variables to thermodynamic equilibrium.
+Even though the mesh-based variables are under \unit{Grid}'s control,
+all the physics units can operate on and modify them.
+
+A suite of \code{get/put} accessor/mutator functions allows the
+calling unit to fetch or send data by the block. One option is to get a pointer
+\api{Grid/Grid_getBlkPtr}, which gives unrestricted access to the whole
+block and the client unit can modify the data as needed. The more
+conservative but slower option is to get some portion of the block
+data, make a local copy, operate on and modify the local copy and then
+send the data back through the ``put'' functions. The \unit{Grid} interface
+allows the client units to fetch the whole block
+(\api{Grid/Grid_getBlkData}), a partial or full plane from a block
+(\api{Grid/Grid_getPlaneData}), a partial or full row
+(\api{Grid/Grid_getRowData}), or a single point
+(\api{Grid/Grid_getPointData}). Corresponding ``put'' functions allow
+the data to be sent back to the \unit{Grid} unit after the calling
+routine has operated on it. Various \code{getData} functions can also
+be used to fetch some derived quantities such as the cell volume or
+face area of individual cells or groups of cells. There are several
+other accessor functions available to query the housekeeping
+information from the grid. For example \api{Grid/Grid_getListOfBlocks}
+returns a list of blocks that meet the specified criterion such as
+being ``LEAF'' blocks in \Paramesh, or residing on the physical
+boundary. 
+
+
+In addition to the functions to access the data, the \unit{Grid} unit also
+provides a collection of routines that drive some housekeeping
+functions of the grid without explicitly fetching any data. A good
+example of such routines is \api{Grid/Grid_fillGuardCells}. Here no
+data transaction takes place between \unit{Grid} and the calling
+unit. The calling unit simply instructs the \unit{Grid} unit that it is ready for
+the guard cells to be updated, and doesn't concern itself with the
+details. The \api{Grid/Grid_fillGuardCells} routine makes sure that all the
+blocks get the right data in their guardcells from their neighbors,
+whether they are at the same, lower or higher resolution, and if
+instructed by the calling routine, also ensures that \code{EOS} is
+applied to them.
+
+In large-scale, highly parallel Flash-X simulations with AMR, the processing
+of \code{Grid\_fillGuardCells} calls may take up a significant part of
+available resource like CPU time, communication bandwidth, and buffer space.
+It can therefore be important to optimize these calls in particular.
+From \flashx, \api{Grid/\-Grid_fillGuardCells} provides ways to
+\begin{itemize}
+\item operate on only a subset of the variables in \code{unk}
+(and \code{facevarx}, \code{facevary}, and \code{facevarz}),
+by masking out other variables;
+\item fill only some the \code{nguard} layers of guard cells
+that surround the interior of a block (while possibly excepting a ``sweep''
+direction);
+\item combine guard cell filling with EOS calls (which often follow
+guard cell exchanges in the normal flow of execution of a simulation
+in order to ensure thermodynamical consistency in all cells, and which
+may also be very expensive), by letting \code{Grid\_fillGuardCells} 
+make the calls on cells where necessary;
+\item automatically determine masks and whether to call EOS, based on
+the set of variables that the calling code actually needs updated.
+by masking out other variables.
+\end{itemize}
+These options are controlled by \code{OPTIONAL} arguments, see
+\api{Grid/Grid_fillGuardCells} for documentation.
+When these optional arguments are absent or when a \unit{Grid}
+implementation does not support them, Flash-X falls back to
+safe default behavior which may, however, be needlessly expensive.
+
+Another routine that may change the global state of the grid is
+\api{Grid/Grid_updateRefinement}. This function is called
+when the client unit wishes to update the grid's resolution. again,
+the calling unit  does not need to know any of the details of the
+refinement process.
+
+\begin{flashtip}
+As mentioned in \chpref{Chp:Architecture}, Flash-X allows every unit
+to identify scalar variables for checkpointing. In the \unit{Grid} unit, the
+function that takes care of consolidating user specified checkpoint
+variable is \api{Grid/Grid_sendOutputData}. Users can select their own
+variables to checkpoint by including an implementation of this
+function specific to their requirements in their Simulation setup directory.
+\end{flashtip}
+
+%------------------------------------------------------------------------
+% GridParticles - text in separate file.
+%------------------------------------------------------------------------
+%using \input because of LaTeX Error: \include cannot be nested.
+
+
+\input{GridParticles}
+ \input{GridSolvers}
+
+\section{Grid Geometry}
+\label{Sec:Grid geometry}
+
+Flash-X can use various kinds of coordinates (``\emterm{geometries}'')
+for modeling physical problems. The available geometries
+represent different (orthogonal) curvilinear coordinate systems.
+
+The geometry for a particular problem is set at runtime
+(after an appropriate invocation of \code{setup})
+through
+the \code{geometry} runtime parameter, which can take a value of
+\code{"cartesian", "spherical", "cylindrical",} or \code{"polar"}. Together
+with the dimensionality of the problem, this serves to completely
+define the nature of the problem's coordinate axes
+(\tblref{Tab:geometries}). Note that not all \unit{Grid} implementations
+support all geometry/dimension combinations.
+Physics units may also be limited in the geometries supported,
+some may only work for Cartesian coordinates.
+
+The core code of a \unit{Grid} implementation is not concerned with
+the mapping of cell indices to physical coordinates; this is not required
+for under-the-hood \unit{Grid} operations such as keeping track of which blocks
+are neighbors of which other blocks, which cells need to be filled with data
+from other blocks, and so on. Thus the physical domain can be logically modeled as
+a rectangular mesh of cells, even in curvilinear coordinates.
+
+There are, however, some areas where geometry needs to be taken into consideration.
+The correct implementation of a given geometry%\index{mesh!geometry}%\index{geometry|see{mesh}}
+requires that gradients and divergences have the appropriate area factors
+and that the volume of a cell is computed properly for that geometry.
+Initialization of the grid as well as AMR operations (such as restriction,
+prolongation, and flux-averaging) must respect the geometry also.
+Furthermore,
+the hydrodynamic methods in Flash-X are finite-volume methods, so the
+interpolation%\index{grid!interpolation}
+must also be conservative in the given geometry.
+The default mesh refinement criteria of \flashx also currently
+take geometry into account, see \secref{Sec: refinement} above.
+
+% %
+\begin{table}[ht]
+
+\caption{Different geometry types.
+For each geometry/dimensionality combination,
+the ``support'' column lists the \unit{Grid} implementations
+that support it: pm4 stands for \Paramesh4.0 and \Paramesh4dev, pm2 for \Paramesh2, UG for
+Uniform Grid implementations, respectively.
+}
+\label{Tab:geometries} 
+\begin{center}
+\begin{tabular}{lclcccc}
+name       & dimensions & support  & axisymmetric & $X$-coord & $Y$-coord & $Z$-coord \\
+\hline
+cartesian   &    1       & pm4,pm2,UG & n            & $x$         &             &      \\
+cartesian   &    2       & pm4,pm2,UG & n            & $x$         & $y$         &      \\
+cartesian   &    3       & pm4,pm2,UG & n            & $x$         & $y$         & $z$  \\
+\hline
+cylindrical &    1       & pm4,UG   &   y            & $r$         &             &      \\
+cylindrical &    2       & pm4,pm2,UG & y            & $r$         & $z$         &      \\
+cylindrical &    3       & pm4,UG   &   n            & $r$         & $z$         & $\phi$ \\\hline
+spherical   &    1       & pm4,pm2,UG & y            & $r$         &             &      \\
+spherical   &    2       & pm4,pm2,UG & y            & $r$         & $\theta$    &      \\
+spherical   &    3       & pm4,pm2,UG & n            & $r$         & $\theta$    & $\phi$ \\\hline
+polar       &    1       & pm4,UG   &   y            & $r$         &             &      \\
+polar       &    2       & pm4,pm2,UG & n            & $r$         & $\phi$      &      \\
+\llap{}
+\begin{minipage}{1.5in}
+''polar + $z$''\\
+(cylindrical with a different ordering of coordinates)
+\end{minipage}
+&  3       & ---      &   n            & $r$         & $\phi$      & $z$ \\
+\hline
+\end{tabular}
+\end{center}
+
+\end{table}
+%
+
+A \textbf{convention:}
+in this section,
+Small letters $x$, $y$, and $z$ are used with their usual meaning in
+designating coordinate directions for specific coordinate systems:
+\ie, $x$ and $y$ refer to directions in Cartesian coordinates,
+and $z$ may refer to a (linear) direction in either Cartesian
+or cylindrical coordinates.
+
+On the other hand, capital symbols $X$, $Y$, and $Z$ are used to refer to the
+(up to) three directions of any coordinate system, \ie,
+the directions corresponding to the
+\code{IAXIS}, \code{JAXIS}, and \code{KAXIS}
+dimensions in \flashx, respectively.
+Only in the Cartesian case do these correspond directly to
+their small-letter counterparts. For other geometries,
+the correspondence is given in \tblref{Tab:geometries}.
+
+
+
+\subsection[Understanding 1D, 2D, Curvilinear]{Understanding 1D, 2D, and Curvilinear Coordinates}
+
+In the context of Flash-X, curvilinear coordinates are most useful
+with 1-d or 2-d simulations, and this is how they are commonly used.
+But what does it mean to apply curvilinear coordinates in this way?
+And what does it mean to do a 1D or a 2D simulation of threedimensional reality? 
+Physical reality has three spatial
+dimensions (as far as the physical problems simulated with Flash-X are concerned).
+In Cartesian coordinates, it is relatively straightforward to understand
+what a 2-d (or 1-d) simulation means: ``Just leave out one (or two) coordinates.''
+This is less obvious for other coordinate systems, therefore
+some fundamental discussion follows.
+
+A reduced dimensionality (RD) simulation can be naively understood as
+taking a cut (or, for 1-d, a linear probe) through the real 3-d problem.
+However, there is also an assumption, not always explicitly stated, that
+is implied in this kind of simulation: namely, that
+the cut (or line) is representative of the 3-d problem.
+This can be given a stricter  meaning:
+it is assumed that the physics of the problem do not depend
+on the omitted dimension (or dimensions).
+A RD simulation can be a good description of a physical
+system only to the degree that this assumption is warranted.
+Depending on the nature of the simulated physical system,
+non-dependence on the omitted dimensions may mean the absence
+of force and/or momenta vector components in directions of
+the omitted coordinate axes, zero net mass and energy flow
+out of the plane spanned by the included coordinates, or similar.
+
+For omitted dimensions that are lengths --- $z$ and possibly $y$ in Cartesian,
+and $z$ in cylindrical and polar RD simulations ---
+one may think of a 2-d cut as representing a (possibly very thin) layer
+in 3-d space sandwiched between two parallel planes.
+There is no \textit{a priori\/} definition of the thickness of the layer,
+so it is not determined what 3-d volume should be asigned to a 2-d cell
+in such coordinates. We can thus arbitrarily assign the length ``$1$''
+to the edge length of a 3-d cell volume, making the volume equal
+to the 2-d area.
+We can understand generalizations of ``volume'' to 1-d, and of ``face
+areas'' to 2-d and 1-d RD simulations with omitted linear coordinates,
+in an equivalent way: just set the length of cell edges along omitted
+dimensions to 1.
+
+
+For omitted dimensions that are angles --- the $\theta$ and $\phi$ coordinates
+on spherical, cylindrical, and polar geometries ---
+it is easier to think of omitting an angle as the equivalent of integrating
+over the full range of that angle coordinate (under the assumption that
+all physical solution variables are independent of that angle).
+Thus omitting an angle $\phi$ in these geometries implies
+the assumption of axial symmetry, and this is noted in \tblref{Tab:geometries}.
+Similarly, omitting both $\phi$ and $\theta$ in spherical coordinates
+implies an assumption of complete spherical symmetry.
+When $\phi$ is omitted, a 2-d cell actually represents the 3-d object
+that is generated by rotating the 2-d area around a $z$-axis.
+Similarly, when only $r$ is included, 1-d cells (\ie, $r$ intervals)
+represent hollow spheres or cylinders.
+(If the coordinate interval begins at $r_l=0.0$, the sphere or cylinder
+is massive instead of hollow.)
+
+
+As a result of these considerations,
+the measures for cell (and block)
+volumes and face areas in a simulation depends on the chosen geometry.
+Formulas for the volume of a cell dependent on the geometry
+are given in the geometry-specific sections further below.
+
+
+As discussed in \secref{Sec:PARAMESH flux conservation},
+to ensure conservation at a
+jump in refinement in AMR grids, a flux correction step is taken.
+The fluxes leaving the fine cells adjacent to a coarse cell are used
+to determine more accurately the flux entering the coarse cell.
+This step takes the coordinate geometry into account in order
+to accurately determine the areas of the cell faces where
+fine and coarse cells touch. By way of example,
+an illustration is provided below in the
+section on cylindrical geometry.
+
+\subsubsection{Extensive Quantities in Reduced Dimensionality}\label{Sec:ExtQinRD}
+The considerations above lead to some consequences for the understanding
+of extensive quantities, like mass or energies, that may not be obvious.
+
+The following discussion applies to geometries with
+omitted dimensions that are lengths --- $z$ and possibly $y$ in Cartesian,
+and $z$ in cylindrical and polar RD simulations.
+We will consider Cartesian geometries as the most common case,
+and just note that the remaining cases can be thought of analogously.
+
+In 2D Cartesian, the ``volume'' of a cell should be $\Delta V = \Delta x\,\Delta y$.
+We would like to preserve the form of equations that relate extensive quantities
+to their densities, \eg,
+$\Delta m = \rho \Delta V$ for mass and 
+$\Delta E_{\mathrm tot} = \rho e_{\mathrm tot}\Delta V$ for total energy
+in a cell. We also like to retain the usual definitions for
+intensive quantities such as density $\rho$, including 
+their physical values and units, so that material density $\rho$
+is expressed in $g/cm^3$ (more generally $M/L^3$),
+no matter whether 1D, 2D, or 3D.
+We cannot satisfy both desiderata without modifying the interpretation
+of ``mass'', ``energy'', and similar extensive quantities in the
+system of equations modeled by Flash-X.
+
+Specifically, in a 2D Cartesian simulation, we have to interpret ``mass''
+as really representing a linear mass density, measured in $M/L$.
+Similarly, an ``energy'' is really a linear energy density, \etc
+
+In a 1D Cartesian simulation, we have to interpret ``mass''
+as really representing a surface mass density, measured in $M/L^2$,
+and an ``energy'' is really a surface energy density.
+
+(There is a different point of view, which amounts to the same thing:
+One can think of the ``mass'' of a cell (in 2D) as the physical mass contained in a
+threedimensional cell of volume $\Delta x \Delta y \Delta z$ where the
+cell height $\Delta z$
+is set to be exactly 1 length unit. Always with the understanding that
+``nothing happens'' in the $z$ direction.)
+
+Note that this interpretation of ``mass'',``energy'', \etc
+must be taken into account not just when examining the physics in individual cells,
+but equally applies for quantities integrated over larger regions, including
+the ``total mass'' or ``total energy'' \etc reported by Flash-X in \code{flash.dat}
+files --- they are to be interpreted as (linear or surface) densities
+of the nominal quantities (or, alternatively, as integrals over 1 length unit
+in the missing Cartesian directions).
+
+\subsection{Choosing a Geometry}
+
+The user chooses a geometry by setting the
+\rpi{Grid/geometry}
+runtime parameter in \code{flash.par}. The default is
+\code{"cartesian"} (unless overridden in a simulation's \code{Config} file).
+Depending on the \unit{Grid} implementation used and the way it is
+configured, the geometry may also have to be compiled into the program
+executable and thus may have to be specified at configuration
+time;
+the \code{setup} flag 
+\code{-geometry} %and/or \code{-curvilinear}
+should be used for this purpose, see \secref{Sec:ListSetupArgs}.
+
+
+The \rpi{Grid/geometry} runtime parameter is most useful
+in cases where the geometry does not have to be specified
+at compile-time, in particular for the Uniform Grid.
+The runtime parameter will, however, always be considered
+at run-time during \unit{Grid} initialization.
+If the \rpi{Grid/geometry} runtime parameter is inconsistent
+with a geometry specified at setup time,
+Flash-X will then either
+override the geometry specified at setup time (with a warning)
+if that is possible, or it will abort.
+
+This runtime parameter is used by the \unit{Grid} unit and
+also by hydrodynamics solvers, which add the
+necessary geometrical factors to the divergence terms.
+Next we describe how user code can use the runtime parameter's value.
+
+\subsection[Geometry Information in Code]{Getting Geometry Information in Program Code}
+The \unit{Grid} unit provides an accessor
+\api{Grid/Grid_getGeometry} property that returns
+the geometry as an integer, which can be compared to the symbols
+\{\code{CARTESIAN, SPHERICAL, CYLINDRICAL,
+  POLAR}\}
+% \index{mesh!geometry!CARTESIAN@\code{
+%CARTESIAN}}%\index{mesh!geometry!SPHERICAL@\code{
+%SPHERICAL}}%\index{mesh!geometry!CYLINDRICAL@\code{
+%CYLINDRICAL}}%\index{mesh!geometry!POLAR@\code{POLAR}}
+defined in \code{"constants.h"} to determine
+which of the supported geometries we are using.  A unit writer can
+therefore determine flow-control based on the geometry type (see
+\figref{Code:geom_select}). Furthermore, this provides a mechanism
+for a unit to determine at runtime whether it supports the current
+geometry, and if not, to abort.
+
+\begin{figure}[ht]
+\begin{shrink}
+\begin{fcodeseg}
+  #include "constants.h"
+
+  integer :: geometry
+
+  call Grid_getGeometry(geometry)
+
+  select case (geometry)
+
+  case (CARTESIAN)
+
+  ! do Cartesian stuff here ...
+
+  case (SPHERICAL)
+
+  ! do spherical stuff here ...
+
+  case (CYLINDRICAL)
+
+  ! do cylindrical stuff here ...
+
+  case (POLAR)
+
+  ! do polar stuff here ...
+
+  end select
+\end{fcodeseg}
+\end{shrink}
+\caption{\label{Code:geom_select} Branching based on geometry type}
+\end{figure}
+
+Coordinate information for the mesh can be determined via the
+\api{Grid/Grid_getCellCoords} routine.
+This routine can provide the coordinates of cells at the left
+edge, right edge, or center.
+The width of cells can be determined via the
+\api{Grid/Grid_getDeltas} routine.
+Angle values and differences are given in radians.
+Coordinate information for a block of cells as a whole
+is available through
+\api{Grid/Grid_getBlkCenterCoords}
+and
+\api{Grid/Grid_getBlkPhysicalSize}.
+
+
+The volume of a single cell can be obtained via the
+\api{Grid/Grid_getSingleCellVol} or the
+\api{Grid/Grid_getPointData}
+routine.
+Use the
+\api{Grid/Grid_getBlkData},
+\api{Grid/Grid_getPlaneData}, or
+\api{Grid/Grid_getRowData}
+routines with argument \code{dataType=CELL_VOLUME}
+To retrieve cell volumes for more than one cell of a block.
+To retrieve cell face areas, use the same \fcn{Grid\_get*Data}
+interfaces with the appropriate \code{dataType} argument.
+
+Note the following difference between the two groups of routines mentioned in
+the previous two paragraphs: the routines for volumes and areas take
+the chosen geometry into account in order to return geometric measures
+of physical volumes and faces (or their RD equivalents).
+On the other hand, the routines for coordinate values and widths
+return values for $X$, $Y$, and $Z$ directly, without converting
+angles to (arc) lengths.
+
+
+
+\subsection{Available Geometries}
+
+Currently, all of Flash-X's physics support one-, two-, and
+(with a few exceptions explicitly stated in the appropriate chapters) three-dimensional
+Cartesian grids.
+Some units, including the Flash-X
+\unit{Grid} unit and PPM hydrodynamics unit (\chpref{Chp:Hydrodynamics Unit}),
+support additional geometries, such as two-dimensional cylindrical ($r,z$) grids,
+one/two-dimensional spherical ($r$)/($r, \theta$) grids, and two-dimensional polar
+($r, \phi$) grids. Some specific considerations for each geometry follow.
+
+The following tables use the convention that
+$r_l$ and $r_r$ stand for the values of the $r$ coordinate at the ``left'' and
+``right'' end of the cell's $r$-coordinate range, respectively (\ie,
+$r_l < r_r$ is always true), and $\Delta r = r_r-r_l$; and similar for
+the other coordinates.
+
+\subsubsection{Cartesian geometry}
+
+Flash-X uses Cartesian (plane-parallel) geometry by default. This is
+equivalent to specifying
+\begin{codeseg}
+   geometry = "cartesian"
+\end{codeseg}
+in the runtime parameter file.
+
+% %%%It is not possible to define a volume for the 1- and 2-d Cartesian geometries,
+% %%%so the length and area are returned respectively:
+
+{\it Cell Volume in Cartesian Coordinates}
+% \index{mesh!geometry!Cartesian}} 
+\begin{minipage}{6in}
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{|l|c|}
+\hline
+1-d & $\Delta x$ \\
+\hline
+2-d & $\Delta x \Delta y$ \\
+\hline
+3-d & $\Delta x \Delta y \Delta z$  \\
+\hline
+\end{tabular}
+\end{center}
+\end{minipage}
+%
+
+% %%When running problems that have
+% %%spherical or cylindrical symmetry on a Cartesian mesh, it is
+% %%recommended that the refinement marking routine be designed to
+% %%always refine the origin in order to minimize grid geometry effects
+% %%there (see \secref{Sec:MarkRefLib}).
+
+% %%The multigrid Poisson solver (\code{solvers/poisson/multigrid})
+% %%supplied with Flash-X 2.5 works with Cartesian, 2D axisymmetric
+% %%Cylindrical and 1/2D Spherical geometries. The multipole solver
+% %%(\code{solvers/poisson/multipole}) works in any supported
+% %%``closed'' geometry, including 1/2-D spherical, 2D axisymmetric
+% %%cylindrical, and 3D Cartesian geometries.
+
+\subsubsection{Cylindrical geometry}
+
+%%Axisymmetric cylindrical geometry ($r,z$) is supported by Flash-X in
+%%two dimensions (3D cylindrical ($r$,$z$,\/$\theta$) geometry is not
+%%yet supported.)  It is assumed that the cylindrical radial
+%%coordinate is in the $X$-direction, and the cylindrical
+%%$z$-coordinate is in the $Y$-direction.
+To run Flash-X with
+cylindrical coordinates, the \code{geometry} parameter must be set
+thus:
+
+\begin{codeseg}
+   geometry = "cylindrical"
+\end{codeseg}
+
+
+%%%1-d cylindrical is not supported.  In 2-d cylindrical
+%%%coordinates, the domain is axisymmetric, so we integrate
+%%%over the $\phi$ coordinate:
+
+\vspace{1cm}
+
+\begin{minipage}{6in}
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+{\it Cell Volume in Cylindrical Coordinates}%\index{mesh!geometry!cylindrical} \\
+\begin{tabular}{|l|c|}
+\hline
+1-d & $\pi (r_r^2 - r_l^2)$ \\
+\hline
+2-d & $\pi (r_r^2 - r_l^2) \Delta z$ \\
+\hline
+3-d & $\frac{1}{2} (r_r^2 - r_l^2) \Delta z \Delta \phi$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{minipage}
+%
+
+As in other non-Cartesian
+geometries, if the minimum radius is chosen to be zero
+(\code{xmin = 0.}), the left-hand boundary type should be reflecting
+(or \code{axisymmetric}).
+Of all supported non-Cartesian geometries, the cylindrical is
+in 2-d most similar to a 2-d coordinate system: it uses two
+linear coordinate axes ($r$ and $z$) that form a rectangular
+grid physically as well as logically.
+
+As an illustrative example of the kinds of considerations
+necessary in curved coordinates,
+\figref{Fig:fluxes} shows a jump in refinement along the cylindrical
+`$z$' direction.  When performing the flux correction step at a jump
+in refinement, we must take into account the area of the annulus
+through which each flux passes to do the proper weighting.  We
+define the cross-sectional area through which the $z$-flux passes as
+\begin{equation}
+    A = \pi (r_r^2 - r_l^2)
+\enskip .
+\end{equation}
+The flux entering the coarse cell above the
+jump in refinement is corrected to agree with the fluxes leaving the
+fine cells that border it.  This correction is weighted according to
+the areas
+\begin{equation}
+   f_3 = \frac{A_1 f_1 + A_2 f_2}{A_3}~.
+\end{equation}
+%%
+\begin{figure}
+\begin{center}
+\includegraphics[height=2.5in]{Grid_flux2}
+\end{center}
+\caption{\label{Fig:fluxes} Diagram showing two fine cells and a
+coarse cell at a jump in refinement in the cylindrical `$z$'
+direction. The block boundary has been cut apart here for
+illustrative purposes.  The fluxes out of the fine blocks are shown
+as $f_1$ and $f_2$.  These will be used to compute a more accurate
+flux entering the coarse flux $f_3$.  The area that the flux passes
+through is shown as the annuli at the top of each fine cell and the
+annulus below the coarse cell.}
+\end{figure}
+
+For fluxes in the radial direction, the cross-sectional area is independent
+of the height, $z$, so the corrected flux is simply taken as the average of
+the flux densities in the adjacent finer cells.
+
+%%When using the multipole Poisson solver in 2D axisymmetric geometry,
+%%the gravitational boundary type should be set to \code{"isolated"}.
+%%In this geometry multipole moments $\ell > 0$ (\code{mpole\_lmax})
+%%can now be accommodated, but only the $m=0$ terms are used.
+
+\subsubsection{Spherical geometry}
+
+One or two dimensional spherical problems can be performed by
+specifying
+\begin{codeseg}
+   geometry = "spherical"
+\end{codeseg}
+in the runtime parameter file.
+
+
+%%%In spherical coordinates, we can compute a true volume for all dimensions:
+
+
+\vspace{1cm}
+\begin{minipage}{6in}
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+{\it Cell Volume in Spherical Coordinates}%\index{mesh!geometry!spherical} \\
+\begin{tabular}{|l|c|}
+\hline
+1-d & $\frac{4}{3} \pi (r_r^3 - r_l^3)$ \\
+\hline
+2-d & $\frac{2}{3} \pi (r_r^3 - r_l^3) (\cos(\theta_l) - \cos(\theta_r))$ \\
+\hline
+3-d & $\frac{1}{3} (r_r^3 - r_l^3) (\cos(\theta_l) - \cos(\theta_r))
+      \Delta \phi$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{minipage}
+
+\vspace{1cm}
+
+
+
+%%Flux corrections use area weightings as for
+%%2D cylindrical geometry.
+If the minimum radius is chosen to be zero
+(\code{xmin = 0.}), the left-hand boundary type should be reflecting.
+%%When using the multipole Poisson solver spherical coordinates,
+%%the gravitational boundary type should be \code{"isolated"}. Note that
+%%in this case it does not make sense to use a multipole moment $\ell$
+%%(\code{mpole\_lmax}) larger than 0.
+
+\subsubsection{Polar geometry}
+Polar geometry is a 2-D subset of 3-D cylindrical configuration
+without the ``z'' coordinate. Such geometry is natural for studying
+objects like accretion disks. This geometry can be selected by
+specifying
+\begin{codeseg}
+   geometry = "polar"
+\end{codeseg}
+in the runtime parameter file.
+
+
+%%In polar coordinates, the volumes are actually areas, since the domain is
+%%always a disk:
+
+\vspace{1cm}
+\begin{minipage}{6in}
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+{\it Cell Volume in Polar Coordinates}%\index{mesh!geometry!polar} \\
+\begin{tabular}{|l|l|}
+\hline
+1-d & $ \pi (r_r^2 - r_l^2)$ \\
+\hline
+2-d & $ \frac{1}{2} (r_r^2 - r_l^2)\Delta \phi$ \\
+\hline
+3-d & $ \frac{1}{2} (r_r^2 - r_l^2)\Delta \phi \Delta z$ (not supported) \\
+\hline
+\end{tabular}
+\end{center}
+\end{minipage}
+\vspace{1cm}
+
+As in other non-Cartesian
+geometries, if the minimum radius is chosen to be zero
+(\code{xmin = 0.}), the left-hand boundary type should be reflecting.
+
+%%Flux corrections use area weightings as
+%%in other curvilinear coordinate systems.
+
+
+%%Currently there is no support for self-gravity in polar geometry.
+
+
+\subsection{Conservative Prolongation/Restriction on Non-Cartesian Grids}
+\label{Sec:Non-Cart Prol/Rest}
+
+When blocks are refined, we need to initialize the child data using the
+information in the parent cell in a manner which preserves the
+cell-averages in the coordinate system we are using.  When a block is
+derefined, the parent block (which is now going to be a leaf block)
+needs to be filled using the data in the child blocks (which are soon
+to be destroyed).  The first procedure is called prolongation.%\index{grid!prolongation}
+The latter is called restriction.%\index{grid!restriction}
+Both of these procedures must respect
+the geometry in order to remain conservative.  Prolongation and
+restriction are also used when filling guard cells at jumps in
+refinement.
+
+\subsubsection{Prolongation}
+When using a supported non-Cartesian geometry, Flash-X has to use
+geometrically correct prolongation routines. These
+are located in:
+\begin{itemize}
+\item {\code{source/Grid/GridMain/paramesh/Paramesh2/monotonic} (for
+\Paramesh2)}
+\item {\code{source/Grid/GridMain/paramesh/interpolation/Paramesh4/prolong}
+(for \Paramesh4)}
+\begin{comment}
+\item {\code{source/Grid/GridMain/paramesh/Paramesh2/quadratic\_cylindrical} (for
+cylindrical coordinates)}
+\item {\code{source/Grid/GridMain/paramesh/Paramesh2/quadratic\_polar}
+(for polar coordinates)}
+\item {\code{source/Grid/GridMain/paramesh/Paramesh2/quadratic\_spherical}
+(for spherical coordinates)}
+\end{comment}
+\end{itemize}
+These paths will be be automatically added by the \code{setup} script when the
+\code{-gridinterpolation=monotonic} option is in effect
+%%(either explicitly or implicitly by specifying
+%%a non-\code{cartesian} \code{-geometry}).
+(which is the case by default, unless \code{-gridinterpolation=native} was specified).
+The ``monotonic'' interpolation%\index{grid!interpolation}
+scheme
+used in both cases is taking geometry
+into consideration and is appropriate for all supported geometries.
+
+
+\subsubsection{Restriction}%\index{grid!restriction}
+The default restriction routines understand the supported geometries
+by default.  A cell-volume weighted average is used when restricting
+the child data up to the parent.  For example, in 2-d, the restriction
+would look like
+\begin{equation}
+\avgsub{f}{i,j} = \frac{V_{ic,jc} \avgsub{f}{ic,jc} +
+                        V_{ic+1,jc} \avgsub{f}{ic+1,jc} +
+                        V_{ic,jc+1} \avgsub{f}{ic,jc+1} +
+                        V_{ic+1,jc+1} \avgsub{f}{ic+1,jc+1}}
+                       {V_{i,j}}~,
+\end{equation}
+where $V_{i,j}$ is the volume of the cell with indices, $i, j$, and the
+$ic, jc$ indices refer to the children.
+
+
+
+\section{Unit Test}
+
+The \unit{Grid} unit test has implementations to test  Uniform Grid
+and \Paramesh. The Uniform Grid version of the test has two parts; the
+latter portion is also tested in \Paramesh.
+The test initializes the grid with a sinusoid function
+\(\sin(x)\times\cos(y)\times\cos(z)\), distributed over a number of
+processors. Knowing the configuration of processors, it is possible to
+determine the part of the sinusoid on each processor. Since guardcells
+are filled either from the interior points of the neighboring
+processor, or from boundary conditions, it is also possible to predict
+the values expected in guard cells on each processor. The first part of
+the UG unit test makes sure that the actual received values of guard
+cell match with the predicted ones. This process is carried out for
+both cell-centered and face-centered variables.
+
+The second part of the UG test, and the only part of the \Paramesh\ test,
+exercises the get and put data functions. Since the \unit{Grid} unit
+has direct access to all of its own data structures, it can compare
+the values fetched using the getData functions against the directly
+accessible values and report an error if they do not match.
+The testing of the \unit{Grid} unit is not exhaustive, and given the complex
+nature of the unit, it is difficult to devise tests that would do
+so. However, the more frequently used functions are exercised in this test.
+
+

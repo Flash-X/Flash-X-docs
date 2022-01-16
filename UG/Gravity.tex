@@ -1,0 +1,537 @@
+\chapter{Gravity Unit}
+\label{chp:Gravity}
+
+
+\section{Introduction}
+
+The \unit{Gravity} unit supplied with \flashx computes gravitational source
+terms for the code.
+These source terms can take the form of the gravitational potential
+$\phi({\bf x})$ or the gravitational acceleration ${\bf g}({\bf x})$,
+\begin{equation}
+{\bf g}({\bf x}) = -\nabla \phi({\bf x})\ .
+\end{equation}
+The gravitational field can be externally imposed or self-consistently
+computed from the gas density via the Poisson equation,
+\begin{equation}
+\label{Eqn:Poisson}
+\nabla^2\phi({\bf x}) = 4\pi G \rho({\bf x})\ ,
+\end{equation}
+where $G$ is Newton's gravitational constant.
+In the latter case, either periodic or isolated boundary conditions can
+be applied.
+
+%--------------------------------------------------------------------------
+
+\section{Externally Applied Fields}
+\label{Sec:GravityExternal}
+The Flash-X distribution includes three externally applied gravitational
+fields, along with a placeholder module for you to create your own. Each
+provides the acceleration vector ${\bf g}({\bf x})$ directly, without using
+the gravitational potential $\phi({\bf x})$ (with the exception of
+\code{UserDefined}, see below).
+
+When building an application that uses an external, time-independent
+\unit{Gravity} implementation, no additional storage in \code{unk}
+for holding gravitational potential or accelerations is needed
+or defined.
+
+\subsection{Constant Gravitational Field}
+This implementation creates
+a spatially and temporally constant field parallel to one of the
+coordinate axes. The magnitude and direction of the field can be set
+at runtime.  This unit is called \code{Gravity/\-GravityMain/\-Constant}.
+
+\subsection{Plane-parallel Gravitational field}
+This \code{PlanePar} version
+implements a time-constant  gravitational field that is parallel to
+one of the coordinate axes and falls off with the square of the
+distance from a fixed location. The field is assumed to be generated
+by a point mass or by a spherically symmetric mass distribution. A
+finite softening length may optionally be applied.
+
+This type of gravitational field
+is useful when the computational domain is large enough in the
+direction radial to the field source that the field is not
+approximately constant, but the domain's dimension perpendicular to
+the radial direction is small compared to the distance to the source.
+In this case the angular variation of the field direction may be
+ignored. The \code{PlanePar} field is cheaper to compute than the
+\code{PointMass} field described below,
+since no fractional powers of the distance are
+required. The acceleration vector is parallel to one of the coordinate
+axes, and its magnitude drops off with distance along that axis as the
+inverse distance squared. Its magnitude and direction are independent
+of the other two coordinates.
+
+\subsection{Gravitational Field of a Point Mass}
+This \code{PointMass} implementation
+describes the gravitational field due to a point mass at a fixed
+location. A finite softening length may optionally be applied. The
+acceleration falls off with the square of the distance from a given
+point. The acceleration vector is everywhere directed toward this point.
+
+\subsection{User-Defined Gravitational Field}
+The \code{UserDefined} implementation is a placeholder module for the user to
+create their own external gravitational field. All of the subroutines in this
+module are stubs, and the user may copy these stubs to their setup directory to
+write their own implementation, either by specifying the gravitational
+acceleration directly or by specifying the gravitational potential and taking
+its gradient. If your user-defined gravitational field is time-varying, you
+may also want to set \code{PPDEFINE Flash-X\_GRAVITY\_TIMEDEP} in your setup's
+Config file.
+
+\section{Self-gravity}
+\label {Sec:GravitySelfgravity}
+The self-consistent gravity algorithm supplied with Flash-X computes the
+Newtonian gravitational field produced by the matter. The produced
+potential function satisfies Poisson's equation
+\eqref{Eqn:Poisson}. This unit's implementation
+can also return the acceleration field ${\bf g}({\bf x})$
+computed by finite-differencing the potential using the expressions
+\begin{eqnarray}
+\nonumber
+g_{x;ijk} &= {1\over2\Delta x}\left(\phi_{i-1,j,k} - \phi_{i+1,j,k}\right) +
+  {\cal O}(\Delta x^2) \\
+g_{y;ijk} &= {1\over2\Delta y}\left(\phi_{i,j-1,k} - \phi_{i,j+1,k}\right) +
+  {\cal O}(\Delta y^2) \\
+\nonumber
+g_{z;ijk} &= {1\over2\Delta z}\left(\phi_{i,j,k-1} - \phi_{i,j,k+1}\right) +
+  {\cal O}(\Delta z^2) \ .
+\end{eqnarray}
+In order to preserve the second-order accuracy of these expressions at
+jumps in grid refinement, it is important to use quadratic interpolants
+when filling guard cells at such locations. Otherwise, the truncation error
+of the interpolants will produce unphysical forces at these block boundaries.
+
+Two algorithms are available for solving the Poisson equations:
+\code{Gravity/\-GravityMain/\-Multipole} and \code{Gravity/\-GravityMain/\-Multigrid}.
+The initialization routines for these algorithms are contained in the \code{Gravity}
+unit, but the actual implementations are contained below the \code{Grid} unit due
+to code architecture constraints.
+
+The multipole-based solver described in \secref{Sec:GridSolversMultipole}
+for self gravity is appropriate for spherical or nearly-spherical mass
+distributions with isolated boundary conditions. For non-spherical
+mass distributions higher order moments of the solver must be used. Note that
+storage and CPU costs scale roughly as the square of number of moments
+used, so it is best to use this solver only for nearly spherical
+matter distributions.
+
+The multigrid solver described in \secref{Sec:GridSolversMultigrid}
+is appropriate for general mass distributions and can solve problems with
+more general boundary conditions.
+
+The tree solver described in \ref{Sec:GridSolversBHTree} is appropriate for
+general mass distributions and can solve problems with both isolated and
+periodic boundary conditions set independently in individual directions.
+
+
+\subsection{Coupling Gravity with Hydrodynamics}
+
+The gravitational field couples to the Euler equations only through the
+momentum and energy equations. If we define the total energy density as
+\begin{equation}
+\rho E \equiv {1\over 2}\rho v^2 + \rho\epsilon\ ,
+\end{equation}
+where $\epsilon$ is the specific internal energy, then the gravitational
+source terms for the momentum and energy equations are $\rho{\bf g}$ and
+$\rho{\bf v}\cdot{\bf g}$, respectively. Because of the variety of ways
+in which different hydrodynamics schemes treat these source terms,
+the gravity module only supplies the potential $\phi$ and acceleration ${\bf g}$,
+leaving the implementation
+of the fluid coupling to the hydrodynamics module.
+Finite-difference and finite-volume hydrodynamic schemes apply the source terms
+in their advection steps,
+sometimes at multiple intermediate timesteps and sometimes using
+staggered meshes for vector quantities like ${\bf v}$ and ${\bf g}$.
+
+For example, the PPM algorithm supplied with Flash-X uses the following
+update steps to obtain the momentum and energy in cell $i$ at timestep
+$n+1$
+\begin{eqnarray}
+\nonumber
+(\rho v)_i^{n+1} & =  (\rho v)_i^n + {\Delta t\over 2} g_i^{n+1}
+  \left(\rho_i^n + \rho_i^{n+1}\right)\\
+(\rho E)_i^{n+1} & =  (\rho E)_i^n + {\Delta t\over 4} g_i^{n+1}
+  \left(\rho_i^n + \rho_i^{n+1}\right)\left(v_i^n + v_i^{n+1}\right)\ .
+\end{eqnarray}
+Here $g_i^{n+1}$ is obtained by extrapolation from $\phi_i^{n-1}$ and
+$\phi_i^n$.
+The $\code{Poisson}$ gravity implementation supplies a mesh variable to contain the
+potential from the previous timestep; future releases of Flash-X may
+permit the storage of several time levels of this quantity for
+hydrodynamics algorithms that require more steps.
+Currently, ${\bf g}$ is computed at cell centers.
+
+Note that finite-volume schemes do
+not retain explicit conservation of momentum and energy when gravity
+source terms are added. Godunov schemes such as PPM, require an
+additional step in order to preserve second-order time accuracy. The
+gravitational acceleration component $g_i$ is fitted by interpolants along
+with the other state variables, and these interpolants are used to
+construct characteristic-averaged values of ${\bf g}$ in each cell. The
+velocity states $v_{L,i+1/2}$ and $v_{R,i+1/2}$, which are used as
+inputs to the Riemann problem solver, are then corrected to account
+for the acceleration using the following expressions
+\begin{eqnarray}
+\nonumber
+v_{L,i+1/2} &\rightarrow& v_{L,i+1/2} + {\Delta t\over
+4}\left(g^+_{L,i+1/2} +
+  g^-_{L,i+1/2}\right)\\
+v_{R,i+1/2} &\rightarrow& v_{R,i+1/2} + {\Delta t\over
+4}\left(g^+_{R,i+1/2} +
+  g^-_{R,i+1/2}\right)~.
+\end{eqnarray}
+Here $g^\pm_{X,i+1/2}$ is the acceleration averaged using the interpolant
+on
+the $X$ side of the interface ($X=L,R$) for $v\pm c$ characteristics, which
+bring material to the interface between cells $i$ and $i+1$ during the
+timestep.
+
+\subsection{Tree Gravity}
+
+The \code{Tree} implementation of the gravity unit in \code{physics/Gravity/GravityMain/Poisson/BHTree} is
+meant to be used together with the tree solver implementation
+\texttt{Grid/GridSolvers/BHTree/Wunsch}. It either calculates the gravitational
+potential field which is subsequently differentiated in subroutine
+\api{physics/Gravity/Gravity\_accelOneRow} to obtain the gravitational acceleration, or it
+calculates the gravitational acceleration directly. The latter approach is more
+accurate, because the error due to numerical differentiation is avoided,
+however, it consumes more memory for storing three components of the
+gravitational acceleration. The direct acceleration calculation can be switched
+on by specifying \code{bhtreeAcc=1} as a command line argument of the setup
+script.
+
+The gravity unit provides subroutines for building and walking the tree called
+by the tree solver. In this version, only monopole moments (node masses) are
+used for the potential/acceleration calculation. It also defines new multipole
+acceptance criteria (MACs) that estimate the error in gravitational acceleration
+of a contribution of a single node to the potential (hereafter partial error)
+much better than purely geometrical MAC defined in the tree solver. They are:
+(1) the approximate partial error (APE), and (2) the maximum partial error
+(MPE). The first one is based on an assumption that the partial error is
+proportional to the multipole moment of the node. The node is accepted for
+calculation of the potential if
+\begin{equation}
+D^{m+2} > \frac{GMS_\mathrm{node}^m}{\Delta a_\mathrm{p,APE}}
+\end{equation}
+where $D$ is distance between the {\em point-of-calculation} and the node, $M$
+is the node mass, $S_\mathrm{node}$ is the node size, $m$ is a degree of the
+multipole approximation and $\Delta a_\mathrm{p,APE}$ is the requested maximum error in
+acceleration (controlled by runtime parameter \rpi{Gravity/grv\_bhAccErr}). Since only
+monopole moments are used for the potential calculation, the most reasonable
+choice of $m$ seems to be $m=2$. This MAC is similar to the one used in Gadget2
+(see Springel, 2005, MNRAS, 364, 1105).
+
+The second MAC (maximum partial error, MPE) calculates the error in acceleration
+of a single node contribution $\Delta a_\mathrm{p,MPE}$ according to formula 9
+from Salmon\&Warren (1994; see this paper for details):
+\begin{equation}
+\Delta a_\mathrm{p,MPE} \le \frac{1}{D^2}\frac{1}{(1-S_\mathrm{node}/D)^2}\left(
+\frac{3\lceil B_2\rceil}{D^2} - \frac{2\lfloor B_3 \rfloor}{D^3}\right)
+\end{equation}
+where $B_n = \Sigma_i m_i |\mathbf{r}_i-\mathbf{r}_0|^n $ where $m_i$ and
+$\mathbf{r}_i$ are masses and positions of individual grid cells within the node
+and $\mathbf{r}_0$ is the node mass center position. Moment $B_2$ can be easily
+determined during the tree build, moment $B_3$ can be estimated as $B_3^2 \ge
+B_2^3/M$. The maximum allowed partial error in gravitational acceleration is
+controlled by runtime parameters \rpi{Gravity/grv\_bhAccErr} and
+\rpi{Gravity/grv\_bhUseRelAccErr} (see \ref{Sec:GravityBHTreeUsing}).
+
+During the tree walk, subroutine \api{physics/Gravity/Gravity\_bhNodeContrib} adds contributions
+of tree nodes to the gravitational potential or acceleration fields. In case of
+the potential, the contribution is 
+\begin{equation}
+\Phi = -\frac{GM}{|\vec{r}|}
+\end{equation}
+if \texttt{isolated} boundary conditions are used, or
+\begin{equation}
+\Phi = -GMf_\mathrm{EF,\Phi}(\vec{r})
+\end{equation}
+if periodic \texttt{periodic} or \texttt{mixed} boundary conditions are used. In
+case of the acceleration, the contributions are 
+\begin{equation}
+\vec{a}_g = \frac{GM\vec{r}}{|\vec{r}|^3}
+\end{equation}
+for \texttt{isolated} boundary conditions, or
+\begin{equation}
+\vec{a}_g = GMf_\mathrm{EF,a}(\vec{r})
+\end{equation}
+for \texttt{periodic} or \texttt{mixed} boundary conditions. In In the above
+formulae, $G$ is the constant of gravity, $M$ is the node mass, $\vec{r}$ is the
+position vector between {\em point-of-calculation} and the node mass center and
+$f_\mathrm{EF,\Phi}$ and $f_\mathrm{EF,a}$ are the Ewald fields for the
+potential and the acceleration (see below).
+
+Boundary conditions can be isolated or periodic, set independently for each
+direction. If they are periodic at least in one direction, the Ewald method is
+used for the potential calculation (Ewald, P.~P., 1921, Ann.\ Phys.\ 64, 253).
+The original Ewald method is an efficient method for computing gravitational
+field for problems with periodic boundary conditions in three directions. Ewald
+speeded up evaluation of the gravitational potential by splitting it into two parts,
+$Gm/r=Gm \, \erf(\alpha r)/r + Gm \, \erfc(\alpha r)/r$ ($\alpha$ is an
+arbitrary constant) and then by applying Poisson summation formula on erfc
+terms, gravitational field at position $\vec{r}$  can be written in the form
+%
+\begin{equation}
+\phi (\vec{r})  =  -G \sum_{a=1}^N m_a \left( \sum_{i_1,i_2,i_3} A_S(\vec{r},\vec{r}_a,\vec{l}_{i_1,i_2,i_3}) + 
+A_L(\vec{r},\vec{r}_a,\vec{l}_{i_1,i_2,i_3})  \right)
+= -G \sum_{a=1}^N m_a f_\mathrm{EF,\Phi}(\vec{r}_a - \vec{r}) \ ,
+\label{ewald_sum}
+\end{equation}
+%
+the first sum runs over whole computational domain, where at position
+$\vec{r}_a$ is mass $m_a$. Second sum runs over all neigbouring computational
+domains, which are at positions $\vec{l}_{i_1,i_2,i_3}$ and
+$A_S(\vec{r},\vec{r}_a,\vec{l}_{i_1,i_2,i_3})$ and
+$A_L(\vec{r},\vec{r}_a,\vec{l}_{i_1,i_2,i_3})$ are short and long--range
+contributions, respectively. It is sufficient to take into account only few
+terms in eq. \ref{ewald_sum}. The Ewald field for the acceleration,
+$f_\mathrm{EF,a}$, is obtained using a similar decomposition. We modified Ewald
+method for problems with periodic boundary conditions in two directions and
+isolated boundary conditions in the third direction and for problems with
+periodic boundary conditions in one direction and isolated in two directions.
+
+The gravity unit allows also to use a static external gravitational field read
+from file. In this version, the field can be either spherically symmetric or
+planar being only a function of the z-coordinate. The external field file is a
+text file containing three columns of numbers representing the coordinate, the
+potential and the acceleration. The coordinate is the radial distance or
+z-distance from the center of the external field given by runtime parameters.
+The external field if mapped to a grid using a linear interpolation each time
+the gravitational acceleration is calculated (in subroutine
+\api{physics/Gravity/Gravity\_accelOneRow}).
+
+
+\section{Usage}
+\label{Sec:Gravity Usage}
+
+To include the effects of gravity in your Flash-X executable,
+include the option
+\begin{quote}
+-with-unit=physics/Gravity
+\end{quote}
+on your command line when you configure the code with \code{setup}.
+The default implementation is \code{Constant}, which can be overridden
+by including the entire path to the specific implementation in the
+command line or \code{Config} file. The other available implementations are
+\code{Gravity/\-GravityMain/\-Planepar}, \code{Gravity/\-GravityMain/\-Pointmass} and
+\code{Gravity/\-GravityMain/\-Poisson}. The \code {Gravity} unit provides
+accessor functions to get gravitational acceleration and
+potential. However,
+none of the external field implementations of Section~\secref{Sec:GravityExternal}
+explicitly
+compute the potential, hence they inherit the null implementation from
+the API for accessing potential. The gravitation acceleration can be
+obtained either on the whole domain, a single block or a single row at
+a time.
+
+When building an application that solves the Possion equation for the
+gravitational potential, additional storage is needed in \code{unk}
+for holding the last, as well as (usually) the previous, gravitational
+potential field; and,
+depending on the Poisson solver used, additional variables may be needed.
+The variables
+\code{GPOT\_VAR} and \code{GPOT\_VAR}, and others as needed, will be
+automatically defined in \code{Simulation.h} in those cases. See
+\api{physics/Gravity/Gravity\_potentialListOfBlocks} for more information.
+
+
+\subsection{Tree Gravity Unit Usage}
+\label{Sec:GravityBHTreeUsing}
+
+Calculation of gravitational potential can be enabled by compiling in this unit
+and setting the runtime parameter \rpi{Gravity/useGravity} true. The constant of gravity
+can be set independently by runtime parameter \rpi{Gravity/grv\_bhNewton}; if it is
+not positive, the constant \texttt{Newton} from the Flash-X \unit{PhysicalConstants}
+database is used. If parameters \rpi{Grid/gr\_bhPhysMACTW} or \rpi{Grid/gr\_bhPhysMACComm}
+are set, the gravity unit MAC is used and it can be chosen by setting
+\rpi{Gravity/grv\_bhMAC} to either \texttt{ApproxPartialErr} or \texttt{MaxPartialErr}.
+If the first one is used, the order of the multipole approximation is given by
+\rpi{Gravity/grv\_bhMPDegree}.
+
+The maximum allowed partial error in gravitational acceleration is set with the
+runtime parameter \rpi{Gravity/grv\_bhAccErr}. It has either the meaning of an error in
+absolute acceleration or in relative acceleration normalized by the acceleration
+from the previous time-step. The latter is used if \rpi{Gravity/grv\_bhUseRelAccErr} is
+set to True, and in this case the first call of the tree solver calculates the
+potential using purely geometrical MAC (because the acceleration from the
+previous time-step does not exist).
+
+Boundary conditions are set by the runtime parameter \rpi{Gravity/grav\_boundary\_type} and they
+can be \texttt{isolated}, \texttt{periodic} or \texttt{mixed}.
+In the case of mixed boundary conditions, runtime parameters \rpi{Gravity/grav\_boundary\_type\_x},
+\rpi{Gravity/grav\_boundary\_type\_y} and \rpi{Gravity/grav\_boundary\_type\_z} specify
+along which coordinate boundary conditions are periodic and isolated
+(possible values are \texttt{periodic} or \texttt{isolated}).
+Arbitrary combination of these values is permitted, thus suitable for problems
+with planar resp. linear symmetry. It should work for computational domain with
+arbitrary dimensions. The highest accuracy is reached with blocks of cubic physical
+dimensions.
+
+If runtime parameter \rpi{Gravity/grav\_boundary\_type} is \texttt{periodic} or
+\texttt{mixed}, then the Ewald field for appropriate symmetry is calculated at
+the beginning of the simulation. Parameter \rpi{Gravity/grv\_bhEwaldSeriesN} controls the range of indices
+$i_1,i_2,i_3$ in (eq. \ref{ewald_sum}). There are two implementations of the
+Ewald method: the new one (default) requires less memory and it should be faster
+and of comparable accuracy as the old one. The default implementation computes
+Ewald field minus the singular $1/r$ term and its partial derivatives on a
+single cubic grid, and the Ewald field is then approximated by the first order
+Taylor formula. Parameter \rpi{Gravity/grv\_bhEwaldNPer} controls number of grid points
+in the $x$ direction in the case of \texttt{periodic} or in periodic
+direction(s) in the case of \texttt{mixed} boundary conditions. Since an
+elongated computational domain is often desired when \rpi{Gravity/grav\_boundary\_type}
+is \texttt{mixed}, the cubic grid would lead to a huge field of data. In this
+case, the amount of necessary grid points is reduced by using an analytical
+estimate to the Ewald field sufficiently far away of the symmetry plane or axis.
+
+The old implementation (from Flash4.2) is still present and is enabled
+by adding
+\code{bhtreeEwaldV42=1} on the setup command line.
+The Ewald field is then stored
+in a nested set of grids, the first of them corresponds in size to full
+computational domain, and each following grid is half the size (in each
+direction) of the previous grid. Number of nested grids is controlled by
+runtime parameter \rpi{Gravity/grv\_bhEwaldNRefV42}. If \rpi{Gravity/grv\_bhEwaldNRefV42} is too low to
+cover origin (where is the Ewald field discontinuous), then the run is terminated.
+Each grid is composed of \rpi{Gravity/grv\_bhEwaldFieldNxV42} $\times$
+\rpi{Gravity/grv\_bhEwaldFieldNyV42} $\times$  \rpi{Gravity/grv\_bhEwaldFieldNzV42} points.
+When evaluation of the Ewald Field at particular point is
+needed at any time during a run, the field value is found by interpolation in a suitable level of the grid. Linear or
+semi-quadratic interpolation can be chosen by runtime parameter
+\rpi{Gravity/grv\_bhLinearInterpolOnlyV42} (option \code{true} corresponds to linear
+interpolation). Semi-quadratic interpolation is recommended only in the case
+when there are periodic boundary conditions in two directions.
+
+The external gravitational field can be switched on by setting
+\rpi{Gravity/grv\_useExternalPotential} true. The parameter \rpi{Gravity/grv\_bhExtrnPotFile}
+gives the name of the file with the external potential and
+\rpi{Gravity/grv\_bhExtrnPotType} specifies the field symmetry: \texttt{spherical} for
+the spherical symmetry and \texttt{planez} for the planar symmetry with field
+being a function of the z-coordinate. Parameters \rpi{Gravity/grv\_bhExtrnPotCenterY},
+\rpi{Gravity/grv\_bhExtrnPotCenterX} and \rpi{Gravity/grv\_bhExtrnPotCenterZ} specify the
+position (in the simulation coordinate system) of the external field origin (the
+point where the radial or z-coordinate is zero).
+
+
+\hspace*{-3cm}
+\begin{table}[h]
+\small
+\noindent
+\caption{Tree gravity unit parameters controlling the accuracy of calculation.}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+Variable & Type & Default & Description \\
+\hline
+\rpi{Gravity/grv\_bhNewton}           & real & -1.0 & constant of gravity; if $<$ 0, it is obtained\\
+                                      &      &      & from internal physical constants database\\
+\hline
+\rpi{Gravity/grv\_bhMAC}              & string & "ApproxPartialErr" & MAC, other option: "MaxPartialErr"\\
+\hline
+\rpi{Gravity/grv\_bhMPDegree}         & integer & 2 & degree of multipole in error estimate in APE MAC \\
+\hline
+\rpi{Gravity/grv\_bhUseRelAccErr}     & logical & .false. & if .true., grv\_bhAccErr has meaning of\\
+                                      &         &         & relative error, otherwise absolute \\
+\hline
+\rpi{Gravity/grv\_bhAccErr}           & real & 0.1 & maximum allowed error in gravitational\\
+                                      &      &     & acceleration \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\hspace*{-3cm}
+\begin{table}[h]
+\small
+\noindent
+\caption{Tree gravity unit parameters controlling the boundary conditions.}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+Variable & Type & Default & Description \\
+\hline
+\rpi{Gravity/grav\_boundary\_type}     & string & "isolated" & or "periodic" or "mixed"\\
+\hline
+\rpi{Gravity/grav\_boundary\_type\_x}   & string & "isolated" & or "periodic"\\
+\hline
+\rpi{Gravity/grav\_boundary\_type\_y}   & string & "isolated" & or "periodic"\\
+\hline
+\rpi{Gravity/grav\_boundary\_type\_z}   & string & "isolated" & or "periodic"\\
+\hline
+\rpi{Gravity/grv\_bhEwaldAlwaysGenerate} & boolean & true & whether Ewald field should be regenerated\\
+%instead of read from file \\
+\hline
+\rpi{Gravity/grv\_bhEwaldSeriesN} & integer & $10$ & number of terms in the Ewald series\\
+\hline
+\rpi{Gravity/grv\_bhEwaldNPer}  & integer & 32 & number of points+1 of the Taylor expansion \\
+\hline
+\rpi{Gravity/grv\_bhEwaldFName} & string  & "ewald\_coeffs" & file with coefficients of the Ewald field Taylor expansion\\
+\hline
+\hline
+\rpi{Gravity/grv\_bhEwaldFieldNxV42} & integer & $32$ & size of the Ewald field grid in x-direction\\
+\hline
+\rpi{Gravity/grv\_bhEwaldFieldNyV42} & integer & $32$ & size of the Ewald field grid in y-direction\\
+\hline
+\rpi{Gravity/grv\_bhEwaldFieldNzV42} & integer & $32$ & size of the Ewald field grid in z-direction\\
+\hline
+\rpi{Gravity/grv\_bhEwaldNRefV42}    & integer & -1 & number of refinement levels (nested grids) for the Ewald\\
+                                      &         &         & field; if $<$ 0, determined automatically\\
+\hline
+\rpi{Gravity/grv\_bhLinearInterpolOnlyV42} & logical & .true. & if .false., semi-quadratic interpolation is used for\\
+                                      &         &         & interpolation in the Ewald field\\
+\hline
+\rpi{Gravity/grv\_bhEwaldFNameAccV42} & string  & "ewald\_field\_acc" & file with the Ewald field for acceleration\\
+\hline
+\rpi{Gravity/grv\_bhEwaldFNamePotV42} & string  & "ewald\_field\_pot" & file with coefficients of the Ewald field for potential\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+Tree gravity unit parameters controlling the external gravitational field.
+
+\hspace*{-3cm}
+\small
+\noindent
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+Variable & Type & Default & Description \\
+\hline
+\rpi{Gravity/grv\_bhUseExternalPotential} & logical & .false. & whether to use external field \\
+\hline
+\rpi{Gravity/grv\_bhUsePoissonPotential}  & logical & .true. & whether to use gravitational field calculated by the\\
+                                      &         &         & tree solver \\
+\hline
+\rpi{Gravity/grv\_bhExtrnPotFile}  & string & "external\_potential.dat" & file containing the external gravitational field \\
+\hline
+\rpi{Gravity/grv\_bhExtrnPotType}  & string & "planez" & type of the external field: planar or spherical symmetry\\
+\hline
+\rpi{Gravity/grv\_bhExtrnPotCenterX} & real & 0.0 & x-coordinate of the center of the external field \\
+\hline
+\rpi{Gravity/grv\_bhExtrnPotCenterY} & real & 0.0 & y-coordinate of the center of the external field \\
+\hline
+\rpi{Gravity/grv\_bhExtrnPotCenterZ} & real & 0.0 & z-coordinate of the center of the external field \\
+\hline
+\end{tabular}
+\end{center}
+\normalsize
+
+
+\section{Unit Tests}
+\label{Sec:GravityUnitTests}
+There are two unit tests for the gravity unit.  \code{Poisson3} is essentially
+the Maclaurin spheroid problem described in \secref{Sec:SimulationMacLaurin}.
+Because an analytical solution exists, the accuracy of the gravitational solver
+can be quantified.  The second test, \code{Poisson3_active} is a modification
+of \code{Poisson3} to test the mapping of particles in
+\api{Grid/Grid_mapParticlesToMesh}.  Some of the mesh density is redistributed
+onto particles, and the particles are then mapped back to the mesh, using
+the analytical solution to verify completeness.  This test is similar to
+the simulation \code{PoisParticles} discussed in \secref{Sec:SimulationPoisParticles}.
+\code{PoisParticles} is based on the Huang-Greengard Poisson gravity test described
+in \secref{Sec:SimulationPoisTest}.

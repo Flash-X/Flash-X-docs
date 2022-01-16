@@ -1,0 +1,384 @@
+
+\chapter{VisIt}
+\label{Sec:visit}
+The developers of \code{Flash-X} also highly recommend VisIt, a free parallel interactive
+visualization
+package provided by Lawrence Livermore National Laboratory 
+(see \url{https://wci.llnl.gov/codes/visit/}).
+VisIt runs on Unix and PC platforms, and can handle small desktop-size datasets
+as well as very large parallel datasets in the terascale range.  VisIt
+provides a native reader to import \code{Flash-X2.5} and \flashx.
+Version 1.10 and higher natively
+support \flashx.
+For VisIt versions 1.8 or less, \flashx support can be obtained by installing
+a tarball patch available at 
+\url{http://flash.uchicago.edu/site/flashcode/user_support/visit/}.
+Full instructions are also available at that site.
+
+
+\chapter{Serial Flash-X Output Comparison Utility (\code{sfocu})}
+\label{Chp:sfocu}
+
+\code{Sfocu} (Serial Flash Output Comparison Utility) is mainly used as part of
+an automated testing suite called \code{flashTest} and was introduced in Flash-X
+version 2.0 as a replacement for focu.
+
+\code{Sfocu} is a serial utility which examines two Flash-X checkpoint files and
+decides whether or not they are ``equal'' to ensure that any changes made to Flash-X do
+not adversely affect subsequent simulation output.  By ``equal'', we mean
+that
+
+\begin{itemize} \item The leaf-block structure matches -- each leaf block
+must have the same position and size in both datasets.
+
+\item The data arrays in the leaf blocks (\code{dens}, \code{pres}...) are
+identical.
+
+\item The number of particles are the same, and all floating point particle
+attributes are identical.
+\end{itemize}
+
+Thus, \code{sfocu} ignores information such as the particular numbering of the
+blocks and particles, the timestamp, the build information, and so on.
+
+\code{Sfocu} can read \code{HDF5} and \code{PnetCDF}
+Flash-X checkpoint files. Although \code{sfocu} is a
+serial program, it is able to do comparisons on the output of large
+parallel simulations.  \texttt{Sfocu} has been used on irix, linux,
+AIX and OSF1.
+
+\section{Building \code{sfocu}}
+\label{Sec:building sfocu}
+
+The process is entirely manual, although Makefiles for certain machines have
+been provided. There are a few compile-time options which you set via the
+following preprocessor definitions in the Makefile (in the
+\code{CDEFINES} macro):
+
+\begin{description}
+\item[\code{NO\_HDF5}] build without HDF5 support
+\item[\code{NO\_NCDF}] build without PnetCDF support
+\item[\code{NEED\_MPI}] certain parallel versions of HDF5 and all versions of PnetCDF
+need to be linked with the MPI library.  This adds the necessary
+\code{MPI\_Init} and \code{MPI\_Finalize} calls to \code{sfocu}.
+There is no advantage to running \code{sfocu} on more than one
+processor; it will only give you multiple copies of the same report.
+\end{description}
+
+
+\section{Using \code{sfocu}}
+\label{Sec:using sfocu}
+
+The basic and most common usage is to run the command \code{sfocu <file1>
+<file2>}. The option \code{-t <dist>} allows a distance tolerance in comparing bounding boxes of blocks 
+in two different files to determine which are the same (which have data to compare to one another).
+You might need to widen your terminal to view the output,
+since it can be over 80 columns. Sample output follows:
+
+\begin{quote}
+\begin{tiny}
+\begin{samepage}
+\begin{verbatim}
+A: 2006-04-25/sod_2d_45deg_4lev_ncmpi_chk_0001
+B: 2005-12-14/sod_2d_45deg_4lev_ncmpi_chk_0001
+Min Error: inf(2|a-b| / max(|a+b|, 1e-99) )
+Max Error: sup(2|a-b| / max(|a+b|, 1e-99) )
+Abs Error: sup|a-b|
+Mag Error: sup|a-b| / max(sup|a|, sup|b|, 1e-99)
+Block shapes for both files are: [8,8,1]
+Mag-error tolerance: 1e-12
+Total leaf blocks compared: 541 (all other blocks are ignored)
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+Var  | Bad Blocks | Min Error ||             Max Error             ||             Abs Error             |
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+     |            |           ||   Error   |     A     |     B     ||   Error   |     A     |     B     |
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+dens | 502        | 0         || 1.098e-11 |  0.424    |  0.424    || 4.661e-12 |  0.424    |  0.424    |
+eint | 502        | 0         || 1.1e-11   |  1.78     |  1.78     || 1.956e-11 |  1.78     |  1.78     |
+ener | 502        | 0         || 8.847e-12 |  2.21     |  2.21     || 1.956e-11 |  2.21     |  2.21     |
+gamc | 0          | 0         || 0         |  0        |  0        || 0         |  0        |  0        |
+game | 0          | 0         || 0         |  0        |  0        || 0         |  0        |  0        |
+pres | 502        | 0         || 1.838e-14 |  0.302    |  0.302    || 1.221e-14 |  0.982    |  0.982    |
+temp | 502        | 0         || 1.1e-11   |  8.56e-09 |  8.56e-09 || 9.41e-20  |  8.56e-09 |  8.56e-09 |
+velx | 516        | 0         || 5.985     |  5.62e-17 | -1.13e-16 || 2.887e-14 |  0.657    |  0.657    |
+vely | 516        | 0         || 2         |  1e-89    | -4.27e-73 || 1.814e-14 |  0.102    |  0.102    |
+velz | 0          | 0         || 0         |  0        |  0        || 0         |  0        |  0        |
+mfrc | 0          | 0         || 0         |  0        |  0        || 0         |  0        |  0        |
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+Var  | Bad Blocks | Mag Error ||                  A                ||                  B                |
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+     |            |           ||    Sum    |    Max    |    Min    ||    Sum    |    Max    |    Min    |
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+dens | 502        | 4.661e-12 ||  1.36e+04 |  1        |  0.125    ||  1.36e+04 |  1        |  0.125    |
+eint | 502        | 6.678e-12 ||  7.3e+04  |  2.93     |  1.61     ||  7.3e+04  |  2.93     |  1.61     |
+ener | 502        | 5.858e-12 ||  8.43e+04 |  3.34     |  2        ||  8.43e+04 |  3.34     |  2        |
+gamc | 0          | 0         ||  4.85e+04 |  1.4      |  1.4      ||  4.85e+04 |  1.4      |  1.4      |
+game | 0          | 0         ||  4.85e+04 |  1.4      |  1.4      ||  4.85e+04 |  1.4      |  1.4      |
+pres | 502        | 1.221e-14 ||  1.13e+04 |  1        |  0.1      ||  1.13e+04 |  1        |  0.1      |
+temp | 502        | 6.678e-12 ||  0.000351 |  1.41e-08 |  7.75e-09 ||  0.000351 |  1.41e-08 |  7.75e-09 |
+velx | 516        | 3.45e-14  ||  1.79e+04 |  0.837    | -6.09e-06 ||  1.79e+04 |  0.837    | -6.09e-06 |
+vely | 516        | 2.166e-14 ||  1.79e+04 |  0.838    | -1.96e-06 ||  1.79e+04 |  0.838    | -1.96e-06 |
+velz | 0          | 0         ||  0        |  0        |  0        ||  0        |  0        |  0        |
+mfrc | 0          | 0         ||  3.46e+04 |  1        |  1        ||  3.46e+04 |  1        |  1        |
+-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+
+FAILURE
+\end{verbatim}
+\end{samepage}
+\end{tiny}
+\end{quote}
+
+``Bad Blocks'' is the number of leaf blocks where the data was found to differ
+between datasets. Four different error measures (min/max/abs/mag) are defined
+in the output above. In addition, the last six columns report the sum, maximum
+and minimum of the variables in the two files. Note that the sum is physically
+meaningless, since it is not volume-weighted. Finally, the last line permits
+other programs to parse the \code{sfocu} output easily: when the files
+are identical, the line will instead read \code{SUCCESS}.
+
+It is possible for \code{sfocu} to miss machine-precision variations in the data
+on certain machines because of compiler or library issues, although this has
+only been observed on one platform, where the compiler produced code that
+ignored IEEE rules until the right flag was found.
+
+\chapter{Drift}
+\label{Chp:drift}
+\section{Introduction}
+Drift is a debugging tool added to Flash-X to help catch programming mistakes
+that occur while refactoring code in a way that \emph{should not} change
+numerical behavior.  Historically, simulation checkpoints have been used to
+verify that results obtained after a code modification have not affected the
+numerics. But if changes are observed, then the best a developer can do to
+narrow the bug hunting search space is to look at pairs of checkpoint files
+from the two different code bases sequentially.  The first pair to compare
+unequal will tell you that somewhere between that checkpoint and its immediate
+predecessor something in the code changed the numerics.  Therefor, the search
+space can only be narrowed to the limit allow by the checkpointing interval,
+which in Flash-X, without clever calls to IO sprinkled about, is at best once per
+time cycle.
+
+Drift aims to refine that granularity considerably by allowing comparisons to
+be made upon every modification to a block's contents.  To achieve this, drift
+intercepts calls to \code{Grid\_releaseBlkPtr}, and inserts into them a step to
+checksum each of the variables stored on the block.  Any checksums that do not
+match with respect to the last checksums recorded for that block are logged
+to a text file along with the source file and line number.  The developer can
+then compare two drift logs generated by the different runs using \code{diff}
+to find the first log entry that generates unequal checksums, thus telling the
+developer which call to \code{Grid\_releaseBlkPtr} first witnessed divergent values.
+
+The following are example excerpts from two drift logs.  Notice the
+checksum value has changed for variable \code{dens} on block 18.  This should clue
+the developer in that the cause of divergent behavior lies somewhere between
+\code{Eos\_wrapped.F90:249} and \code{hy\_ppm\_sweep.F90:533}.
+
+\begin{tabular}{|p{0.4\textwidth}|p{0.4\textwidth}|}
+\hline
+\begin{scriptsize}
+\begin{codeseg}
+inst=2036
+step=1
+src=Eos_wrapped.F90:249
+blk=57
+ dens E8366F6E49DD1B44
+ eint 89D635E5F46E4CE4
+ ener C6ED4F02E60C9E8F
+ pres 6434628E2D2E24E1
+ temp DB675D5AFF7D48B8
+ velx 42546C82E30F08B3
+
+inst=2100
+step=1
+src=hy_ppm_sweep.F90:533
+blk=18
+ dens A462F49FFC3112DE
+ eint 9CD79B2E504C7C7E
+ ener 4A3E03520C3536B9
+ velx 8193E8C2691A0725
+ vely 86C5305CB7DE275E
+\end{codeseg}
+\end{scriptsize}
+&
+\begin{scriptsize}
+\begin{codeseg}
+inst=2036
+step=1
+src=Eos_wrapped.F90:249
+blk=57
+ dens E8366F6E49DD1B44
+ eint 89D635E5F46E4CE4
+ ener C6ED4F02E60C9E8F
+ pres 6434628E2D2E24E1
+ temp DB675D5AFF7D48B8
+ velx 42546C82E30F08B3
+
+inst=2100
+step=1
+src=hy_ppm_sweep.F90:533
+blk=18
+ dens 5E52D67C5E93FFF1
+ eint 9CD79B2E504C7C7E
+ ener 4A3E03520C3536B9
+ velx 8193E8C2691A0725
+ vely 86C5305CB7DE275E
+\end{codeseg}
+\end{scriptsize}
+\\
+\hline
+\end{tabular}
+
+\section{Enabling drift}
+In Flash-X, drift is disabled by default.  Enabling drift is done by
+hand editing the Simulation.h file generated by the setup process.  The directive
+line \code{\#define DRIFT_ENABLE 0} should be changed to
+\code{\#define DRIFT_ENABLE 1}.  Once this has been changed, a recompilation will be
+necessary by executing \code{make}.
+
+With drift enabled, the Flash-X executable will generate log files in the same
+directory it is executed in.  These files will be named \code{drift.<rank>.log},
+one for each MPI process.
+
+The following runtime parameters are read by drift to control its behavior:
+
+\begin{tabular}{|l|r|p{0.5\textwidth}|}
+\hline
+Parameter & Default & Description\\
+\hline
+\code{drift\_trunc\_mantissa} & 2 & The number of least significant mantissa bits to
+zero out before hashing a floating point value.  This can be used to stop numerical
+noise from altering checksum values.\\
+\hline
+\code{drift\_verbose\_inst} & 0 & The instance index at which drift should start logging
+checksums per call to \code{Grid\_releaseBlkPtr}.  Before this instance is hit, only user
+calls to \code{Driver\_driftUnk} will generate log data.  A value of zero means never
+log checksums per block.  Instance counting is described below.\\
+\hline
+\code{drift\_tuples} & .false. & A boolean switch indicating if drift should write
+logs in the more human readable "non-tuples" format or the machine friendly "tuples"
+format that can be read in by the \code{driftDee} script found in the \code{tools/}
+directory.  Generally the "non-tuples" format is a better choice to use with tools such
+as \code{diff}.\\
+\hline
+\end{tabular}
+
+\section{Typical workflow}
+Drift has two levels of output verbosity, let us refer to them as verbose and
+not verbose.  When in non-verbose mode, drift will only generate output when
+directly told to do so through the \code{Driver\_driftUnk} API call.  This call
+tells drift to generate a checksum for each \code{unk} variable over all
+blocks in the domain and then log those checksums that have changed since the
+last call to \code{Driver\_driftUnk}. Verbose mode also generates this
+information and additionally includes the per-block checksums for every call
+to \code{Grid\_releaseBlkPtr}.  Verbose mode can generate \emph{a lot} of log
+data and so should only be activated when the simulation nears the point at
+which divergence originates.  This is the reason for the
+\code{drift\_verbose\_inst} runtime parameter.
+
+Drift internally maintains an "instance" counter that is incremented with every
+intercepted call to \code{Grid\_releaseBlkPtr}.  This is drift's way of enumerating
+the program states.  When comparing two drift logs, if the first checksum discrepancy
+occurs at instance number 1349 (arbitrary), then it is clear that somewhere between the
+1348'th and 1349'th call to \code{Grid\_releaseBlkPtr} a divergent event occurred.
+
+The suggested workflow once drift is enabled is to first run both
+simulations with verbose mode off (\code{dirft\_verbse\_inst}=0).  The main
+\code{Driver\_evolveFlash} implementations have calls to
+\code{Driver\_driftUnk} between all calls to Flash-X unit advancement routines.
+So the default behavior of drift will generate multiple unk-wide
+checksums for each variable per timestep.  These two drift logs should be
+compared to find the first entry with a mismatched checksum.  Each entry
+generated by \code{Driver\_driftUnk} will contain an instance range like in the
+following:
+
+\begin{codeseg}
+step=1
+from=Driver_evolveFlash.F90:276
+unks inst=1234 to 2345
+ dens 9CF3C169A5BB129C
+ eint 9573173C3B51CD12
+ ener 028A5D0DED1BC399
+ ...
+\end{codeseg}
+
+The line "\code{unks inst=1349 to 2345}" informs us these checksums were generated
+sometime after the 2345'th call to \code{Grid\_releaseBlkPtr}.  Assume this entry
+is the first such entry to not match checksums with its counterpart.  Then
+we know that somewhere between instance 1234 and 2345 divergence began.  So we
+set \code{drift\_verbose\_inst = 1234} in the runtime parameters file of each
+simulation and then run them both again.  Now drift will run up to instance
+1234 as before, only printing at calls to \code{Driver\_driftUnk}, but starting
+with instance 1234 each call to \code{Grid\_releaseBlkPtr} will induce a per
+block checksum to be logged as well.  Now these two drift files can be compared
+to find the first difference, and hopefully get you on your way to hunting
+down the cause of the bug.
+
+\section{Caveats and Annoyances}
+The machinery drift uses to intercept calls to \code{Grid\_releaseBlkPtr} is lacking in
+sophistication, and as such can put some unwanted constraints on the code base.
+The technique used is to declare a preprocessor \code{\#define} in \code{Simulation.h}
+to expand occurrences of \code{Grid\_releaseBlkPtr} to something larger that includes
+\code{\_\_FILE\_\_} and \code{\_\_LINE\_\_}.  This is how drift is able to
+correlate calls to \code{Grid\_releaseBlkPtr} with the originating line of
+source code.  Unfortunately this technique places a very specific restriction on the
+code once drift is enabled.  The trouble comes from the types of source lines that
+may refer to a subroutine without calling it.  The primary offender being \code{use}
+statements with \code{only} clauses listing the module members to import into scope.
+Because macro expansion is dumb with respect to context, it will expand occurrences
+of \code{Grid\_releaseBlkPtr} in these \code{use} statements, turning them into
+syntactic rubbish.  The remedy for this issue is to make sure the line
+\code{\#include "Simulation.h"} comes after all statements involving
+\code{Grid\_releaseBlkPtr} but not calling it, and before all statements that
+are calls to \code{Grid\_releaseBlkPtr}.  In practice this is quite easy.  With
+only one subroutine per file, there will only be one line like:
+\begin{codeseg}
+use Grid\_interface, only: ..., Grid\_releaseBlkPtr, ...
+\end{codeseg}
+and it will come before all calls to \code{Grid\_releaseBlkPtr}, so just move
+the \code{\#include "Simulation.h"} after the \code{use} statements.  The following is an example:
+
+\vspace{0.1 in}
+
+\begin{tabular}{|p{0.4\textwidth}|p{0.4\textwidth}|}
+\hline
+Incorrect & Correct \\
+\hline
+\begin{scriptsize}
+\begin{codeseg}
+#include "Simulation.h"
+subroutine Flash_subroutine()
+  use Grid_interface, only: Grid_releaseBlkPtr
+  implicit none
+  [...]
+  call Grid_releaseBlkPtr(...)
+  [...]
+end subroutine Flash_subroutine
+\end{codeseg}
+\end{scriptsize}
+&
+\begin{scriptsize}
+\begin{codeseg}
+subroutine Flash_subroutine()
+  use Grid_interface, only: Grid_releaseBlkPtr
+  implicit none
+#include "Simulation.h"
+  [...]
+  call Grid_releaseBlkPtr(...)
+  [...]
+end subroutine Flash_subroutine
+\end{codeseg}
+\end{scriptsize}
+\\
+\hline
+\end{tabular}
+
+\vspace{0.1 in}
+
+If such a solution is not possible because no separation between all \code{use}
+and \code{call} statements exists, then there are two remaining courses of action
+to get the source file to compile.  One, hide these calls to \code{Grid\_releaseBlkPtr}
+from drift by forceably disabling the macro expansion.  To do so, just add the
+line \code{\#undef Grid\_releaseBlkPtr} after \code{\#include "Simulation.h"}.  The
+second option is to carry out the macro expansion by hand.  This also requires
+disabling the macro with the undef just mentioned, but then also rewriting each
+call to \code{Grid\_releaseBlkPtr} just as the preprocessor would.  Please consult
+\code{Simulation.h} to see the text that gets substituted in for \code{Grid\_releaseBlkPtr}.

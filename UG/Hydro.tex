@@ -1,0 +1,373 @@
+\chapter{Hydrodynamics Units}
+\label{Chp:Hydrodynamics Unit}
+
+The \unit{Hydro} unit solves Euler's equations for compressible gas dynamics
+in one, two, or three spatial dimensions.  
+We first describe the basic functionality; see implementation sections
+below for various extensions.
+
+The Euler equations can be
+written
+in conservative form as
+\begin{eqnarray}
+{{\partial \rho} \over {\partial t}}
+ + {\bf \nabla} \cdot \left ( \rho {\bf v} \right ) & = & 0\\
+{\partial \rho {\bf v} \over \partial t} +
+ {\bf \nabla}  \cdot \left ( \rho {\bf v} {\bf v} \right ) +
+ {\bf \nabla}  P
+ & = & \rho {\bf g}\\
+{\partial \rho E \over \partial t} +
+ {\bf \nabla} \cdot \left [ \left ( \rho E + P \right ) {\bf v}
+ \right ] & = &
+ \rho {\bf v} \cdot {\bf g}\ ,
+\end{eqnarray}
+where $\rho$ is the fluid density, ${\bf v}$ is the fluid
+velocity, $P$ is the pressure, $E$ is the
+sum of the internal energy $\epsilon$ and kinetic energy per unit mass,
+\begin{equation}
+E = \epsilon + {1 \over 2} |{\bf v}|^2\ ,
+\end{equation}
+${\bf g}$ is the acceleration due to gravity,
+and $t$ is the time coordinate.
+The pressure is obtained from the energy and
+density using the equation of state.
+For the case of an ideal gas equation of state, the pressure is
+given by
+\begin{equation}
+P = (\gamma - 1) \rho \epsilon\ ,
+\end{equation}
+where $\gamma$ is the ratio of specific heats.  More general
+equations of state are discussed in \secref{Sec:Eos Gammas} and \secref{Sec:Eos Helmholtz}.
+
+In regions where the kinetic energy greatly dominates the
+total energy, computing the internal energy using
+\begin{equation}
+\label{Eqn:intener} \epsilon = E - \frac{1}{2}|{\bf v}|^2
+\end{equation}
+can lead to unphysical values, primarily due to truncation error.
+This results in inaccurate pressures and temperatures.  To avoid this
+problem, we can separately evolve the internal energy according to
+\begin{equation}
+\label{Eqn:evolve_eint}
+   \frac{\partial \rho \epsilon}{\partial t}
+   + \nabla \cdot \left [ \left (\rho \epsilon + P \right){\bf v} \right ]
+   - {\bf v}\cdot \nabla P = 0\ .
+\end{equation}
+If the internal energy is a small fraction of the kinetic energy
+(determined via the runtime parameter \rpi{Eos/eintSwitch}), then the
+total energy is recomputed using the internal energy from
+\eqref{Eqn:evolve_eint} and the velocities from the momentum
+equation. Numerical experiments using the PPM solver included with
+Flash-X showed that using \eqref{Eqn:evolve_eint} when the internal
+energy falls below $10^{-4}$ of the kinetic energy helps avoid the
+truncation errors while not affecting the dynamics of the
+simulation.
+
+For reactive flows, a separate advection equation must be solved
+for each chemical or nuclear species
+\begin{equation}
+{{\partial \rho X_\ell} \over {\partial t}}
++ {\bf \nabla} \cdot \left ( \rho X_\ell {\bf v} \right ) = 0\ ,
+\end{equation}
+where $X_\ell$ is the mass fraction of the $\ell$th species, with
+the constraint that $\sum_\ell X_\ell = 1$.  Flash-X will enforce this
+constraint if you set the runtime parameter \code{irenorm} equal to
+1. Otherwise, Flash-X will only restrict the abundances to fall
+between \texttt{smallx} and 1. The quantity $\rho X_\ell$ represents
+the partial density of the $\ell$th fluid. The code does not
+explicitly track interfaces between the fluids, so a small amount of
+numerical mixing can be expected during the course of a calculation.
+
+The \code{hydro} unit has a capability to advect mass scalars.  
+Mass scalars are field variables advected with density, similar to
+species mass fractions,
+\begin{equation}
+\label{eq:massscalar}
+{{\partial \rho \phi_\ell} \over {\partial t}}
++ {\bf \nabla} \cdot \left ( \rho \phi_\ell {\bf v} \right ) = 0\ ,
+\end{equation}
+where $\phi_\ell$ is the $\ell$th mass scalar. 
+Note that mass scalars are optional variables; to include them
+specify the name of each mass scalar in a \code{Config}
+file using the \code{MASS\_SCALAR} keyword.  
+Mass scalars 
+are not renormalized in order to sum to
+1, except when they are declared to be part of a renormalization group.
+See \chpref{Sec:ConfigFileSyntax}
+for more details.
+
+\begin{comment}
+\begin{flashtip}
+In \flashx, one specified just the number of mass scalars, not their identity,
+using the \code{NUMMASSSCALARS} keyword in the setup \code{Config}.  \flashx
+uses the \code{MASS\_SCALAR} keyword so that each mass scalar can
+be identified by name.  The setup script determines the number of mass scalars by
+parsing through the \code{Config} files.
+\end{flashtip}
+\end{comment}
+
+
+
+
+\section{Gas hydrodynamics}
+%------------------------------------------------------------------------------
+% PPM
+%------------------------------------------------------------------------------
+\subsection{Usage}
+\label{Sec:PPM usage}
+
+The two gas hydrodynamic solvers supplied in the release of
+\flashx are organized into two different operator splitting methods:
+directionally split and unsplit.
+The directionally split piecewise-parabolic method (PPM)
+makes use of second-order Strang time splitting, and the new
+directionally unsplit solver is based on 
+Monotone Upstream-centered Scheme for Conservation Laws (MUSCL) Hancock type
+second-order scheme.
+
+
+The algorithms are
+described in \chpref{Sec:PPM} and \chpref{Sec:MUSCL-Hancock} and implemented in the
+directory tree under \code{physics/Hydro/HydroMain/split/PPM} and
+\code{physics/Hydro/HydroMain/unsplit/Hydro_Unsplit}.
+
+Current and future implementations of \code{Hydro}
+use the runtime parameters and solution
+variables described in \tblref{Tab:hydro parameters} and
+\tblref{Tab:hydro variables}. 
+Additional runtime parameters used either solely by the PPM method 
+or the unsplit hydro solver
+are described in \rpi{Hydro/HydroMain}.
+
+
+\begin{table}
+\caption{Runtime parameters used with the
+hydrodynamics (\code{Hydro}) unit.}
+\label{Tab:hydro parameters}
+\begin{center}
+\begin{tabular}{lllp{3in}}
+Variable & Type  & Default & Description\\
+\hline
+\code{eintSwitch} & real  & 0  & If $\epsilon < \code{eintSwitch}
+  \cdot {1\over 2}|{\bf v}|^2$, use the internal energy equation to update
+  the pressure\\
+\code{irenorm}      & integer & 0 & If equal to one, renormalize multifluid
+  abundances following a hydro update; else restrict their values to lie
+  between \code{smallx} and 1.\\
+\code{cfl} & real  & 0.8  & Courant-Friedrichs-Lewy
+         (CFL) factor; must be less than 1 for stability in explicit schemes\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}
+
+\caption{Solution variables used with the
+hydrodynamics (\code{Hydro}) unit.}
+\begin{center}
+\label{Tab:hydro variables}
+\begin{tabular}{llp{2in}}
+Variable & Type  & Description\\
+\hline
+\code{dens} & PER\_VOLUME & density \\
+\code{velx} & PER\_MASS   & $x$-component of velocity\\
+\code{vely} & PER\_MASS   & $y$-component of velocity\\
+\code{velz} & PER\_MASS   & $z$-component of velocity\\
+\code{pres} & GENERIC    & pressure \\
+\code{ener} & PER\_MASS   & specific total energy ($T+U$) \\
+\code{temp} & GENERIC    & temperature \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+% This table added to "Hydro Units RP since there is only one"
+% \begin{table}
+% \caption{ \label{Tab:hydro explicit parameters} Runtime parameters used with the
+% explicit hydrodynamics units.}
+% \begin{center}
+% \begin{tabular}{lllp{3in}}
+% Variable & Type  & Default & Description\\
+% \hline
+% \code{cfl} & real  & 0.8  & Courant-Friedrichs-Lewy
+%         (CFL) factor; must be
+%         less than 1 for stability in
+%         explicit schemes\\
+% \hline
+% \end{tabular}
+% \end{center}
+% \end{table}
+
+
+
+\subsection{The unsplit hydro solver}
+\label{Sec:MUSCL-Hancock}
+\label{Sec:unsplit hydro algorithm}
+A directionally unsplit pure hydrodynamic solver (unsplit hydro) is an alternate gas dynamics solver to 
+the split PPM scheme.
+The method basically adopts a predictor-corrector type formulation (zone-edge data-extrapolated method) that provides
+second-order solution accuracy for smooth flows and first-order accuracy for shock flows in both space and time. 
+Recently, the order of spatial accuracy in data reconstruction for the normal direction has been
+extended to implement the 3rd order PPM and 5th order Weighted ENO (WENO) methods.
+This unsplit hydro solver can be considered as a reduced version of the Unsplit Staggered Mesh (USM) MHD solver 
+(see details in \chpref{Sec:usm_algorithm}) that has been
+available in previous \flashx releases.
+
+The unsplit hydro implementation can solve 1D, 2D and 3D problems with added capabilities of
+exploring various numerical implementations:
+different types of Riemann solvers; slope limiters; first, second, third and fifth reconstruction
+methods; a strong shock/rarefaction detection algorithm %and
+%handling of grid-aligned shock instabilities such as carbuncle and odd-even
+%decoupling phenomena 
+as well as two different entropy fix routines 
+for Roe's linearized Riemann solver.
+
+One of the notable features of the unsplit hydro scheme is that it particularly improves 
+the preservation of flow symmetries as compared
+to the splitting formulation. Also, the scheme used in this unsplit algorithm
+can take a wide range of CFL stability limits (e.g., CFL $<$ 1) for
+all three dimensions, which is based on using upwinded transverse flux formulations
+developed in the multidimensional USM MHD solver (Lee, 2006; Lee and Deane, 2009; Lee,  2013).
+
+
+\begin{table}
+\caption{ Additional runtime parameters for {\it{Interpolation Schemes}} 
+in the unsplit hydro solver (\code{physics/Hydro/HydroMain/unsplit/Hydro\_Unsplit})}
+\label{Tab:unsplit hydro parameters} 
+\begin{center}
+\begin{tabular}{lllp{3.5in}}
+Variable & Type  & Default & Description\\
+\hline
+\code{order}               & integer & 2             & Order of method in data reconstruction: 1st order Godunov (FOG), 2nd order MUSCL-Hancock (MH), 3rd order PPM, 5th order WENO.\\
+\code{transOrder}          & integer & 1             & Interpolation order of accuracy of taking upwind biased transverse flux derivatives in the unsplit data reconstruction: 1st, 2nd, 3rd. The choice of using \code{transOrder}=4 adopts a slope limiter between the 1st and 3rd order accurate methods to minimize oscillations in upwinding at discontinuities.\\
+\code{slopeLimiter}        & string  & ``vanLeer''     & Slope limiter: ``MINMOD'', ``MC'', ``VANLEER'', ``HYBRID'', ``LIMITED''\\
+\code{LimitedSlopeBeta}    & real    &  1.0          & Slope parameter specific for the ``LIMITED" slope by Toro\\
+\code{charLimiting}        & logical & .true.        & Enable/disable limiting on characteristic variables (.false. will use limiting on primitive variables)\\
+%\code{fullyLimit}          & logical & .false.       & On/off full limiting on transverse fluxes (i.e., Donor cell method) instead of using CTU method. When fullyLimited on, CFL limit will be automatically reduced. \\
+\code{use\_steepening}     & logical & .false.       & Enable/disable contact discontinuity steepening for PPM and WENO\\
+\code{use\_flattening}     & logical & .false.       & Enable/disable flattening (or reducing) numerical oscillations for MH, PPM, and WENO\\
+\code{use\_avisc}          & logical & .false.       & Enable/disable artificial viscosity for FOG, MH, PPM, and WENO\\
+\code{cvisc}               & real    &  0.1          & Artificial viscosity coefficient \\
+\code{use\_upwindTVD}      & logical & .false.       & Enable/disable upwinded TVD slope limiter PPM. NOTE: This requires NGUARD=6\\
+\code{use\_hybridOrder}     & logical & .false.       & Enable an adaptively varying reconstruction order scheme reducing its order from a high-order to first-order depending on monotonicity constraints\\
+% \code{RiemannSolver}       & string  & "Roe"         & Different choices for Riemann solver. "LLF (local Lax-Friedrichs)", "HLL", "HLLC", "HYBRID",  "ROE", and "Marquina"\\
+% \code{shockInstabilityFix} & logical & .false.       & On/off carbuncle, odd-even instability fix for the Roe solver\\ 
+% \code{shockDetect}         & logical & .false.       & On/off detecting strong shocks/rarefactions to gain numerical stability\\
+% \code{EOSforRiemann}       & logical & .false.       & Enable/disable calling EOS in computing each Godunov flux\\
+% \code{entropy}             & logical & .false.       & On/off entropy fix algorithm for the Roe solver \\
+% \code{entropyFixMethod}    & string  & "HARTENHYMAN" & Entropy fix method for the Roe solver. "HARTEN", "HARTENHYMAN" \\
+\code{use\_gravHalfUpdate}  & logical & .false.       & On/off gravitational acceleration source terms at the half time Riemann state update\\
+% \code{use\_gravConsv}       & logical & .false.       & Primitive/conservative update for including gravitational acceleration source terms at the half time Riemann state update\\
+% \code{use\_gravPotUpdate}   & logical & .false.       & Use gravity source term update by calling Poisson solver. Note: this only can be used with \code{use\_gravConsv=.false.} \\
+\code{use\_3dFullCTU}   & logical & .true.           & Enable a full CTU (e.g., similar to the standard 12-Riemann solve) algorithm that provides full CFL stability  in 3D. If .false., then the theoretical CFL bound for 3D becomes less than 0.5 based on the linear Fourier analysis.\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}
+\caption{ Additional runtime parameters for {\it{Riemann Solvers}}
+in the unsplit hydro solver (\code{physics/Hydro/HydroMain/unsplit/Hydro\_Unsplit})}
+\label{Tab:unsplit hydro parameters - Riemann}
+\begin{center}
+\begin{tabular}{lllp{3in}}
+Variable & Type  & Default & Description\\
+\hline
+% \code{order}               & integer & 2             & Order of method in data reconstruction: 1st order Godunov (FOG), 2nd order MUSCL-Hancock (MH), 3rd order PPM, 5th order WENO.\\
+% \code{transOrder}          & integer & 3             & Interpolation order of taking upwind biased transverse flux derivatives in the unsplit data reconstruction: 1st, 2nd, 3rd.\\
+% \code{slopeLimiter}        & string  & "vanLeer"     & Slope limiter: "MINMOD", "MC", "VANLEER", "HYBRID", "LIMITED"\\
+% \code{LimitedSlopeBeta}    & real    &  1.0          & Slope parameter specific for the "LIMITED" slope by Toro\\
+% \code{charLimiting}        & logical & .true.        & Enable/disable limiting on characteristic variables (.false. will use limiting on primitive variables)\\
+% \code{fullyLimit}          & logical & .false.       & On/off full limiting on transverse fluxes (i.e., Donor cell method) instead of using CTU method. When fullyLimited on, CFL limit will be automatically reduced. \\
+% \code{use\_steepening}     & logical & .false.       & Enable/disable contact discontinuity steepening for PPM and WENO\\
+% \code{use\_flattening}     & logical & .false.       & Enable/disable flattening (or reducing) numerical oscillations for MH, PPM, and WENO\\
+%\code{use\_upwindTVD}      & logical & .false.       & Enable/disable upwinded TVD slope limiter PPM, and WENO. NOTE: This requires NGUARD=6\\
+\code{RiemannSolver}       & string  & ``Roe"         & Different choices for Riemann solver. ``LLF (local Lax-Friedrichs)'', ``HLL", ``HLLC", ``HYBRID",  ``ROE", and ``Marquina"\\
+%\code{shockInstabilityFix} & logical & .false.       & On/off carbuncle, odd-even instability fix for the Roe solver\\ 
+\code{shockDetect}         & logical & .false.       & On/off attempting to detect strong shocks/rarefactions (and saving flag in \code{"shok"} variable)\\
+\code{shockLowerCFL}       & logical & .false.       & On/off lowering of CFL factor where strong shocks are detected, automatically sets \code{shockDetect} if on.\\
+\code{EOSforRiemann}       & logical & .false.       & Enable/disable calling EOS in computing each Godunov flux\\
+\code{entropy}             & logical & .false.       & On/off entropy fix algorithm for Roe solver \\
+\code{entropyFixMethod}    & string  & {\small\tt ``HARTENHYMAN''} & Entropy fix method for the Roe solver. ``HARTEN", ``HARTENHYMAN" \\
+% \code{use\_gravHalfUpdate}  & logical & .false.       & On/off gravitational acceleration source terms at the half time Riemann state update\\
+% \code{use\_gravConsv}       & logical & .false.       & Primitive/conservative update for including gravitational acceleration source terms at the half time Riemann state update\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The above set of runtime parameters provide various types of different combinations that help in obtaining
+numerical accuracy, efficiency and stability. However, there are some important tips users should know before using them.
+\begin{itemize}
+%% \item {[5th order WENO]}: The 5th order method WENO requires \code{NGUARD=6} in Flash-X's implementation. To use WENO, users should include \code{+supportWENO} in the setup for both unsplit hydro and unsplit MHD solvers. Users should expect that this larger number of guardcells will require increased number of inter-processor data exchanges, 
+%% resulting in slower performance during parallel computations.% It is also required to use at least 12 (i.e., twice the size of NGUARD=6) cells per block (e.g., -nxb=12) for WENO.
+
+\item {[Extended stencil]}: When \code{NGUARD=6} is used, users should also use \code{nxb, nyb}, and \code{nzb} larger than \code{2*NGUARD}. For example, specifying \code{-nxb=16} in the setup works well for 1D cases. Once setting up \code{NGUARD=6}, users still can use FOG, MH, PPM, or WENO without changing \code{NGUARD} back to 4.
+
+% \item {\code{transOrder}}: The first order method \code{transOrder=1} is somewhat diffusive but can be applicable in most cases; the 2nd order method sometimes generates inaccurate solutions; the 3rd order method (although known to have dispersive errors) is the least diffusive and most accurate, providing extra stabilities using larger stencils for its upwinding formulation. \code{transOrder}=4 is default and uses a slope limiter between the 1st and 3rd order accurate methods to minimize oscillations in taking upwinded numerical derivatives at discontinuities.
+
+\item {[\code{transOrder}]}: The first order method \code{transOrder=1} is a default and only supported method that is stable according to the linear Fourier stability analysis. 
+The choices for higher-order interpolations are no longer available in this release.
+%It can be applicable in most cases; the 2nd order method sometimes generates inaccurate solutions; the 3rd order method (although known to have dispersive errors) is the least diffusive and most accurate, providing extra stability using larger stencils for its upwinding formulation, especially with \code{use\_3dFullCTU=.false.} and CFL$<$0.5. When \code{use\_3dFullCTU=.true.}, \code{transOrder=1} gives the needed stability for CFL$<$1.  
+%\code{transOrder}=4 is default and uses a slope limiter between the 1st and 3rd order accurate methods to minimize oscillations in taking upwinded numerical derivatives at discontinuities.
+
+\item {[\code{EOSforRiemann}]}: \code{EOSforRiemann = .true.} will call (expensive) EOS routines to compute consistent adiabatic indices (\ie, \code{gamc, game}) according to the given left and right states in Riemann solvers. For the ideal gamma law, in which those adiabatic indices are constant, it is not required to call EOS at all and users can set it \code{.false.} to reduce computation time. On the other hand, for a degenerate gas, one can enable this switch to compute thermodynamically consistent 
+\code{gamc, game}, which in turn are used to compute the sound speed and internal energy in Riemann flux calculations. 
+When disabled, interpolations will be used instead to get approximations of \code{gamc, game}. This interpolation method has been tested and proven to gain significant
+computational efficiency and accuracy, giving reliable numerical solutions even for simulating a degenerate gas.
+
+% Comented out the following, since EOSforRiemann has been reintroduced:
+%It should be noted that the new optimized unsplit hydro/MHD codes
+%(i.e., in particular those selected with \code{+uhd, +usm} ) do not support this
+%feature any more; however it is still supported in the old unsplit
+%codes (i.e., \code{+uhdold, +usmold} in
+%\code{source/physics/Hydro/HydroMain/unsplit_old}).
+
+\item {[Gravity coupling with Unplit Hydro Solvers]}: When gravity is
+  included in a simulation using the unsplit hydro and MHD solvers,
+  users can choose to include gravitational source terms in the
+  Riemann state update at $n+1/2$ time step (i.e.,
+  \code{use\_gravHalfUpdate}=.true.). This will provide an improved second-order
+  accuracy with respect to coupling gravitational accelerations to
+  hydrodynamics.
+It should be noted that current optimized unsplit hydro/MHD codes (\eg, those selected with \code{+uhd, +usm}) 
+do not support the runtime parameters  \code{use\_gravPotUpdate}  and \code{use\_gravConsv} of
+some previous Flash-X versions any more.
+
+\item {[Reduced CTU vs. Full CTU for 3D in the unsplit hydro (UHD) and staggered mesh (USM) solvers]}:
+\code{use\_3dFullCTU} is a new switch that enhances a numerical stability for 3D simulations in the unsplit solvers
+using the corner transport upwind (CTU) algorithm by Colella. 
+The unsplit solvers of Flash-X are different from many other shock capturing codes, in that neither UHD nor USM solvers
+need intermediate Riemann solver solutions for updating transverse fluxes in multidimensional problems. This provides
+a computational efficiency because there is a reduced number of calls to Riemann solvers per cell per time step.
+The total number of required Riemann solver solutions are two for 2D and three for 3D (except for extra Riemann calls
+for constraint-transport (CT) update in USM). This is smaller than the usual stabilty requirement in many other codes which
+needs four for 2D and twelve for 3D in order to provide a full CFL limit (\ie, CFL $<1$). 
+
+In general for 3D, there is another computationally efficient approach that only uses six Riemann solutions (aka, 6-CTU)
+instead of solving twelve Riemann problems (aka, 12-CTU). In this efficient 6-CTU, however, 
+the numerical stability limit becomes CFL$<0.5$. 
+
+For solving 3D problems in UHD and USM, enabling the new switch \code{use\_3dFullCTU=.true.} (i.e., full-CTU) will make 
+the solution evolution scheme similar to 12-CTU while requiring to solve three Riemann problems only
+(again, except for the CT update in USM). On the other hand, \code{use\_3dFullCTU=.false.} (i.e., reduced-CTU) will be
+similar to the 6-CTU integration algorithm with a reduced CFL limit (\ie, CFL $<0.5$).
+\end{itemize}
+
+
+
+\begin{flashtip}[Stability Limits for Unsplit Hydro Solver]
+The unsplit solver can take a wide range of CFL limits in all three dimensions (\ie, CFL $<$ 1). 
+However, in some circumstances where there are strong shocks and rarefactions, \code{shockLowerCFL=.true.} could be useful to gain more numerical
+stability by lowering the CFL accordingly 
+(e.g., default settings provide 0.45 for 2D and 0.25 for 3D for the Donor scheme).
+This approach will automatically revert such reduced 
+stability conditions to any given original condition set by users when there are no significant shocks and rarefactions detected.
+\end{flashtip}
+
+
+
