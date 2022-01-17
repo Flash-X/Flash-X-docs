@@ -13,73 +13,48 @@ You should verify that you have the following:
 
 \begin{itemize}
 
-\item A copy of the Flash-X source code distribution (as a Unix tar
-file). To request a copy of the distribution, click on the ``Code Request''
-link on the %\weblink{http://flash.uchicago.edu} {Flash-X Center web site}. 
-You will be asked to fill out a short form before
-receiving download instructions. Please remember the username and
-password you use to download the code; you will need these to get
-bug fixes and updates to Flash-X.
+\item A copy of the Flash-X source code distribution. To obtain a copy
+  of the source code, please visit https://github.com/Flash-X and
+  request access to the Flash-X repository as a collaborator. 
 
-\item A \Fortran90 (Fortran 90) compiler and a C compiler.  Most of Flash-X is
-written in \Fortran 90.  Flash-X has been tested
-with many Fortran compilers.  For details of compilers and libraries,
-see the RELEASE-NOTES available in the Flash-X home directory.
+\item A \Fortran compiler, a C compiler, and a C++ compiler, and
+  Python 3 or above. 
 
 \item An installed copy of the Message-Passing Interface (MPI)
-library. 
+  library, and the HDF5 library.
 
-\item To use the Hierarchical Data Format (HDF) for output files, you
-will need an installed copy of the freely available HDF library.
-The serial version of HDF5 is the current default Flash-X format. HDF5 is
-available from the HDF Group (\url{http://www.hdfgroup.org/}) of the National 
-Center for Supercomputing Applications (NCSA) at
-\url{http://www.ncsa.illinois.edu}. The contents of HDF5 output files
-produced by the Flash-X units are described in detail in
-\secref{Sec:Flash-X output formats}.
+  \item To use \amrex for AMR, it must be installed. \amrex requires a
+    different version each for 1, 2 or 3 dimensional application
+    configurations. 
+    (for details see .....). Paramesh is included in the source code.
 
-\item To use the Parallel NetCDF format for output files, you will need
-an installed copy of the freely available PnetCDF library.  PnetCDF is
-available from Argonne National Lab at \newline
-\url{http://www.mcs.anl.gov/parallel-netcdf/}.  For details of
-this format, see \secref{Sec:Flash-X output formats}.
+\item \amrex is compatible with PETSc and Hypre math libraries, and
+  \paramesh is compatible with Hypre. They must be installed on the
+  platform and their location should be made known to \amrex. 
 
+\item The GNU make utility
 
-\item To use the Diffuse unit with HYPRE solvers, you will need to
-  have an installed copy of HYPRE, available for free from Lawrence
-  Livermore National Lab at \newline
-\url{https://computation.llnl.gov/casc/hypre/software.html}.
-Versions of HYPRE from 2.7.0b to 2.13 should all work with \flashx.
-
-
-\item The GNU make utility, \code{gmake}.  This utility is freely
-available and has been ported to a wide variety of different
-systems. For more information, see the entry for \code{make} in the
-development software listing at \url{http://www.gnu.org/}.  On some
-systems \code{make} is an alias for \code{gmake}. GNU make is required
-because Flash-X uses macro concatenation when
-constructing Makefiles.
-
-\item A copy of the Python language, version 2.2 or later is
-required to run the \code{setup} script. Python can be downloaded
-from \url{http://www.python.org}.
+\item A copy of the Python language, version 3.0 or later is
+  required.
+  
 \end{itemize}
 
 
-\section{Unpacking and configuring Flash-X for quick start}
+\section{Obtaining and configuring Flash-X for quick start}
 \label{unpack}
 
-To begin, unpack the Flash-X source code distribution.
-\begin{verbatim}
- tar -xvf Flash-XX.Y.tar
-\end{verbatim}
+To begin, clone the Flash-X source code distribution.....
 
-\noindent where \emph{X.Y} is the Flash-X version number (for example,
-use \code{Flash-X4-alpha.tar} for Flash-X version 4-alpha, or \code{Flash-X3.1.tar} for Flash-X version 3.1).  This will create a
-directory called \code{Flash-X\emph{X}/}. Type `\code{cd
-Flash-X\emph{X}}' to enter this directory. Next, configure the Flash-X
-source tree for the Sedov explosion problem using the \code{setup}
-script%\index{setup@\code{setup}}.
+This quick start example uses \paramesh for AMR and does not depend on
+PETSc or Hypre. It also does not use accelerators or other devices on
+the node, neither does it exercise advanced features of the
+Orchestration System. It requires MPI  and HDF5 installed, and runs
+using one CPU per MPI rank.
+
+Once you have the source code and all the necessary libraries installed
+configure the Flash-X source tree for the Sedov explosion problem
+using the
+\code{setup} command
 Type \begin{quote} \code{./setup
 Sedov -auto} \end{quote} This configures Flash-X for the 2d
 \code{Sedov}%\index{setups!sedov}
@@ -100,8 +75,7 @@ attempt to see if your machine/platform has a
 already created, and if so, this will be linked into the
 \code{object/} directory.  If one is not created the setup script will use a 
 prototype Makefile.h with guesses as to the locations of libraries on your
-machine. The current distribution includes prototypes for \emph{AIX},
-\emph{IRIX64}, \emph{Linux}, \emph{Darwin}, and \emph{TFLOPS} operating systems. In any
+machine. The current distribution includes prototypes for \emph{Linux}, \emph{OSX} operating systems. In any
 case, it is advisable to create a \code{Makefile.h} specific to your
 machine. See  
 \secref{Sec:SetupMakefile} for details.
@@ -128,9 +102,8 @@ can significantly
 increase compilation speed, even on single processor systems.
 
 Assuming compilation and linking were successful, you should now
-find an executable named \code{flash\metavar{X}} in the \code{object/}
-directory, where \metavar{X} is the major version number (\eg, 4 for
-\metavar{X.Y} = 4.0).  You may wish to check that this is the case.
+find an executable named \code{flashx} in the \code{object/}
+directory. You may wish to check that this is the case.
 
 %\vfill
 %\eject
@@ -159,9 +132,6 @@ produce a valid executable.
 
 \end{itemize}
 
-These are just a few suggestions; you might also check for further
-information in this guide or at the
-\href{http://flash.uchicago.edu/codesupport/}{Flash-X web page}.
 
 Flash-X by default expects to find a text file named
 \code{flash.par}%\index{flash.par@\code{flash.par}}

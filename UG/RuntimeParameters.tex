@@ -124,26 +124,6 @@ They exist because various other units within Flash-X need to
 access parts of the RuntimeParameters interface.  For example, the input/output unit \unit{IO} needs
 \api{RuntimeParameters/RuntimeParameters_set}.  There are no user-defined parameters which affect the \unit{RuntimeParameters} unit.
 
-\begin{comment}
-\begin{flashtip}
-In \flashx, the user called the routine
-\code{get\_parm\_from\_context} from within
-\code{if(.firstcall.)} blocks from anywhere in the code.
-From \flashx, code within the \code{if(.firstcall.)}
-block is typically moved to the \code{Unit\_init.F90} file.
-Put all calls
-to \api{RuntimeParameters/RuntimeParameters_get} within this  initialization
-routine.  Since the \code{\_init} routine for each unit
-is only called once, \flashx eliminates the need to have messy
-\code{if (.firstcall.)} brackets throughout the code.
-\end{flashtip}
-\end{comment}
-
-\begin{flashtip}
-Flash-X no longer distinguishes between contexts as in \flashx.  All runtime
-parameters are stored in the same context, so there is no need to pass a
-`context' argument.
-\end{flashtip}
 
 
 
@@ -183,9 +163,3 @@ Variables with a unit prefix (\eg, \code{io\_} for \unit{IO},
 \code{pt\_} for particles) have been initialized from the \unit{RuntimeParameters} database, and other variables are locally declared.
 When creating new simulations, runtime parameters used as variables should be prefixed with \code{sim\_}.
 
-\begin{comment}
-\begin{flashtip}{\flashx Tip: A Note About Restarting}
-In the case of \flashx restarts, runtime parameter values are also read in from the checkpoint file 
-and are stored as "previous" values in the runtime parameter lists.  For more information, consult \chpref{Sec:runtime parameters}
-\end{flashtip}
-\end{comment}

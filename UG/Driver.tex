@@ -204,28 +204,6 @@ The \unit{Driver} unit supplies certain runtime parameters regardless of
 which type of driver is chosen. These are described in the
 online \rpi*{Driver/Runtime Parameters Documentation page}.
 
-\begin{flashtip}
-The \unit{Driver} unit no longer provides runtime parameters,
-physical constants, or logfile management.  Those services have been
-placed in separate units.  The \unit{Driver} unit also does not declare
-boolean values to include a unit in a simulation or not.  For example,
-in \flashx, the \unit{Driver} declared a runtime parameter \code{iburn} to turn on and off
-burning.
-\begin{codeseg}
-if(iburn) then
-    call burning ....
-end if
-\end{codeseg}
- In \flashx the individual unit declares a runtime parameter that
- determines whether the unit is used during the simulation \eg, the \unit{Burn} unit declares
-\code{useBurn} within the \unit{Burn} unit code that
-turns burning on or off.  This way the \unit{Driver} is no longer responsible for knowing what is included in a simulation.
-A unit gets called from the \unit{Driver}, and if it is not included in a simulation, a stub gets called.
-If a unit, like \unit{Burn}, is included but the user wants to turn burning off, then the runtime parameter
-declared in the \unit{Burn} unit would be set to false.
-\end{flashtip}
-
-
 \subsection{\code{Driver\_finalizeFlash}}
 Finally, the the \unit{Driver} unit calls \api{Driver/Driver_finalizeFlash} which calls the finalize routines for each unit.  Typically this involves deallocating memory and any other necessary cleanup.
 
@@ -236,12 +214,6 @@ accessor functions to get data stored in the \code{Driver} unit, for
 example \api{Driver/Driver_getDt},  \api{Driver/Driver_getNStep},  
  \api{Driver/Driver_getElapsedWCTime},  \api{Driver/Driver_getSimTime}.
 
-\begin{flashtip}
-In \flashx most of the quantities that were in the \flashx database are stored in the
-\code{Grid} unit or are replaced with functionality in the \code{Flash.h} file.  A few scalars
-quantities like \code{dt}, the current timestep number \code{nstep}, simulation time and elapsed
-wall clock time, however, are now stored in the \code{Driver\_data} FORTRAN90 module.
-\end{flashtip}
 
 The \code{Driver} unit API also defines two interfaces for halting the code,
 \api{Driver/Driver_abortFlash} and

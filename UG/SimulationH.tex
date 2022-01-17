@@ -1,20 +1,20 @@
-\chapter{The \code{Flash.h} file}
-\label{Chp:Flash.h}
+\chapter{The \code{Simulation.h} file}
+\label{Chp:Simulation.h}
 
-\code{Flash.h}%\index{Flash.h}
+\code{Simulation.h}%\index{Simulation.h}
 is a critical header file in \flashx which
 holds many of the key quantities related to the particular
-simulation. The \code{Flash.h} file is written by the setup script
+simulation. The \code{Simulation.h} file is written by the setup script
 and should not be modified by the user.  
-The \code{Flash.h} file will be different
+The \code{Simulation.h} file will be different
 for various applications.  When the setup script is building an
 application, it parses the \code{Config} files, collects definitions of
 variables, fluxes, grid vars, species, and mass scalars, and writes 
 a symbol (an index into one of the data structures maintained by
 the \unit{Grid} unit)
-for each defined entity to the \code{Flash.h} header file.
+for each defined entity to the \code{Simulation.h} header file.
 This chapter explains these symbols and some of the other 
-important quantities and indices defined in the \code{Flash.h} file.
+important quantities and indices defined in the \code{Simulation.h} file.
 
 %%\section{Flash Pre-processor symbols}
 
@@ -43,7 +43,7 @@ each of these arrays indicates the variable, the 2nd, 3rd, and 4th
 dimensions indicate the cell location in a block, and the 5th dimension is
 the block identifier for the local processor.  The size of the block,
 dimensions of the domain, and other parameters which influence the
-\unit{Grid} data structures are defined in \code{Flash.h}.
+\unit{Grid} data structures are defined in \code{Simulation.h}.
 
 \begin{longtable}{p{0.04\textwidth}p{0.9\textwidth}}
  \htabopt{NXB,NYB,NZB} & The number of interior cells in the x,y,z-dimension
@@ -81,7 +81,7 @@ pressure, temperature), the mass fraction of species, and
 mass scalars \footnote{See \eqref{eq:massscalar} for more information about mass scalars}.  
 However, in \flashx the user does not need to be intimately aware
 of the \code{unk} array layout, as starting
-and ending indices of these groups of quantities are defined in \code{Flash.h}.  
+and ending indices of these groups of quantities are defined in \code{Simulation.h}.  
 The following
 pre-processor symbols define the indices of the various quantities
 related to a given cell. These symbols are primarily used to perform
@@ -119,46 +119,6 @@ appending \code{\_SPEC} to the uppercase name of the species (\eg,
 scalars.  
 
 
-\begin{comment}
-\begin{flashtip}
-The \code{Flash.h} file defines many of the quantities that were previously
-stored in the database in \flashx. In \flashx, the user had to get
-an `integer' key to access a variable stored in the \code{unk}
-data structure, but in \flashx we access the variable's index directly using a \code{\#define}d
-constant.  For example, the density variable can be accessed from the
-\code{unk} data structure by \code{unk(DENS_VAR,i,j,k,blockID)}.
-In a FIXEDBLOCKSIZE simulation \code{unk} has the dimensions:
-
-\begin{codeseg}
- unk(UNK_VARS_BEGIN:UNK_VARS_END,
-     GRID_ILO_GC:GRID_IHI_GC,
-     GRID_JLO_GC:GRID_JHI_GC,
-     GRID_KLO_GC:GRID_KHI_GC,
-     MAXBLOCKS)
-\end{codeseg}
-
-The next example illustrates how data is stored in \code{unk} in 
-\flashx and \flashx:\newline
-
-\flashx:
-\begin{codeseg}
-idens = dBaseKeyNumber('dens')  ! get index of variable
-call dBasePutData(idens, ......)        ! make call to the routine
-\end{codeseg}
-
-\flashx: 
-\begin{codeseg}
-call Grid_putPointData(blockID, CENTER, DENS_VAR, .....)  !use index DENS_VAR 
-\end{codeseg}
-
-Note: In \flashx the user declared the number of species in a simulation
-in the \code{Config} file with the \code{NSPECIES} keyword.  In \flashx the user 
-only declares a species with the keyword \code{SPECIES}.  The number of species
-is summed by the setup script as it parses the various \code{Config} files
-in the simulation.  The \code{NSPECIES} keyword in no longer used in \flashx \code{Config} files.
-\end{flashtip}
-\end{comment}
-
 
 \section{Fluxes}
 \label{Sec:FlashHfluxes}
@@ -195,43 +155,10 @@ Useful defined variables are calculated as follows:
  The first index for the \code{fluxes} data structure \htr
 \end{longtable}
 
-\section{Scratch Vars}
-\label{Sec:FlashHscratch}
-In \flashx the user is allowed to declare `scratch' space for grid
-scope variables which resemble cell-centered or face-centered in
-shape and are dimensioned accordingly, but are not advected or
-transformed by the usual evolution steps. They do not participate in
-the guard-cell filling or regridding processes. For example a user
-could declare a scratch variable to store the temperature change on
-the grid from one timestep to another.They can be requested using
-keyword \code{SCRATCHCENTERVAR} for cell-centered scratch variables,
-or \code{SCRATCHFACEVAR} for face-centered scratch variables. A
-special case is \code{SCRATCHVAR}, which has one extra cell than the
-cell-centered variables along every dimension. We have provided this
-data structure to enable the reuse of the same scratch space by both
-cell-centered and each of the face-centered variables.  
-%The space for scratch data does not include
-%guardcells and is stored in its own data structure \code{scratch} in the
-%\code{physicaldata module} used by the Grid unit. 
-Similar to the mesh variables used in the evolution, the scratch data
-structures are 4-dimensional arrays per block, where the first
-dimension enumerates the variables and the next three dimensions are
-the spatial dimensions. Scratch variables are indexed 
-by postpending one of \code{\_SCRATCH\_GRID\_VAR}, \code{\_SCRATCH\_CENTER\_VAR}
-or \code{\_SCRATCH\_FACEX/Y/Z\_VAR} to the capitalized four letter variable
-defined in the \code{Config} file. Similarly to property variables,
-\code{NSCRATCH\_CENTER\_VARS},
-\code{SCRATCH\_CENTER\_VARS\_BEGIN}, and 
-\code{SCRATCH\_CENTER\_VARS\_END} are defined to hold the number
-and endpoints of the cell-centered scratch variables. For
-face-centered scratch variables the CENTER is in the above terms is
-replaced with FACEX/Y/Z while for SCRATCHVARS, the CENTER is replace
-with GRID.
-
 
 \section{Fluid Variables Example}
 The snippet of code below shows a \code{Config} file and
-parts of a corresponding \code{Flash.h} file.  
+parts of a corresponding \code{Simulation.h} file.  
 
 \begin{codeseg}
 # Config file for explicit split PPM hydrodynamics.
@@ -264,7 +191,7 @@ SCRATCHCENTERVAR ftmp
 .....
 \end{codeseg}
 
-The \code{Flash.h} files would declare the property variables, fluxes
+The \code{Simulation.h} files would declare the property variables, fluxes
 and scratch variables as:
 (The setup script alphabetizes the names.)
 
@@ -303,7 +230,7 @@ in the same simulation. To facilitate this ability, the particles are
 now defined in the \code{Config} files with \code{PARTICLETYPE}
 keyword, which is also accompanied by an associated initialization and
 mapping method. The following example shows a Config file with passive
-particles, and the corresponding generated \code{Flash.h} lines
+particles, and the corresponding generated \code{Simulation.h} lines
 \begin{codeseg}
 
 Config file :
@@ -317,7 +244,7 @@ REQUESTS Particles/ParticlesInitialization/Lattice
 REQUESTS IO/IOMain/
 REQUESTS IO/IOParticles
 
-Flash.h :
+Simulation.h :
 
 #define PASSIVE_PART_TYPE 1
 #define PART_TYPES_BEGIN CONSTANT_ONE
@@ -332,7 +259,7 @@ provided for {\em each} type of particle included in the simulation.
 \subsection {Particles Properties}
 \label{Sec:FlashHpartprops}
 Particle properties are defined within the \code{particles} data structure.
-The individual properties will be listed in \code{Flash.h} if the
+The individual properties will be listed in \code{Simulation.h} if the
 \unit{Particles} unit is defined in a simulation.  The variables 
 \code{NPART_PROPS}, \code{PART_PROPS_BEGIN} and \code{PART_PROPS_END}
 indicate the number and location of particle properties indices.
@@ -345,7 +272,7 @@ PARTICLEPROP velx
 
 \end{codeseg}
 
-then the relevant portion of \code{Flash.h} will contain
+then the relevant portion of \code{Simulation.h} will contain
 \begin{codeseg}
 #define DENS_PART_PROP 1
 #define PRES_PART_PROP 2
@@ -371,7 +298,7 @@ For each non-replicated variable array \metavar{FOO} as defined by the following
 NONREP \metavar{unktype} FOO \metavar{localmax} \metavar{globalparam} \metavar{ioformat}
 }
 
-the following will be placed into \code{Flash.h}:
+the following will be placed into \code{Simulation.h}:
 \begin{itemize}
 \item \code{\#define \metavar{FOO}_NONREP}\\
 An integer constant greater than zero to be used as an id for this array.
@@ -436,7 +363,7 @@ numFoo = 8
 
 Fortran 90:
 \begin{fcodeseg}
-\#include "Flash.h"\\
+\#include "Simulation.h"\\
 ! this shows how to iterate over the UNKs corresponding to this 
 ! processor's subset of FOO
 integer :: nfooglob, nfooloc ! number of foo vars, global and local

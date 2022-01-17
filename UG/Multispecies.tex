@@ -12,7 +12,7 @@ described in the context of the Hydro unit in \chpref{Chp:Hydrodynamics Unit}.
 \label{Sec:defining_species}
 
 The names and properties of fluids are accessed by using their constant integer values defined
-in the \code{Flash.h} header file.
+in the \code{Simulation.h} header file.
 The species names are defined in a \code{Config} file.
 The names of the species, for example \code{AIR}, \code{NI56}, are given in the \code{Config} file with keyword \code{SPECIES}.
 
@@ -26,8 +26,8 @@ based on the contents of the \code{species} setup variable.
 Either way, the \code{setup} procedure transforms those names into
 accessor integers with the appended description \code{\_SPEC}.
 
-These names are stored in the \code{Flash.h} file.  The total number of species defined is also defined within \code{Flash.h} as \code{NSPECIES}, and the integer range of their definition is given by \code{SPECIES\_BEGIN} and \code{SPECIES\_END}.
-To access the species in your code, use the index listed in \code{Flash.h}, for example \code{AIR\_SPEC}, \code{NI56\_SPEC}.
+These names are stored in the \code{Simulation.h} file.  The total number of species defined is also defined within \code{Simulation.h} as \code{NSPECIES}, and the integer range of their definition is given by \code{SPECIES\_BEGIN} and \code{SPECIES\_END}.
+To access the species in your code, use the index listed in \code{Simulation.h}, for example \code{AIR\_SPEC}, \code{NI56\_SPEC}.
 
 Note that \code{NSPECIES}, \code{SPECIES\_BEGIN}, and \code{SPECIES\_END}
 are always defined, whether a simulation uses multiple species or
@@ -42,8 +42,8 @@ and the corresponding section of the Flash-X header file, respectively.
  For more information on \code{Config} files, see \secref{Sec:Config};
 for more information on the \code{setup} procedure, see
 \chpref{Chp:The Flash-X configuration script};
-for more information on the structure of the main header file \code{Flash.h}, see
-\chpref{Chp:Flash.h}.
+for more information on the structure of the main header file \code{Simulation.h}, see
+\chpref{Chp:Simulation.h}.
 
 
 \begin{figure}
@@ -68,14 +68,14 @@ SPECIES SF6
 #define SPECIES_END (SPECIES_BEGIN + NSPECIES - CONSTANT_ONE)
 \end{fcodeseg}
 \end{shrink}
-\caption{Sample excerpt from header file \code{Flash.h} showing integer definition of fluid species.}
+\caption{Sample excerpt from header file \code{Simulation.h} showing integer definition of fluid species.}
 \label{fig:MultispeciesHeader}
 \end{figure}
 
 
 \begin{flashtip}
 In \flashx, you found the integer index of a species by using \code{find\_fluid\_index}.  In \flashx, the
-species index is always available because it is defined in \code{Flash.h}.  Use the index directory, as in
+species index is always available because it is defined in \code{Simulation.h}.  Use the index directory, as in
 \code{xIn(NAME\_SPEC - SPECIES_BEGIN + 1) = solnData(NAME\_SPEC,i,j,k)}.
 
 But be careful that the species name is really defined in your simulation!  You can test with
@@ -142,7 +142,7 @@ Multispecies unit.
 
 implicit none
 #include "Multispecies.h"
-#include "Flash.h"
+#include "Simulation.h"
 
 ! These two variables are defined in the Config file as
 ! SPECIES SF6 and SPECIES AIR
@@ -180,7 +180,7 @@ and \code{MS\_FRACTIONS} respectively. The property
 species (\code{MS\_NUMELEMS} would be two for water since water is
 made of Hydrogen and Oxygen). There is an upper bound on the number of
 elements for a single species which is defined using the preprocessor
-symbol \code{MS\_MAXELEMS} in the ``Flash.h'' header file and defaults
+symbol \code{MS\_MAXELEMS} in the ``Simulation.h'' header file and defaults
 to six. The value of \code{MS\_MAXELEMS} can be changed using the
 \code{ms\_maxelems} setup variable. \figref{Fig:MultispeciesElems} shows
 an example of how the constituent elements for water can be set using
@@ -194,7 +194,7 @@ the constituent element information.
 \begin{figure}
 \begin{shrink}
 \begin{codeseg}
-#include "Flash.h"
+#include "Simulation.h"
 #include "Multispecies.h"
 
 ! Create arrays to store constituent element data. Note that these
@@ -416,7 +416,7 @@ the user must only properly initialize the species as described above in the
 But to program with the Multispecies properties, you 
 must do three things:
 \begin{itemize}
-\item \code{\#include} the \code{Flash.h} file to identify the defined species 
+\item \code{\#include} the \code{Simulation.h} file to identify the defined species 
 \item \code{\#include} the \code{Multispecies.h} file to identify the desired property
 \item use the Fortran interface to the Multispecies unit because the majority of
 the routines are overloaded.
@@ -424,7 +424,7 @@ the routines are overloaded.
 The example below shows a snippet of code to calculate the electron density.
 \begin{codeseg}
 ...
-#include Flash.h
+#include Simulation.h
 #include Multispecies.h
 
     USE Multispecies_interface, ONLY:  Multispecies_getSumInv, Multispecies_getSumFrac

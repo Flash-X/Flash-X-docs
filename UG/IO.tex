@@ -7,23 +7,8 @@ the large amounts of data usually produced. In addition to keeping the
 data output in a standard format, the parallel IO libraries also
 ensure that files will be portable across various platforms.  The
 mapping of Flash-X data-structures to records in these files is
-controlled by the Flash-X IO unit.  Flash-X can output data with two
-parallel IO libraries, HDF5%\index{HDF5|see{IO}}
-and Parallel-NetCDF.
-The data layout is different for each of these libraries.  
-Since \flashx we also offer direct serial FORTRAN IO, which
-can be used as a last resort if no parallel library is available.
-However, Flash-X post-processing tools such as fidlr  (\chpref{Chp:Flash-X IDL Routines
-(fidlr)}) and sfocu (\chpref{Chp:sfocu}) do not support the direct IO
-format.
-
-\begin{flashtip}[Note:]
-This release supports both
-HDF5 and Parallel-NetCDF, including particle IO for both
-implementations.  
-\end{flashtip}
-
-
+controlled by the Flash-X IO unit.  Flash-X can output data with 
+HDF5 parallel IO library.
 Various techniques can be used to write the data to disk when
 running a parallel simulation.  The first is to move all the data to
 a single processor for output; this technique is known as serial IO.
@@ -72,27 +57,32 @@ begin at the /source directory.}\\
 \code{IO/IOMain/HDF5/parallel/PM}             &Hierarchical Data Format (HDF) 5 output.
                              A single HDF5 file is created, with each
                              processor writing its data to the same
-                             file simultaneously.  This relies on the
-                             underlying MPI\-IO layer in HDF5.  This
-                             particular implementation only works with
-                             the \Paramesh grid package.\ieor
+                             file simultaneously.  This particular
+                             implementation only works with the
+                             \Paramesh grid package.\ieor
+
+\code{IO/IOMain/HDF5/parallel/AM}             &Hierarchical Data Format (HDF) 5 output.
+                             A single HDF5 file is created, with each
+                             processor writing its data to the same
+                             file simultaneously.  This particular
+                             implementation only works with the
+                             \amrex grid package.\ieor
 
 \code{IO/IOMain/hdf5/parallel/UG}     &Hierarchical Data Format (HDF) 5 output.
                              A single HDF5 file is created, with each
                              processor writing its data to the same
-                             file simultaneously.  This relies on the
-                             underlying MPI\-IO layer in HDF5.  This
-                             particular implementation only works with
-                             the Uniform Grid.
-\ieor
+                             file simultaneously.  This
+                             implementation only works with the
+                             Uniform Grid.\ieor
+                             
 \code{IO/IOMain/hdf5/parallel/NoFbs}             &Hierarchical Data Format (HDF) 5 output.
                              A single HDF5 file is created, with each
                              processor writing its data to the same
-                             file simultaneously.  All data is written out as one block.
-                             This relies on the
-                             underlying MPI\-IO layer in HDF5.  This
-                             particular implementation only works in 
-                             non-fixedblocksize mode.\ieor
+                             file simultaneously.  All data is written
+                             out as one block. This
+                             implementation only works with the
+                             Uniform Grid. \ieor
+                             
 
 \code{IO/IOMain/hdf5/serial/PM}   & Hierarchical Data Format (HDF) 5 output.
                              Each processor passes its data to
@@ -101,10 +91,20 @@ begin at the /source directory.}\\
                              writing. The resulting file format is
                              identical to the parallel version; the
                              only difference is how the data is moved
-                             during the writing. This particular
+                             during the writing. This 
                              implementation only works with the
                              \Paramesh grid package.\ieor
 
+\code{IO/IOMain/hdf5/serial/AM}   & Hierarchical Data Format (HDF) 5 output.
+                             Each processor passes its data to
+                             processor 0 through explicit MPI sends
+                             and receives. Processor 0 does all of the
+                             writing. The resulting file format is
+                             identical to the parallel version; the
+                             only difference is how the data is moved
+                             during the writing. This 
+                             implementation only works with the
+                             \amrex grid package.\ieor
 
 \code{IO/IOMain/hdf5/serial/UG}   & Hierarchical Data Format (HDF) 5 output.
                              Each processor passes its data to
@@ -119,43 +119,6 @@ begin at the /source directory.}\\
 
 
  \\
-
-\code{IO/IOMain/pnetcdf/PM}   & Parallel\-NetCDF  output.
-                             A single file is created with each
-                             processor writing its data to the same
-                             file simultaneously.  This relies on the
-                             underlying MPI-IO layer in PNetCDF.  This
-                             particular implementation only works with
-                             the \Paramesh grid package.\\
-
- \\
-\code{IO/IOMain/pnetcdf/UG}   & Parallel\-NetCDF  output.
-                             A single file is created with each
-                             processor writing its data to the same file
-                             simultaneously.  This relies on the underlying
-                             MPI-IO layer in PNetCDF.  This particular implementation only works with
-                             the Uniform Grid.\\
-
-
- \\
-
-\code{IO/IOMain/direct/UG}   & Serial FORTRAN IO.  Each processor writes its own
-            data to a separate file.  Warning!  This choice can
-            lead to many many files!  Use only if neither HDF5
-            or Parallel-NetCDF is available.  The
-            Flash-X tools are not compatible with the direct
-            IO unit.
-
- \\
-
-\code{IO/IOMain/direct/PM}   & Serial FORTRAN IO.  Each processor writes its own
-            data to a separate file.  Warning!  This choice can
-            lead to many many files!  Use only if neither HDF5
-            or Parallel-NetCDF is available.  The
-            Flash-X tools are not compatible with the direct
-            IO unit.
-
-\\
 
 
 
@@ -246,9 +209,6 @@ If you are using non-fixedblocksize the shortcut
 \end{codeseg}
 will bring in both Uniform Grid,set the mode to nonfixed blocksize, and 
 choose the appropriate IO.
-\begin{flashtip}[Note:]
-Presently, nonfixed blocksize is only supported by HDF5 parallel IO.
-\end{flashtip}
 
 In keeping with the Flash-X code architecture, the \Fortran90 module
 \code{IO\_data} stores all the data with \unit{IO} unit scope. The routine
@@ -638,18 +598,6 @@ Parameter & Type & Default value & Description \\
 \end{longtable}
 \end{center}
 
-
-
-\begin{flashtip}
-From \flashx on each particle dump is written to a separate file.  In \flashx
-the particles data structure was broken up into real and integer
-parts, where as in \flashx all particle properties are real values.  See
-\secref{Sec:Output formats} and \chpref{Chp:Particles} for more
-information about the particles data structure in \flashx.
-Additionally, filtered particles are not implemented in
-\flashx.
-\end{flashtip}
-
 All the code necessary to output particle data is contained in the \unit{IO}
 subunit called \unit{IOParticles}. Whenever the \unit{Particles} unit is included in
 a simulation the correct \unit{IOParticles} subunit will also be included.
@@ -782,37 +730,6 @@ file.\\
 \end{center}
 
 
-\begin{comment}
-\begin{flashtip}
-Although consistency of runtime parameters was attempted 
-between \flashx and \flashx, a number of them caused confusion in \flashx.
-These names were clarified in \flashx.
-\begin{center}
-\begin{longtable}{p{1.7in}p{2.7in}}
-\caption[parameters name changes from \flashx to \flashx]{\label{Tab:parameters name changes}Parameter name changes} \\
-\flashx & \flashx \\
-\hline
-\subsequentpageheadings{\caption[]{Parameter name changes (continued).}}
-{\flashx               & \flashx }
-\endhead
-
-
-\\
-\code{cpnumber} & \code{checkpointFileNumber} \\
-\code{trstrt} & \code{checkpointFileIntervalTime} \\
-\code{nrstrt} & \code{checkpointFileIntervalStep} \\
-\code{ptnumber} & \code{plotFileNumber} \\
-\code{tplot} & \code{plotfileFileIntervalTime} \\
-\code{pptnumber} & \code{particleFileNumber} \\
-\code{ptplot} & \code{particleFileIntervalTime} \\
-\code{nppart} & \code{particleFileIntervalStep} \\
-
-\hline
-\end{longtable}
-\end{center}
-
-\end{flashtip}
-\end{comment}
 
 \section{Restarts and Runtime Parameters}\label{Sec:runtime parameters}
 
@@ -973,17 +890,6 @@ used, and the number at the end of the filename is the current value in
 \end{comment}
 
 
-\begin{flashtip}
-In \flashx the correct format of the names of the checkpoint,
-plotfile and particle file were necessary in order to read the files
-with the Flash-X fidlr visualization tool.  In
-\flashx the name of the file is irrelevant to fidlr3.0
-(see \chpref{Chp:Flash-X IDL Routines (fidlr)}).  We have kept
-the same naming convention for consistency but the user is free to
-rename files.  This can be helpful during post-processing or when comparing
-two files.
-\end{flashtip}
-
 
 
 \section{Output Formats}\label{Sec:Output formats}
@@ -1078,25 +984,6 @@ are true, the \flashx input and output routines read and/or output the guard cel
 in addition to the normal interior cells.  Note that the HDF5 files produced are {\em not} 
 compatible with the visualization and analysis tools provided with \flashx.
 
-
-\begin{flashtip}
-We recommend that HDF5 version 1.6 or later be used with the HDF5 IO 
-implementations with \flashx.  While it is possible to use any version of
-HDF5 1.4.0 or later, files produced with versions predating version 1.6 will 
-not be compatible with code using the libraries post HDF5 1.6. 
-\end{flashtip}
-
-\begin{flashtip}[Caution]
-If you are using version HDF5 $\ge$ 1.8 then you must explicitly use
-HDF5 1.6 API bindings.  Either build HDF5 library with
-``--with-default-api-version=v16'' configure option or compile Flash-X
-with the C preprocessor definition \code{H5\_USE\_16\_API}%\index{H5\_USE\_16\_API@\code{H5\_USE\_16\_API}}.
-Our preference is
-to set the \code{CFLAGS\_HDF5} Makefile.h variable, \eg, for compilation with most compilers:
-\begin{verbatim}
-CFLAGS_HDF5 = -I${HDF5_PATH}/include -DH5_USE_16_API
-\end{verbatim}
-\end{flashtip}
 
 
 \subsubsection{Collective Mode}
@@ -1537,10 +1424,6 @@ In addition, ViSit version 10.0 and higher (see \secref{Sec:visit}) can natively
 \section{Unit Test}\label{Sec:IO Unit Test}
 The \unit{IO} unit test is provided to test IO performance on various platforms
 with the different Flash-X IO implementations and parallel libraries.
-\begin{flashtip}
-The \unit{IO} unit test replaces the simulation setup \code{io\_benchmark} in \flashx.
-\end{flashtip}
-
 The \code{unitTest} is setup like any other \flashx simulation.  It can be run
 with any IO implementation as long as the correct Grid implementation
 is included.  This \code{unitTest} writes a checkpoint file, a plotfile, and
