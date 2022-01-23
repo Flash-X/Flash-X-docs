@@ -1,17 +1,29 @@
 .. _`Chp:Architecture`:
 
-Overview of architecture
+Architecture
 ========================
 
-is a component based software system where different permutations and
-combinations of various components generate different applications. Some
-aspects of architecture are adapted from FLASH
-:raw-latex:`\cite{Dubey2009}`, but it is fundamentally a new software
-with a new architecture designed for use with heterogeneous platforms.
-Portability on heterogeneous platforms is achieved through an
-**orchestration system** (), comprised of three sets of tools: the
-**configuration tools** (), **code translators** () and the
-**orchestration runtime** subsystem ().
+Flash-X has a component based architecture where
+different permutations and combinations of various components generate
+different applications. The code has hierarchy in its components. At
+the top level are *Units* that implement a specific
+functionality. They are equivalent of *Classes* in object oriented
+models without explicitly making use of the Class construct. The
+reason is both a design choice and historical. Through a somewhat
+loose interpretation of classes it is possible to obtain arbitrary
+granularities in components without cumbersome inheritance
+structure. And it allows legacy components to become compatible with
+the code architecture by attaching meta information to them without
+having to modify the code itself. Units publish a high level API
+through which any code outside of the Unit interacts with them. 
+Units can have *subunits* where each subunit implements a subset of
+the Unit's API such that the union of all subunits covers the whole
+API of the Unit. Subunits cover disjointed sets of API in that the
+subset of API implemented by a subunit is unique to it. Below subunit
+level the code components are not given any specific name. For
+convenience heretofore they will be referred to as *components* with
+the understanding that they represent the unix subtree in the source starting at
+their path.
 
 The include a configuration domain specific language (DSL) for program
 synthesis through assembly, and a key-value dictionary with a

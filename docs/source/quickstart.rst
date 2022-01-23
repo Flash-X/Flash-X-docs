@@ -23,19 +23,19 @@ You should verify that you have the following:
 -  To use for AMReX, it must be installed. It requires a different version
    each for 1, 2 or 3 dimensional application configurations. (for
    details see https://github.com/AMReX-Codes/amrex). Alternatively,
-   you can use PARAMESH which is included in the distribution.
+   you can use PARAMESH which is included in the distribution, and
+   does not need a separate build.
 
 -  The GNU make utility
 
 
 .. _unpack:
 
-Obtaining and configuring Flash-X for quick start
 -------------------------------------------------
 
 To begin, clone the Flash-X source code distribution.
 
-This quick start example uses PARAMESH for managing the mesh and does
+::This quick start example uses PARAMESH for managing the mesh and does
 not use accelerators or other devices on the node, neither does it
 exercise any of the advanced tools that enable use of such devices. 
 It requires MPI and HDF5 installed, and runs using one CPU per MPI rank.
@@ -85,17 +85,13 @@ suggestions to diagnose the problem:
 -  Make sure the correct compilers are in your path, and that they
    produce a valid executable.
 
--  The default Sedov problem uses HDF5 in serial. Make sure you have
-   HDF5 installed. If you do not have HDF5, you can still setup and
-   compile Flash-X, but you will not be able to generate either a
-   checkpoint or a plot file. You can setup Flash-X without I/O by
-   typing +noio is the setup command.
+-  The default Sedov problem uses serial HDF5. If you do not have
+   HDF5, you can setup Flash-X without I/O by typing +noio in the
+   setup command. If you have parallel HDF5 please see the chapter on
+   setup options to overwrite the default option.
 
 -  Make sure the paths to the MPI and HDF libraries are correctly set in
    the in the directory.
-
--  Make sure your version of MPI creates a valid executable that can run
-   in parallel.
 
 Flash-X by default expects to find a text file named flash.par in the directory
 from which it is run. This file sets the values of various runtime
@@ -164,8 +160,8 @@ for each parameter.
 Running Flash-X
 ---------------
 
-We are now ready to run Flash-X. To run the code using mpiexec you can 
-simply type
+You can run the code using mpiexec as follows, where <N> is the number
+of MPI ranks.
 
 ::
 
@@ -206,7 +202,5 @@ should find several files in the current directory:
    snapshots of the time evolution. Please see for more information
    about IO outputs.
 
-Flash-X is intended to be customized by the user to work with
-interesting initial and boundary conditions. In the following sections,
-we will cover in more detail the algorithms and structure of Flash-X and
-the sample problems and tools distributed with it.
+Following sections cover architecture, algorithms,  
+sample problems, and the tools distributed with Flash-X.

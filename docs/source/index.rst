@@ -12,7 +12,8 @@ Welcome to Flash-X's documentation!
 
    intro
    quickstart
-   softwaresystem
+   arch
+   setup
    driver
    infrastructure
    physics

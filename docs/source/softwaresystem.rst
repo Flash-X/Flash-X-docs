@@ -1,12 +1,13 @@
-Flash-X Software System
+The Configuration Toolchain
 =======================
 
-This chapter covers the basic structure of Flash-X software system.
+This section covers the structure of Flash-X configuration toolchain.
 
 
 .. toctree::
     :maxdepth: 1
     :caption: Contents
 
-    arch
     setup
+    macroprocessor
+    

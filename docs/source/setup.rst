@@ -1,19 +1,295 @@
-.. _`Chp:The Flash-X configuration script`:
+.. _`Chp:The Setup Tool`:
 
-The Flash-X configuration script ()
+The Setup Tool
 ===================================
 
-The tool is the most important component of the . It implements the
-inheritance and composability of the software system. It traverses the
-Flash-X source tree starting from the directory hosting the specific
+The configuration toolchain effectively implements the Flash-X
+software architecture. The encapsulation and inheritance of the code
+is implemented and enforced by this tool. It relies upon Flash-X's
+domain specific configuration language (DSCL) that encodes
+meta-information about the components in the accompanying
+"Config" files. A Config file is unique to a unix directory and has
+all the meta-information about files in that directory. It can also
+include information about how to traverse subdirectories of the
+corresponding component.
+
+.. _`Sec:DSCL Keywords`:
+
+Config file Keywords and syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~
+The syntax of DSCL includes two types of keywords. The directive
+keywords define actions to be taken by the setup tool, while the non
+directive keywords encode information about the directives. The non
+directive keywords are associated with specific directives keyworks. 
+
+*DEFAULT* governs the traversal of the subtree by the setup
+tool. If one of the subdirectories is not explicitly specified for
+traversal the default one is chosen.
+
+*REQUIRES* specifies a unit, subunit, or an arbitray component to be
+included in the application. The usage is 
+::
+   REQUIRES <path>, where path starts from subdirectories in
+   $FLASHXHOME/source.
+
+For example "RQUIRES Grid" would indicate that Grid unit is to be
+included but specifics of implementation can be specified
+later. Whereas "REQUIRES Grid/GridMain/AMR/AMReX indicates that it is
+AMReX based implementation of the Grid unit that is to be
+included. Note that there is no restriction on depth of directory
+hierarchy that can be specified through this keyword. It specifies a
+hard dependency; the application cannot be built without include files
+from the specified path.
+
+ *REQUESTS* is similar to REQUIRES except that it is a soft
+ dependency. It can be overridden through either a commandline
+ specification ot through dependencies specified in higher priority
+ locations in the source tree.
+
+ *CONFLICTS* indicates units, subunits or components that are
+ incompatible with the current component. For example
+ ::
+    CONFLICTS Paramesh4
+
+appearing in the Config file of Grid/GridSolvers/Multigrid tells the setup tool
+that this implementation of muligrid solver will not work with PARAMESH.
+
+ *EXCLUSIVE*  specifies a list of implementations of the corresponding
+ component that cannot co-exist in an instance of application
+ configuration. The usage is
+ ::
+    EXCLUSIVE UG AMR
+
+ indicating that UG and AMR cannot be included in the same application.
+
+ *VARIANTS* is meant to enable inclusion of multiple alternative
+ implementations of a component in the same instance of application
+ configuration. For example, one may want to use both CPU and GPU to
+ compute. A component that has valid implementations for both can
+ specify
+ ::
+    VARIANTS Inhost Offload Null
+    
+ Then if the setup options specify inclusion of both implementations,
+ the names of the relevant files and function/subroutine interfaces are
+ modified to have unique names. If, on the other hand, only one of the
+ implementations is to be included, the default is Null and all the
+ names remain unmodified.
+
+ *SUGGEST* is a helper keyword used to indicate that the "suggested"
+ components ought to be included. Its only use is to catch
+ inadverntenly omitted components before execution starts.
+
+*PARAMETER* declares runtime parameters. The non-directive keywords
+associated with PARAMETER are *REAL*, *INTEGER*, *STRING*, *BOOLEAN*
+and *CONSTANT* used to describe the datatype of the
+PARAMETER. Optionally, a range of values can also be associate with a
+PARAMETER as shown in the examples.
+::
+   PARAMETER pres REAL 1.0 [ 0.1 ... 9.9, 25.0 ... ]
+   PARAMETER coords  STRING "polar" ["polar","cylindrical","2d","3d"]
+
+
+*VARIABLE* defines cell-centered state variables needed by the component. The
+variables can be of various *TYPE*. *PER_VOLUME* are conserved
+quantities and represent the density of the conserved
+quantity such as mass density, energy density etc. *PER_MASS* that are
+by nature extensive quantities such as specific energies, velocities
+of materials, abundances etc.  *GENERIC* variables are those that do
+not fit the above two categories.  VARIABLES also have other
+attributes associated with them. These are *ADVECT/NOADVECT* depending
+on whether the variable obeys advection equation, *RENORM/NORENORM*
+that are to be renormalized or not, and *CONSERVE/NOCONSERVE*
+depending upon whether they obey conservation laws. *EOSMAPIN* and
+*EOSMAPOUT* define the map between the state variables index in the
+data structure handed to the equation of state unit from that of the
+Unit invoking the equation of state, as shown in the example below.
+::
+   VARIABLE eint TYPE: PER_MASS EOSMAPIN: EINT
+   VARIABLE gamc EOSMAPOUT: GAMC
+
+
+*FACEVAR* are similar to VARIABLES except that they are face-centered
+as opposed to cell-centered quantities.
+
+*MASS_SCALAR* defines space holders in the state variables data
+structure that are only advected but do not participate otherwise in
+the evolution of the solution.
+
+*PARTICLETYPE* defines the type of Particles being used in the
+simulation. Flash-X currently supports only tracer particles, though
+hooks and infrastructure exists for several other flavors such as
+active particles with mass or charge deposition.
+
+*INITMETHOD*, *MAPMETHOD*, and *ADVMETHOD* are keywords associated
+with PARTICLETYPE, where they indicate the methods to be used for
+initialization of particles positions, interpolation methods to be
+used to map associated quantities to-and-from the particle position
+and mesh, and the method for advancing particles of that type in
+time. To function correctly, for all the  methods specified by the
+above three keywords the compoent implementing the corresponding
+implementation should be specified with either a REQUIRES or a
+REQUESTS directive in the Simulations directory config file, or should
+be asked to be included through commandline options on the setup
+command. An example of specifying particletype to be included along with
+it corresponding methods is
+::
+   PARTICLETYPE passive INITMETHOD lattice MAPMETHOD quadratic
+   ADVMETHOD Euler
+   REQUIRES Particles/ParticlesMain
+   REQUESTS Particles/ParticlesMain/passive/Euler
+   REQUESTS Particles/ParticlesMapping/Quadratic
+   REQUESTS Particles/ParticlesInitialization/Lattice
+
+
+  *TO*, and  *FROM* indicate the map of which particle property
+  corresponds to which state variable. This information is needed to
+  interpolate between the particle position and the mesh.
+
+
+*SPECIES* defines multiples species if they are being used in the
+simulation.
+
+*DATAFILES* is used to indicate that files with non-standard
+extensions that are not usually copied over to the object directory
+are copied. For example
+::
+   DATAFILES *.dat
+
+ will copy all files with .dat extension in the component directory to
+ the object directory.
+
+*KERNEL* is a special keyword that indicates that all the
+subdirectories from this level are to be treated as Unix organization
+directories only, and are to be recursively included.
+
+*LIBRARY* indicates that this component needs this specified library
+to function correctly. Internal libraries are built using the
+accompanying build script, while for the external libraries the
+correct path must be provided in the Makefile.h for the site
+directory.
+
+*LINKIF* is keywork that permits a file to be included only if the
+corresponding component is also included in the simulation. Typically
+these files may have non-standard extensions which are stripped off at
+the time of inclusion. For example
+::
+   LINKIF Grid_markRefineDerefine.F90.ug Grid/GridMain/UG
+   LINKIF Grid_markRefineDerefine.F90.pmesh Grid/GridMain/paramesh
+
+
+Will include Grid_markRefineDerefine.F90.ug as
+Grid_markRefineDerefine.F90 if UG is the Grid implementation included
+while if PARAMESH Is included then Grid_markRefineDerefine.F90.pmesh
+will become  Grid_markRefineDerefine.F90.  
+
+*PPDEFINE* sets up preprocessor symbols that are included in the
+generated global constants in the file "Simulation.h". These symbols
+can be handy in correlating the behavior of components through
+#ifdefs depending on which implementation of the component is
+included as needed without resorting to wholesale code duplication. 
+
+*USESETUPVARS* tells the setup tool which setup variables are being
+used in this Config file.  
+  
+*CHILDORDER*  controls the order of traversal of subtrees by the setup
+ tool. By default the instance of an implementation encountered later
+ overrides an earlier instance. Thus specifying CHILDORDER ensures
+ that the desired implementation is picked if it is not explicitly
+ specified. 
+
+*GUARDCELLS* specifies the number of guardcells to be used in the
+stencil for updating the grid points.
+
+*SETUPERROR* causes the setup tool to abort with the specified error
+message
+
+*IF*, *ELSEIF*, *ELSE*, *ENDIF* provide the functionality of
+conditional block to the DSCL. 
+
+Configuration files come in two syntactic flavors: static text and
+python. In static mode, configuration directives are listed as lines in
+a plain text file. This mode is the most readable and intuitive of the
+two, but it lacks flexibility. The python mode has been introduced to
+circumvent this inflexibility by allowing the configuration file author
+to specify the configuration directives as a function of the setup
+variables with a python procedure. This allows the content of each
+directive and the number of directives in total to be amenable to
+general programming.
+
+The rule the setup script uses for deciding which flavor of
+configuration file it’s dealing with is simple. Python configuration
+files have as their first line . If the first line does not match this
+string, then static mode is assumed and each line of the file is
+interpreted verbatim as a directive.
+
+If python mode is triggered, then the entire file is considered as valid
+python source code (as if it were a .py). From this python code, a
+function of the form is located and executed to generate the
+configuration directives as an array (or any iterable collection) of
+strings. The sole argument to genLines is a dictionary that maps setup
+variable names to their corresponding string values.
+
+As an example, here is a configuration file in python mode that
+registers runtime parameters named indexed_parameter_x where x ranges
+from 1 to NP and NP is a setup line variable.
+
+.. container:: fcodeseg
+
+   ##python:genLines
+
+   # We define genLines as a generator with the very friendly "yield"
+   syntax. # Alternatively, we could have genLines return an array of
+   strings or even # one huge multiline string. def genLines(setupvars):
+   # emit some directives that dont depend on any setup variables yield
+
+   .. container:: codeseg
+
+      VARIABLE eint TYPE: PER_MASS EOSMAPIN: EINT
+
+   means that within , the component of will be treated as the grid
+   variable in the “internal energy” role for the purpose of
+   constructing input to , and
+
+   .. container:: codeseg
+
+      VARIABLE gamc EOSMAPOUT: GAMC
+
+   means that within , the component of will be treated as the grid
+   variable in the role for the purpose of returning results from
+   calling to the grid. The specification
+
+   .. container:: codeseg
+
+      VARIABLE pres EOSMAP: PRES
+
+   has the same effect as
+
+   .. container:: codeseg
+
+      VARIABLE pres EOSMAPIN: PRES EOSMAPOUT: PRES
+
+  
+-
+
+.. _`Sec:The Setup Tool`:
+
+The Setup Tool
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+It traverses the Flash-X
+source tree starting from the directory hosting the specific
 application definition. This starting directory is essentially the
 selected implementation of the “Simulation” unit. While traversing the
-source three the setup tool does the following:
+source tree the setup tool does the following:
 
--  arbitrate on map from a key to its definition, in particular if
-   alternative definitions exist
+- accumulates a list of units, subunits and directory paths from where
+  source code is to be collected. It does so through recursive traversal of all
+  dependencies of the 
 
--  arbitrate on which implementation of a function to use
+-  arbitrate on which implementation of a function to use follo
 
 -  link selected files (include source code and the key definitions) to
    the directory
@@ -1289,651 +1565,6 @@ various Config files. For example the setup variable can be test to
 ensure that a simulation is configured with the appropriate
 dimensionality (see for example ).
 
-.. _`Sec:Config`:
-
- Files
------
-
-Information about unit dependencies, default sub-units, runtime
-parameter definitions, library requirements, and physical variables,
-etc. is contained in plain text files named in the different unit
-directories. These are parsed by when configuring the source tree and
-are used to create the code needed to register unit variables, to
-implement the runtime parameters, to choose specific sub-units when only
-a generic unit has been specified, to prevent mutually exclusive units
-from being included together, and to flag problems when dependencies are
-not resolved by some included unit. Some of the Config files contain
-additional information about unit interrelationships. As mentioned
-earlier, starts from the file in the Simulation directory of the problem
-being built.
-
-.. _`Sec:ConfigFileSyntax`:
-
-Configuration file syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Configuration files come in two syntactic flavors: static text and
-python. In static mode, configuration directives are listed as lines in
-a plain text file. This mode is the most readable and intuitive of the
-two, but it lacks flexibility. The python mode has been introduced to
-circumvent this inflexibility by allowing the configuration file author
-to specify the configuration directives as a function of the setup
-variables with a python procedure. This allows the content of each
-directive and the number of directives in total to be amenable to
-general programming.
-
-The rule the setup script uses for deciding which flavor of
-configuration file it’s dealing with is simple. Python configuration
-files have as their first line . If the first line does not match this
-string, then static mode is assumed and each line of the file is
-interpreted verbatim as a directive.
-
-If python mode is triggered, then the entire file is considered as valid
-python source code (as if it were a .py). From this python code, a
-function of the form is located and executed to generate the
-configuration directives as an array (or any iterable collection) of
-strings. The sole argument to genLines is a dictionary that maps setup
-variable names to their corresponding string values.
-
-As an example, here is a configuration file in python mode that
-registers runtime parameters named indexed_parameter_x where x ranges
-from 1 to NP and NP is a setup line variable.
-
-.. container:: fcodeseg
-
-   ##python:genLines
-
-   # We define genLines as a generator with the very friendly "yield"
-   syntax. # Alternatively, we could have genLines return an array of
-   strings or even # one huge multiline string. def genLines(setupvars):
-   # emit some directives that dont depend on any setup variables yield
-   """ REQUIRES Driver REQUIRES physics/Hydro REQUIRES physics/Eos """ #
-   read a setup variable value from the dictionary np =
-   int(setupvars("NP")) # must be converted from a string # loop from 0
-   to np-1 for x in xrange(np): yield "PARAMETER indexed_parameter_%d
-   REAL 0." % (x+1)
-
-When setting up a problem with NP=5 on the setup command line, the
-following directives will be processed:
-
-.. container:: fcodeseg
-
-   REQUIRES Driver REQUIRES physics/Hydro REQUIRES physics/Eos PARAMETER
-   indexed_parameter_1 REAL 0. PARAMETER indexed_parameter_2 REAL 0.
-   PARAMETER indexed_parameter_3 REAL 0. PARAMETER indexed_parameter_4
-   REAL 0. PARAMETER indexed_parameter_5 REAL 0.
-
-.. _`Sec:ConfigDirectives`:
-
-Configuration directives
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-The syntax of the configuration directives is described here.
-Arbitrarily many spaces and/or tabs may be used, but all keywords must
-be in uppercase. Lines not matching an admissible pattern will raise an
-error when running setup.
-
--  | 
-   | A comment. Can appear as a separate line or at the end of a line.
-
--  | 
-   | Every unit and sub-unit designates one implementation to be the
-     “default”, as defined by the keyword in its file. If no specific
-     implementation of the unit or its sub-units is selected by the
-     application, the designated default implementation gets included.
-     For example, the file for the specifies Gamma as the default. If no
-     specific implementation is explicitly included (, ), then this
-     command instructs to include the Gamma implementation, as though
-     had been placed in the file.
-
--  | 
-   | Specifies a list of implementations that cannot be included
-     together. If no instruction is given, it is perfectly legal to
-     simultaneously include more than one implementation in the code.
-     Using “\*” means that at most one implementation can be included.
-
--  | ...
-   | Specifies that the current unit, sub-unit, or specific
-     implementation is not compatible with the list of units, sub-units
-     or other implementations that follows. issues an error if the user
-     attempts a conflicting unit configuration.
-
--  | 
-   | Specifies a unit requirement. Unit requirements can be general,
-     without asking for a specific implementation, so that unit
-     dependencies are not tied to particular algorithms. For example,
-     the statement in a unit’s file indicates to that the physics/Eos
-     unit is needed, but no particular equation of state is specified.
-     As long as an implementation is included, the dependency will be
-     satisfied. More specific dependencies can be indicated by
-     explicitly asking for an implementation. For example, if there are
-     multiple species in a simulation, the equation of state is the only
-     valid option. To ask for it explicitly, use . Giving a complete set
-     of unit requirements is helpful, because uses them to generate the
-     units file when invoked with the -auto option.
-
--  | 
-   | Requests that a unit be added to the Simulation. All requests are
-     upgraded to a “REQUIRES” if they are not negated by a
-     "-without-unit" option from the command line. If negated, the is
-     ignored. This can be used to turn off profilers and other
-     “optional” units which are included by default.
-
--  | 
-   | Unlike , this keyword suggests that the current unit be used along
-     with one of the specified units. The setup script will print
-     details of the suggestions which have been ignored. This is useful
-     in catching inadvertently omitted units before the run starts, thus
-     avoiding a waste of computing resources.
-
--  | []
-   | Specifies a runtime parameter. Parameter names are unique up to 20
-     characters and may not contain spaces. Admissible types include , ,
-     , and . Default values for and parameters must be valid numbers, or
-     the compilation will fail. Default values must be enclosed in
-     double quotes (). Default values must be or to avoid compilation
-     errors. Once defined, runtime parameters are available to the
-     entire code. Optionally, any parameter may be specified with the
-     attribute (, ). If a user attempts to set a constant parameter via
-     the runtime parameter file, an error will occur.
-
-   The range specification is optional and can be used to specify valid
-   ranges for the parameters. The range specification is allowed only
-   for variables and must be enclosed in ’[]’.
-
-   For a variable, the range specification is a comma-separated list of
-   strings (enclosed in quotes). For a variable, the range specification
-   is a comma-separated list of (closed) intervals specified by , where
-   min and max are the end points of the interval. If min or max is
-   omitted, it is assumed to be :math:`-\infty` and :math:`+\infty`
-   respectively. Finally is a shortcut for . For example
-
-   .. container:: codeseg
-
-      PARAMETER pres REAL 1.0 [ 0.1 ... 9.9, 25.0 ... ] PARAMETER coords
-      STRING "polar" ["polar","cylindrical","2d","3d"]
-
-   indicates that is a REAL variable which is allowed to take values
-   between 0.1 and 9.9 or above 25.0. Similarly is a string variable
-   which can take one of the four specified values.
-
--  | 
-   | Any line in a file is considered a parameter comment line if it
-     begins with the token . The first token after the comment line is
-     taken to be the parameter name. The remaining tokens are taken to
-     be a description of the parameter’s purpose. A token is delineated
-     by one or more white spaces. For example,
-
-   .. container:: codeseg
-
-      D SOME_PARAMETER The purpose of this parameter is whatever
-
-   If the parameter comment requires additional lines, the ``&`` is used
-   to indicate continuation lines. For example,
-
-   .. container:: codeseg
-
-      D SOME_PARAMETER The purpose of this parameter is whatever D &
-      This is a second line of description
-
-   You can also use this to describe other variables, fluxes, species,
-   etc. For example, to describe a species called "xyz", create a
-   comment for the parameter “xyz_species”. In general the name should
-   be followed by an underscore and then by the lower case name of the
-   keyword used to define the name.
-
-   Parameter comment lines are special because they are used by to build
-   a formatted list of commented runtime parameters for a particular
-   problem. This information is generated in the file in the directory.
-
--  | 
-   | Registers variable with the framework with name and a variable type
-     defined by . The script collects variables from all the included
-     units, and creates a comprehensive list with no duplications. It
-     then assigns defined constants to each variable and calculates the
-     amount of storage required in the data structures for storing these
-     variables. The defined constants and the calculated sizes are
-     written to the file .
-
-   The possible types for are as follows:
-
-   -  | 
-      | This solution variable is represented in form, , it represents
-        the density of a conserved extensive quantity. The prime example
-        is a variable directly representing mass density. Energy
-        densities, momentum densities, and partial mass densities would
-        be other examples (but these quantities are usually represented
-        in form instead).
-
-   -  | 
-      | This solution variable is represented in form, , it represents
-        quantities whose nature is
-        :math:`\hbox{extensive quantity}\,\mathop{\mathrm{per}}\,\hbox{mass unit}`.
-        Examples are specific energies, velocities of material (since
-        they are equal to momentum per mass unit), and abundances or
-        mass fractions (partial density divided by density).
-
-   -  | 
-      | This is the default and need not be specified. This type should
-        be used for any variables that do not clearly belong to one of
-        the previous two categories.
-
-   In the current version of the code, the attribute is only used to
-   determine which variables should be converted to conservative form
-   for certain Grid operations that may require interpolation (,
-   prolongation, guardcell filling, and restriction) when one of the
-   runtime parameters or is set . Only variables of type are converted:
-   values are multiplied cell-by-cell with the value of the variable,
-   and potential interpolation results are converted back by
-   cell-by-cell division by values after interpolation.
-
-   Note that therefore
-
-   -  variable types are irrelevant for uniform grids,
-
-   -  variable types are irrelevant if neither nor is , and
-
-   -  variable types (and conversion to and from conserved form) only
-      take effect if a
-
-      .. container:: codeseg
-
-         VARIABLE dens ...
-
-      exists.
-
-   An has the syntax :math:`|` , where stands for a as defined in .
-   These roles are used within implementations of the interface, via the
-   subroutines and , to map variables from Grid data structures to the
-   array that understands, and back. For example,
-
-   .. container:: codeseg
-
-      VARIABLE eint TYPE: PER_MASS EOSMAPIN: EINT
-
-   means that within , the component of will be treated as the grid
-   variable in the “internal energy” role for the purpose of
-   constructing input to , and
-
-   .. container:: codeseg
-
-      VARIABLE gamc EOSMAPOUT: GAMC
-
-   means that within , the component of will be treated as the grid
-   variable in the role for the purpose of returning results from
-   calling to the grid. The specification
-
-   .. container:: codeseg
-
-      VARIABLE pres EOSMAP: PRES
-
-   has the same effect as
-
-   .. container:: codeseg
-
-      VARIABLE pres EOSMAPIN: PRES EOSMAPOUT: PRES
-
-   Note that not all roles defined in are necessarily meaningful or
-   actually used in a given Eos implementation. An for a is only used in
-   an invocation when the optional argument is absent or has a value of
-   .
-
--  | 
-   | This keyword has the same meaning for face-centered variables, that
-     does for cell-centered variables. It allocates space in the grid
-     data structure that contains face-centered physical variables for
-     “name”. See for more information
-
-   For , see above under . An for is only used when is called with an
-   optional argument of , , or .
-
--  | 
-   | Registers flux variable with the framework. When using an adaptive
-     mesh, flux conservation is needed at fine-coarse boundaries. uses a
-     data structure for this purpose, the flux variables provide indices
-     into that data structure. See for more information.
-
--  | 
-   | This keyword is used in connection with the grid scope scratch
-     space for cell-centered data supported by Flash-X. It allows the
-     user to ask for scratch space with “name”. The scratch variables do
-     not participate in the process of guardcell filling, and their
-     values become invalid after a grid refinement step. While users can
-     define scratch variables to be written to the plotfiles, they are
-     not by default written to checkpoint files. Note this feature
-     wasn’t available in Flash-X2. See for more information.
-
--  | 
-   | This keyword is used in connection with the grid scope scratch
-     space for face-centered data, it is identical in every other
-     respect to .
-
--  | 
-   | This keyword is used for specifying instances of general purpose
-     grid scope scratch space. The same space can support cell-centered
-     as well as face-centered data. Like other scratch data structures,
-     the variables in this data structure can also be asked with “name”
-     and do not participate in guardcell filling.
-
-   For , see above under . An for is only used when is called with an
-   optional argument of .
-
--  | 
-   | If a quantity is defined with keyword MASS_SCALAR, space is created
-     for it in the grid “unk” data structure. It is treated like any
-     other variable by , but the hydrodynamic unit treats it
-     differently. It is advected, but other physical characteristics
-     don’t apply to it. If the optional “RENORM” is given, this
-     mass-scalar will be added to the renormalization group of the
-     accompanying group name. The hydrodynamic solver will renormalize
-     all mass-scalars in a given group, ensuring that all variables in
-     that group will sum to 1 within an individual cell. See
-
-   For , see above under . An for a may be used in an invocation when
-   the optional argument is absent or has a value of .
-
-   .. container:: flashtip
-
-      It is inadvisable to name variables, species, and mass scalars
-      with the same prefix, as post-processing routines have difficulty
-      deciphering the type of data from the output files. For example,
-      don’t create a variable “temp” to hold temperature and a mass
-      scalar “temp” indicating a temporary variable. Although the file
-      can distinguish between these two types of variables, many
-      plotting routines cannot.
-
--  | 
-   | This keyword associates a with mapping and initialization sub-units
-     of unit to operate on this particle type during the simulation.
-     Here, describes the method used to map the particle properties to
-     and from the mesh (see ), describes the method used to distribute
-     the particles at initialization, and describes the method used to
-     advance the associated particle type in time (see , and in general
-     ). This keyword has been introduced to facilitate inclusion of
-     multiple particle types in the same simulation. It imposes certain
-     requirements on the use of the and . Particles (of any type,
-     whether called or anything else) do not have default methods for
-     initialization, mapping, or time integration, so a directive in a
-     file (or an equivalent setup option, see ) is the only way to
-     specify the appropriate implementations of the Particles subunits
-     to be used. The declaration should be accompanied by appropriate
-     “REQUESTS” or “REQUIRES” directives to specify the paths of the
-     appropriate subunit implementation directories to be included. For
-     clarity, our technique has been to include this information in the
-     simulation directory files only. All the currently available
-     mapping and initialization methods have a corresponding identifier
-     in the form of preprocessor definition in . The user may select any
-     name, but the , and must correspond to existing identifiers defined
-     in . This is necessary to navigate the data structure that stores
-     the particle type and its associated mapping and initialization
-     methods. Users desirous of adding new methods for mapping or
-     initialization should also update the file with additional
-     identifiers and their preprocessor definitions. Note, it is
-     possible to use the same methods for different particle types, but
-     each particle type name must only appear once. Finally, the
-     Simulations file is also expected to request appropriate
-     implementations of mapping and initialization using the keyword ,
-     since the corresponding Config files do not specify a default
-     implementation to include. For example, to include particle types
-     with mapping, initialization,and for advancing in time the
-     following code segment should appear in the file of the directory.
-
-   .. container:: codeseg
-
-      PARTICLETYPE passive INITMETHOD lattice MAPMETHOD quadratic
-      ADVMETHOD Euler REQUIRES Particles/ParticlesMain REQUESTS
-      Particles/ParticlesMain/passive/Euler REQUESTS
-      Particles/ParticlesMapping/Quadratic REQUESTS
-      Particles/ParticlesInitialization/Lattice
-
--  | 
-   | This keyword indicates that the particles data structure will
-     allocate space for a sub-variable “NAME_PART_PROP.” For example if
-     the Config file contains
-
-   .. container:: codeseg
-
-      PARTICLEPROP dens
-
-   then the code can directly access this property as
-
-   .. container:: codeseg
-
-      particles(DENS_PART_PROP,1:localNumParticles) = densInitial
-
-   may be REAL or INT, however INT is presently unused. See for more
-   information and examples.
-
--  | TO FROM
-   | This keyword maps the value of the particle property to the
-     variable . can take the values VARIABLE, MASS_SCALAR, SPECIES,
-     FACEX, FACEY, FACEZ, or one of SCRATCH types (SCRATCHVAR/
-     SCRATCHCENTERVAR, SCRATCHFACEXVAR. SCRATCHFACEYVAR,
-     SCRATCHFACEZVAR) These maps are used to generate , which takes the
-     particle property and returns and . For example, to have a particle
-     property tracing density:
-
-   .. container:: codeseg
-
-      PARTICLEPROP dens REAL PARTICLEMAP TO dens FROM VARIABLE dens
-
-   or, in a more advanced case, particle properties tracing some
-   face-valued function Mag:
-
-   .. container:: codeseg
-
-      PARTICLEPROP Mag_x REAL PARTICLEPROP Mag_y REAL PARTICLEPROP Mag_z
-      REAL PARTICLEMAP TO Mag_x FROM FACEX Mag PARTICLEMAP TO Mag_y FROM
-      FACEY Mag PARTICLEMAP TO Mag_z FROM FACEZ Mag
-
-   Additional information on creating files for particles is obtained in
-   .
-
--  | [TO ]
-   | An application that uses multiple species uses this keyword to
-     define them. See for more information. The user may also specify an
-     optional number of ions for each element, . For example, TO creates
-     9 spaces in for Oxygen, that is, a single space for Oxygen and 8
-     spaces for each of its ions. This is relevant to simulations using
-     the unit. (Omitting the optional specifier is equivalent to
-     specifying 0).
-
--  | 
-   | Declares that all files matching the given wildcard in the unit
-     directory should be copied over to the object directory. For
-     example,
-
-   .. container:: codeseg
-
-      DATAFILES \*.dat
-
-   will copy all the “.dat” files to the object directory.
-
--  | 
-   | Declares that all subdirectories must be recursively included. This
-     usually marks the end of the high level architecture of a unit.
-     Directories below it may be third party software or a highly
-     optimized solver, and are therefore not required to conform to
-     Flash-X architecture.
-
-   Without a , the current directory (, the one containing the file with
-   the keyword) is marked as a kernel directory, so code from all its
-   subdirectories (with the exception of subdirectories whose name
-   begins with a dot) is included. When a is given, then that
-   subdirectory must exist, and it is treated as a kernel directory in
-   the same way.
-
-   Note that currently the script can process only one directive per
-   file.
-
--  | 
-   | Specifies a library requirement. Different Flash-X units require
-     different libraries, and they must inform so it can link the
-     libraries into the executable. Some valid library names are .
-     Support for external libraries can be added by modifying the
-     site-specific files to include appropriate Makefile macros. It is
-     possible to use internal libraries, as well as switch libraries at
-     setup time. To use these features, see
-
--  | 
-   | Specifies that the file should be used only when the unit is
-     included. This keyword allows a unit to have multiple
-     implementations of any part of its functionality, even down to the
-     kernel level, without the necessity of creating children for every
-     alternative. This is especially useful in Simulation setups where
-     users may want to use different implementations of specific
-     functions based upon the units included. For instance, a user may
-     wish to supply his/her own implementation of , instead of using the
-     default one provided by Flash-X. However, this function is aware of
-     the internal workings of Grid, and has different implementations
-     for different grid packages. The user could therefore specify
-     different versions of his/her own file that are intended for use
-     with the different grids. For example, adding
-
-   .. container:: codeseg
-
-      LINKIF Grid_markRefineDerefine.F90.ug Grid/GridMain/UG LINKIF
-      Grid_markRefineDerefine.F90.pmesh Grid/GridMain/paramesh
-
-   to the file ensures that if the application is built with UG, the
-   file will be linked in as , whereas if it is built with Paramesh2 or
-   Paramesh4 0 or Paramesh4dev, then the file will be linked in as .
-   Alternatively, the user may want to provide only one implementation
-   specific to, say, . In this case, adding
-
-   .. container:: codeseg
-
-      LINKIF Grid_markRefineDerefine.F90 Grid/GridMain/paramesh
-
-   to the Config file ensures that the user-supplied file is included
-   when using (either version), while the default Flash-X file is
-   included when using UG.
-
--  | 
-   | Instructs setup to add the PreProcessor symbols and to the
-     generated . Here is converted to uppercase. These pre-process
-     symbols can be used in the code to distinguish between which units
-     have been used in an application. For example, a Fortran subroutine
-     could include
-
-   .. container:: codeseg
-
-      #ifdef Flash-X_GRID_UG ug specific code #endif
-
-      #ifdef Flash-X_GRID_PARAMESH3OR4 pm3+ specific code #endif
-
-   By convention, many preprocessor symbols defined in Config files
-   included in the Flash-X code distribution start with the prefix
-   “Flash-X\_”.
-
--  | 
-   | This tells that the specified “Setup Variables” are being used in
-     this file. The variables initialize to an empty string if no values
-     are specified for them. Note that commas are required if listing
-     several variables.
-
--  | 
-   | When links several implementations of the same function, it ensures
-     that implementations of children override that of the parent. Its
-     method is to lexicographically sort all the names and allow
-     implementations occurring later to override those occurring
-     earlier. This means that if two siblings implement the same code,
-     the names of the siblings determine which implementation wins.
-     Although it is very rare for two siblings to implement the same
-     function, it does occur. This keyword permits the file to override
-     the lexicographic order by one preferred by the user. Lexicographic
-     ordering will prevail as usual when deciding among implementations
-     that are not explicitly listed.
-
--  | 
-   | Allows an application to choose the stencil size for updating grid
-     points. The stencil determines the number of guardcells needed. The
-     PPM algorithm requires :math:`4` guardcells, hence that is the
-     default value. If an application specifies a smaller value, it will
-     probably not be able to use the default AMR Grid interpolation; see
-     the flag for additional information.
-
--  | 
-   | This causes to abort with the specified error message. This is
-     usually used only inside a conditional IF/ENDIF block (see below).
-
--  | 
-   | A conditional block is of the following form:
-
-   .. container:: codeseg
-
-      IF cond ... ELSEIF cond ... ELSE ... ENDIF
-
-   where the and blocks are optional. There is no limit on the number of
-   blocks. “...” is any sequence of valid file syntax. The conditional
-   blocks may be nested. “cond” is any boolean valued Python expression
-   using the setup variables specified in the .
-
--  | 
-   | Declares an array of variables that will be partitioned across the
-     replicated meshes. Using various preprocessor macros in
-     Simulation.h each copy of the mesh can determine at runtime its own
-     subset of indexes into this global array. This allows an easy form
-     of parallelism where regular "replicated" mesh variables are
-     computed redundantly across processors, but the variables in the
-     "non-replicated" array are computed in parallel.
-
-   -  | : must be either or
-
-   -  : the name of this variable array. It is suggested that it be all
-      capital letters, and must conform to what the C preprocessor will
-      consider as a valid symbol for use in a statement.
-
-   -  | : a positive integer specifying the maximum number of elements
-        from the global variable array a mesh can hold. This is the
-        actual number of variables that are allocated on each processor,
-        though not all of them will necessarily be used.
-
-   -  | : the name of a runtime parameter which dictates the size of
-        this global array of variables.
-
-   -  | : a string representing how the elements of the array will be
-        named when written to the output files. The question mark
-        character is used as a placeholder for the digits of the array
-        index. As an example, the format string will generate the
-        dataset names , , , etc. This string must be no more than four
-        characters in length.
-
-   The number of meshes is dictated by the runtime parameter . The
-   following constraint must be satisfied or Flash-X will fail at
-   runtime:
-
-   .. math:: globalparam \le meshCopyCount * localmax
-
-   The reason for this restriction is that is the maximum number of
-   array elements a mesh can be responsible for, and is the number of
-   meshes, so their product bounds the size of the array.
-
-   Example:
-
-   Config file:
-
-   .. container:: fcodeseg
-
-      NONREP MASS_SCALAR A 4 numA a??? NONREP MASS_SCALAR B 5 numB b???
-
-   flash.par file:
-
-   .. container:: fcodeseg
-
-      meshCopyCount = 3 numA = 11 numB = 15
-
-   In this case two non-replicated mass-scalar arrays are defined, and .
-   Their lengths are specified by the runtime parameters and
-   respectively. is set to its maximum value of
-   :math:`5*meshCopyCount=15`, but is one less than its maximum value of
-   :math:`4*meshCopyCount=12` so at runtime one of the meshes will not
-   have all of its variables in use. The dataset names generated by IO
-   will take the form and .
-
-   The preprocessor macros defined in for these arrays will have the
-   prefixes and respectively. For details about these macros and how
-   they will distribute the array elements across the meshes see .
 
 .. _`Sec:SetupMakefile`:
 
