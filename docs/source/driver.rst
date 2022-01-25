@@ -7,11 +7,10 @@ The Driver unit controls the initialization and evolution of Flash-X
 simulations. In addition, at the highest level, the Driver unit
 organizes the interaction between units. Initialization can be from
 scratch or from a stored checkpoint file. For advancing the solution,
-the drivers can use either an operator-splitting technique adapted to
-directionally split physics operators like split Hydro (), or a more
-generic implementation. The Driver unit also calls the IO unit at the
-end of every timestep to produce checkpoint files, plot files, or other
-output.
+the drivers in the current distribution operator-split time integration by
+default. Alternative methods of timestepping are under development.
+The Driver also calls the IO unit at the end of every timestep to
+produce checkpoint files, plot files, or other output.
 
 .. _Driver Routines:
 
@@ -20,8 +19,8 @@ Driver Routines
 
 The most important routines in the Driver API are those that initialize,
 evolve, and finalize the Flash-X program. The file contains the main
-Flash-X program (equivalent to in C). The default top-level program of
-Flash-X, , calls Driver routines in this order:
+Flash-X program (equivalent to main in C). The default top-level program of
+Flash-X,  calls Driver routines in this order:
 
 .. container:: codeseg
 
@@ -29,78 +28,40 @@ Flash-X, , calls Driver routines in this order:
 
    implicit none
 
-   call Driver_initParallel() call Driver_initFlash() call
-   Driver_evolveFlash( ) call Driver_finalizeFlash ( )
+   call Driver_initParallel()
+   call Driver_initFlash()
+   call Driver_evolveFlash( )
+   call Driver_finalizeFlash ( )
 
    end program Flash
 
 Therefore the no-operation stubs for these routines in the source
 directory must be overridden by an implementation function in a under
 the Driver or directory trees, in order for a simulation to perform any
-meaningful actions. The most commonly used implementations for most of
-these files are located in the , with a few specialized ones in either
-or .
+meaningful actions. 
 
-The first of these routines is , which initializes the parallel
-environment for the simulation. New in is an ability to replicate the
+The first of these routines is Driver_initParallel, which initializes the parallel
+environment for the simulation. It is possible to replicate the
 mesh where more than one copy of the discretized mesh may exist with
 some overlapping and some non-overlapping variables. Because of this
 feature, the parallel environment differentiates between global and mesh
 communicators. All the necessary communicators, and the attendant
-meta-data is generated in this routine. Also because of this
-modification, runtime parameters such as iProcs, jProcs etc, which were
-under the control of the Grid unit in , are now under the control of the
-Driver unit. Several new accessor interface allow other code units to
-query the driver unit for this information. The , the next routine, in
-general calls the initialization routines in each of the units. If a
-unit is not included in a simulation, its stub (or empty) implementation
-is called. Having stub implementations is very useful in the Driver unit
-because it allows the user to avoid writing a new driver for each
-simulation. For a more detailed explanation of stub implementations
-please see . It is important to note that when individual units are
-being initialized, order is often very important and the order of
-initialization is different depending on whether the run is from scratch
-or being restarted from a checkpoint file.
+meta-data is generated in this routine. The Driver_initFlash calls the
+initialization routines in each of the units. All Unit API functions
+have null implementations which get compiled in if the unit is not 
+ included in a simulation. This feature allows a generic driver to
+ suffice for the vast majority of application instances. 
 
 .. _section-1:
 
-The next routine is which controls the timestepping of the simulation,
-as well as the normal termination of Flash-X based on time. checks the
-parameters , and to determine that the run should end, having reached a
-particular point in time, a certain number of steps, or a particular
-cosmological redshift, respectively. Likewise the initial simulation
-time, step number and cosmological redshift for a simulation can be set
-using the runtime parameters , , and . This version of Flash-X includes
-versions of for directionally-split and unsplit staggered mesh
-operators.
-
-Strang Split Evolution
-^^^^^^^^^^^^^^^^^^^^^^
-
-The code in the has been the default time update method earlier, and can
-still be be used for many setups that can be configured with Flash-X.
-The routine implements a Strang-split method of time advancement where
-each physics unit updates the solution data for two equal timesteps –
-thus the sequence of calls to physics and other units in each time step
-goes something like this: Hydro, diffusive terms, source terms,
-Particles, Gravity; Hydro, diffusive terms, source terms, Particles,
-Gravity, IO (for output), Grid (for grid changes). The hydrodynamics
-update routines take a “sweep order” argument since they must be
-directionally split to work with this driver. Here, the first call
-usually uses the ordering :math:`x-y-z`, and the second call uses
-:math:`z-y-x`. Each of the update routines is assumed to directly modify
-the solution variables. At the end of one loop of timestep advancement,
-the condition for updating the mesh refinement pattern is tested if the
-adaptive mesh is being used, and a refinement update is carried out if
-required.
+The next routine is Driver_evolveFlash which controls the timestepping of the simulation,
+as well as the normal termination of Flash-X based on some specified
+criteria such as elapsed time, number of time steps etc. 
 
 Unsplit Evolution
 ^^^^^^^^^^^^^^^^^
 
-The driver implementation in the directory is the default since . It is
-required specifically for the two unsplit solvers: unsplit staggered
-mesh MHD solver () and the unsplit gas hydrodynamics solver (). This
-implementation in general calls each of the physics routines only once
+The default driver implementation in general calls each of the physics routines once
 per time step, and each call advances solution vectors by one timestep.
 At the end of one loop of timestep advancement, the condition for
 updating the adaptive mesh refinement pattern is tested and applied.
@@ -108,7 +69,7 @@ updating the adaptive mesh refinement pattern is tested and applied.
 Super-Time-Stepping (STS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A new timestepping method implemented in is a technique called
+Another method implemented in is a technique called
 Super-Time-Stepping (STS). The STS is a simple explicit method which is
 used to accelerate restrictive parabolic timestepping advancements
 (:math:`\Delta t_{\mbox{CFL\_para}}\approx \Delta x^2`) by relaxing the
@@ -225,7 +186,7 @@ Runtime Parameters
 ^^^^^^^^^^^^^^^^^^
 
 The Driver unit supplies certain runtime parameters regardless of which
-type of driver is chosen. These are described in the online .
+type of driver is chosen.
 
 .. _section-2:
 
@@ -233,16 +194,6 @@ Finally, the the Driver unit calls which calls the finalize routines for
 each unit. Typically this involves deallocating memory and any other
 necessary cleanup.
 
-Driver accessor functions
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the unit also provides a number of accessor functions to get data
-stored in the unit, for example , , , .
-
-The unit API also defines two interfaces for halting the code, and . The
-’’ routine version is available for calls written in C, so that the user
-does not have to worry about any name mangling. Both of these routines
-print an error message and call .
 
 Time Step Limiting
 ~~~~~~~~~~~~~~~~~~
@@ -273,56 +224,3 @@ domain, as well as on the runtime parameter .
 
 .. _`Sec:dr_posdef`:
 
-Generic time step limiting for positive definiteness
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-A generic method for limiting time steps, based on a requirement that
-certain (user-specified) variables should never become negative, has
-been added in . To understand the basic idea, think of each variable
-that this limiter is applied to as a density of some quantity :math:`q`.
-(Variables of type are actually converted to their counterparts in the
-implementation of the method.)
-
-The algorithm is based on examining the distribution of :math:`q` in
-neighboring cells, and making for each cell a near-worst-case estimate
-of the rate of depletion :math:`\dot q` based on projected fluxes of
-:math:`q` out of the cell over its faces. This can be applied to any
-variable, it is not required that the variable represents any quantity
-that is actually advected as described. See for how to use. This feature
-may be particularly useful when applied to in multidimensional 3T
-simulations in order to avoid some kinds of “negative ion temperature”
-failures, as an alternative to lowering the Hydro runtime parameter .
-
-.. container:: center
-
-   .. container::
-      :name: Tab:dr_posdef parameters
-
-      .. table:: Runtime parameters for positive definiteness.
-
-         +-----------+---------+---------+-----------------------------------+
-         | Parameter | Type    | Default | Description                       |
-         +===========+=========+=========+===================================+
-         |           | boolean | .false. | Set to .true. to turn             |
-         |           |         |         | positive-definite time step       |
-         |           |         |         | limiter on.                       |
-         +-----------+---------+---------+-----------------------------------+
-         |           |         |         |                                   |
-         +-----------+---------+---------+-----------------------------------+
-         |           | integer | 4       | Number of variables for which     |
-         |           |         |         | positive definiteness should be   |
-         |           |         |         | enforced                          |
-         +-----------+---------+---------+-----------------------------------+
-         |           |         |         |                                   |
-         +-----------+---------+---------+-----------------------------------+
-         |           | string  |         | Name of Nth variable for          |
-         |           |         |         | positive-definite dt limiter      |
-         +-----------+---------+---------+-----------------------------------+
-         |           |         |         |                                   |
-         +-----------+---------+---------+-----------------------------------+
-         |           | real    | 1.0     | Scaling factor for dt limit from  |
-         |           |         |         | positive-definite time step       |
-         |           |         |         | limiter. Similar to CFL factor.   |
-         |           |         |         | If set to -1, use factor from     |
-         |           |         |         | Hydro.                            |
-         +-----------+---------+---------+-----------------------------------+

@@ -504,7 +504,7 @@ tool.
 Using Shortcuts
 ---------------
 
-Apart from the various setup options the script also allows you to use
+Apart from the various setup options the tool also allows you to use
 shortcuts for frequently used combinations of options. For example,
 instead of typing in
 
@@ -518,7 +518,7 @@ you can just type
 
    ./setup -a Sod +ug
 
-The or any setup option starting with a ‘+’ is considered as a shortcut.
+Any setup option starting with a ‘+’ is considered as a shortcut.
 By default, setup looks at for a list of declared shortcuts. You can
 also specify a ":" delimited list of files in the environment variable
 and will read all the files specified (and ignore those which don’t
@@ -535,11 +535,7 @@ exist) for shortcut declarations. See for an example file.
 
    # io choices noio:–without-unit=IO/IOMain: io:–with-unit=IO/IOMain:
 
-   # Choice of Grid ug:-unit=Grid/GridMain/UG:
-   pm2:-unit=Grid/GridMain/paramesh/Paramesh2:
-   pm40:-unit=Grid/GridMain/paramesh/paramesh4/Paramesh4.0:
-   pm4dev:-unit=Grid/GridMain/paramesh/paramesh4/Paramesh4dev:
-
+  
    # frequently used geometries cube64:-nxb=64:-nyb=64:-nzb=64:
 
 The shortcuts are replaced by their expansions in place, so options
@@ -609,65 +605,41 @@ undefined variables will be set to the empty string.
 
 Through judicious use of setup variables, the user can ensure that
 specific implementations are included or the simulation is properly
-configured. For example, the setup line expands to . The relevant part
-of the file is given below:
-
-.. container:: shrink
-
-   .. container:: fcodeseg
-
-      # Requires use of the Grid SetupVariable USESETUPVARS Grid
-
-      DEFAULT paramesh
-
-      IF Grid==’UG’ DEFAULT UG ENDIF IF Grid==’PM2’ DEFAULT
-      paramesh/Paramesh2 ENDIF
-
-The file defaults to choosing . But when the setup variable Grid is set
-to “UG" through the shortcut , the default implementation is set to
-“UG". The same technique is used to ensure that the right IO unit is
-automatically included.
-
-See for an exhaustive list of Setup Variables which are used in the
-various Config files. For example the setup variable can be test to
-ensure that a simulation is configured with the appropriate
-dimensionality (see for example ).
-
+configured. 
 
 .. _`Sec:SetupMakefile`:
 
 Creating a Site-specific 
 ------------------------
-
-If does not find your hostname in the directory it picks a default based
-on the operating system. This is not always correct but can be used as a
-template to create a for your machine. To create a Makefile specific to
+To create a Makefile specific to
 your system follow these instructions.
 
--  Create the directory , where is the hostname of your machine.
+-  Create a directory under sites with hostname of your machine.
 
--  Start by copying to
+-  Find an existing site that is similar to yours.
 
--  Use to help identify the locations of various libraries on your
+-  Use bin/suggestMakefile.sh to help identify the locations of various libraries on your
    system. The script scans your system and displays the locations of
-   some libraries. You must note the location of library as well. If
-   your compiler is actually an mpi-wrapper (), you must still define in
-   your site specific as the empty string.
+   some libraries. You must note the location of MPI library as well. If
+   your compiler is actually an mpi-wrapper, you must still define
+   LIB_MPI  in your site specific Makefile.h as the empty string.
 
 -  Edit to provide the locations of various libraries on your system.
 
--  Edit to specify the  and C compilers to be used.
+-  Edit to specify the Fortran and C compilers to be used.
 
 .. container:: flashtip
 
-   The Makefile.h *must* include a compiler flag to promote Fortran to .
+   The Makefile.h *must* include a compiler flag to promote Fortran to
+   double precision
+   .
    Flash-X performs all communication of Fortran using type, and assumes
    that Fortran are interoperable with C in the I/O unit.
 
 Files Created During the Process
 --------------------------------
 
-When is run it generates many files in the directory. They fall into
+The setup tool generates many files in the directory. They fall into
 three major categories:
 
 -  Files not required to build the Flash-X executable, but which contain
@@ -681,266 +653,29 @@ Informational files
 ~~~~~~~~~~~~~~~~~~~
 
 These files are generated before compilation by . Each of these files
-begins with the prefix for easy identification.
+begins with the prefix *setup* for easy identification.
 
 .. container:: tabular
 
-   \|lp0.60\| & contains the options with which was called and the
+   setup_call & contains the options with which was called and the
    command line resulting after shortcut expansion
 
-   & contains the list of libraries and their arguments (if any) which
+   setup_libraries & contains the list of libraries and their arguments (if any) which
    was linked in to generate the executable
 
-   & contains the list of all units which were included in the current
+   setup_units & contains the list of all units which were included in the current
    setup
 
-   & contains a list of all pre-process symbols passed to the compiler
+   setup_defines & contains a list of all pre-process symbols passed to the compiler
    invocation directly
 
-   & contains the exact compiler and linker flags
+  setup_flags & contains the exact compiler and linker flags
 
-   & contains the list of runtime parameters defined in the files
+  setup_parames & contains the list of runtime parameters defined in the files
    processed by
 
-   & contains the list of variables, fluxes, species, particle
+   setup_vars & contains the list of variables, fluxes, species, particle
    properties, and mass scalars used in the current setup, together with
    their descriptions.
 
-Code generated by the call
-~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These routines are generated by the setup call and provide
-simulation-specific code.
-
-.. container:: tabular
-
-   \|lp0.55\| & contains code for the subroutine which returns the setup
-   and build time as well as code for which returns the *uname* of the
-   system used to setup the problem
-
-   & contains code which returns build statistics including the actual
-   call as well as the compiler flags used for the build
-
-   & contains code to retrieve the number and list of flashUnits used to
-   compile code
-
-   & contains code to retrieve the version of Flash-X used for the build
-
-   & contains simulation specific preprocessor macros, which change
-   based upon setup unlike . It is described in
-
-   & contains code to map an index described in to a string described in
-   the file.
-
-   & contains code to map a string described in the file to an integer
-   index described in the file.
-
-   & contains a mapping between particle properties and grid variables.
-   Only generated when particles are included in a simulation.
-
-   & contains code to make a data structure with information about the
-   mapping and initialization method for each type of particle. Only
-   generated when particles are included in a simulation.
-
-.. _`Sec:unitMakefiles`:
-
-Makefiles generated by 
-~~~~~~~~~~~~~~~~~~~~~~
-
-Apart from the master , generates a makefile for each unit, which is
-“included” in the master . This is true even if the unit is not included
-in the application. These unit makefiles are named and are a
-concatenation of all the Makefiles found in unit hierarchy processed by
-.
-
-For example, if an application uses , the file will be a concatenation
-of the Makefiles found in
-
--  ,
-
--  ,
-
--  ,
-
--  , and
-
--  
-
-As another example, if an application does not use , then is just the
-contents of at the API level.
-
-Since the order of concatenation is arbitrary, the behavior of the
-Makefiles should not depend on the order in which they have been
-concatenated. The makefiles inside the units contain lines of the form:
-
-.. container:: codeseg
-
-   Unit += file1.o file2.o ...
-
-where is the name of the unit, which was in the example above.
-Dependency on data modules files *need not be specified* since the setup
-process determines this requirement automatically.
-
-.. _`Sec:hybridSetup`:
-
-Setup a hybrid MPI+OpenMP Flash-X application
----------------------------------------------
-
-There is the experimental inclusion of Flash-X multithreading with
-OpenMP in the beta release. The units which have support for
-multithreading are split hydrodynamics `[Sec:PPM] <#Sec:PPM>`__, unsplit
-hydrodynamics
-`[Sec:unsplit hydro algorithm] <#Sec:unsplit hydro algorithm>`__, Gamma
-law and multigamma EOS `[Sec:Eos Gammas] <#Sec:Eos Gammas>`__, Helmholtz
-EOS `[Sec:Eos Helmholtz] <#Sec:Eos Helmholtz>`__, Multipole Poisson
-solver (improved version (support for 2D cylindrical and 3D cartesian))
-`[Sec:GridSolversMultipoleImproved] <#Sec:GridSolversMultipoleImproved>`__
-and energy deposition
-`[Sec:EnergyDeposition] <#Sec:EnergyDeposition>`__.
-
-The Flash-X multithreading requires a MPI-2 installation built with
-thread support (building with an MPI-1 installation or an MPI-2
-installation without thread support is possible but strongly
-discouraged). The Flash-X application requests the thread support level
-to ensure that the MPI library is thread-safe and that any OpenMP thread
-can call MPI functions safely. You should also make sure that your
-compiler provides a version of OpenMP which is compliant with at least
-the OpenMP 2.5 (200505) standard (older versions may also work but I
-have not checked).
-
-In order to make use of the multithreaded code you must setup your
-application with one of the setup variables , or equal to , e.g.
-
-.. container:: codeseg
-
-   ./setup Sedov -auto threadBlockList=True ./setup Sedov -auto
-   threadBlockList=True +mpi1 (compatible with MPI-1 - unsafe!)
-
-When you do this the setup script will insert instead of in the
-generated Makefile. If it is equal to :math:`1` the Makefile will
-prepend an OpenMP variable to the , , variables.
-
-.. container:: flashtip
-
-   In general you should not define , and in your . It is much better to
-   define , , , , , , , and in your . The setup script will then
-   initialize the , and variables in the Makefile appropriately for an
-   optimized, test or debug build.
-
-The OpenMP variables should be defined in your and contain a compiler
-flag to recognize OpenMP directives. In most cases it is sufficient to
-define a single variable named , but you may encounter special
-situations when you need to define , and . If you want to build Flash-X
-with the GNU Fortran compiler and the GNU C compiler then your should
-contain
-
-.. container:: codeseg
-
-   OPENMP = -fopenmp
-
-If you want to do something more complicated like build Flash-X with the
-Lahey Fortran compiler and the GNU C compiler then your should contain
-
-.. container:: codeseg
-
-   OPENMP_FORTRAN = –openmp -Kpureomp OPENMP_C = -fopenmp OPENMP_LINK =
-   –openmp -Kpureomp
-
-When you run the hybrid Flash-X application it will print the level of
-thread support provided by the MPI library and the number of OpenMP
-threads in each parallel region
-
-.. container:: codeseg
-
-   : Called MPI_Init_thread - requested level 2, given level 2
-   [Driver_initParallel]: Number of OpenMP threads in each parallel
-   region 4
-
-Note that the Flash-X application will still run if the MPI library does
-not provide the requested level of thread support, but will print a
-warning message alerting you to an unsafe level of MPI thread support.
-There is no guarantee that the program will work! I strongly recommend
-that you stop using this Flash-X application - you should build a MPI-2
-library with thread support and then rebuild Flash-X.
-
-We record extra version and runtime information in the Flash-X log file
-for a threaded application. Table `1.4 <#tab:flash_openmp_logs>`__ shows
-log file entries from a threaded Flash-X application along with example
-safe and unsafe values. All cells colored red show unsafe values.
-
-.. container:: center
-
-   .. container::
-      :name: tab:flash_openmp_logs
-
-      .. table:: Log file entries showing safe and unsafe threaded
-      Flash-X applications
-
-         +-------------+----------+-------------+-------------+-------------+
-         | **Log file  | **safe** | **unsafe    | **unsafe    | **unsafe    |
-         | stamp**     |          | (1)**       | (2)**       | (3)**       |
-         +=============+==========+=============+=============+=============+
-         | Number of   | 1        | 1           | 1           | 1           |
-         | MPI tasks:  |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | MPI         | 2        | 1           | 2           | 2           |
-         | version:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | MPI         | 2        | 2           | 1           | 2           |
-         | subversion: |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | MPI thread  | T        | F           | F           | F           |
-         | support:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | OpenMP      | 2        | 2           | 2           | 2           |
-         | threads/MPI |          |             |             |             |
-         | task:       |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | OpenMP      | 200805   | 200505      | 200505      | 200805      |
-         | version:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | Is          | T        | T           | T           | F           |
-         | “\_OPENMP”  |          |             |             |             |
-         | macro       |          |             |             |             |
-         | defined:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-
-The Flash-X applications in Table `1.4 <#tab:flash_openmp_logs>`__ are
-unsafe because
-
-#. we are using an MPI-1 implementation.
-
-#. we are using an MPI-2 implementation which is not built with thread
-   support - the “MPI thread support in OpenMPI” Flash tip may help.
-
-#. we are using a compiler that does not define the macro when it
-   compiles source files with OpenMP support (see OpenMP standard). I
-   have noticed that Absoft 64-bit Pro Fortran 11.1.3 for Linux x86_64
-   does not define this macro. We use this macro in to conditionally
-   initialize MPI with . If you find that is not defined you should
-   define it in your in a manner similar to the following:
-
-   .. container:: codeseg
-
-      OPENMP_FORTRAN = -openmp -D_OPENMP=200805
-
-You should not setup a Flash-X application with both and equal to -
-nested OpenMP parallelism is not supported. For further information
-about Flash-X multithreaded applications please refer to Chapter
-`[Chp:MultithreadedFlash-X] <#Chp:MultithreadedFlash-X>`__.
-
-.. [1]
-   if a machine has multiple hostnames, setup tries them all
-
-.. [2]
-   Formerly, (in Flash-X2) it was located in the Flash-X root directory
-
-.. [3]
-   Formerly, (in Flash-X2) it was located in the Flash-X root directory
-
-.. [4]
-   Formerly, (in Flash-X2) it was located in the Flash-X root directory
-
-.. [5]
-   All non-integral values not equal to True/False/Yes/No/On/Off are
-   considered to be string values
