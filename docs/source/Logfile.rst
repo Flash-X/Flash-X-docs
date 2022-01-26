@@ -1,39 +1,42 @@
+.. include:: defs.h
+
 .. _`Chp:Logfile Unit`:
 
 Logfile Unit
 ============
 
-Flash-X supplies the Logfile unit to manage an output log during a
-Flash-X simulation. The logfile contains various types of useful
-information, warnings, and error messages produced by a Flash-X run.
-Other units can add information to the logfile through the Logfile unit
-interface. The routines enable a program to open and close a log file,
-write time or date stamps to the file, and write arbitrary messages to
-the file. The file is kept closed and is only opened for appending when
-information is to be written, thus avoiding problems with unflushed
-buffers. For this reason, routines should not be called within
-time-sensitive loops, as system calls are generated. Even when starting
-from scratch, the logfile is opened in append mode to avoid deleting
-important logfiles. Two kinds of Logfiles are supported. The first kind
-is similar to that in Flash-X2 and early releases of , where the master
-processor has exclusive access to the logfile and writes global
-information to it. The newer kind gives all processors access to their
-own private logfiles if they need to have one. Similar to the
-traditional logfile, the private logfiles are opened in append mode, and
-they are created the first time a processor writes to one. The private
-logfiles are extremely useful to gather information about failures
-causes by a small fraction of processors; something that cannot be done
-in the traditional logfile.
+|flashx| supplies the ``Logfile`` unit to manage an output log during a
+|flashx| simulation. The logfile contains various types of useful
+information, warnings, and error messages produced by a |flashx| run.
+Other units can add information to the logfile through the ``Logfile``
+unit interface. The ``Logfile`` routines enable a program to open and
+close a log file, write time or date stamps to the file, and write
+arbitrary messages to the file. The file is kept closed and is only
+opened for appending when information is to be written, thus avoiding
+problems with unflushed buffers. For this reason, ``Logfile`` routines
+should not be called within time-sensitive loops, as system calls are
+generated. Even when starting from scratch, the logfile is opened in
+append mode to avoid deleting important logfiles. Two kinds of Logfiles
+are supported. The first kind is similar to that in |flashx|2 and early
+releases of |flashx|, where the master processor has exclusive access to
+the logfile and writes global information to it. The newer kind gives
+all processors access to their own private logfiles if they need to have
+one. Similar to the traditional logfile, the private logfiles are opened
+in append mode, and they are created the first time a processor writes
+to one. The private logfiles are extremely useful to gather information
+about failures causes by a small fraction of processors; something that
+cannot be done in the traditional logfile.
 
-The Logfile unit is included by default in all the provided Flash-X
-simulations because it is required by the . As with all the other units
-in Flash-X, the data specific to the Logfile unit is stored in the
-module . Logfile unit scope data variables begin with the prefix and
-they are initialized in the routine .
+The ``Logfile`` unit is included by default in all the provided |flashx|
+simulations because it is required by the ``Driver/DriverMain``
+``Config``. As with all the other units in |flashx|, the data specific to
+the Logfile unit is stored in the module ``Logfile_data.F90``. Logfile
+unit scope data variables begin with the prefix ``log_variableName`` and
+they are initialized in the routine ``monitors/Logfile/Logfile_init``.
 
-By default, the logfile is named and found in the output directory. The
-user may change the name of the logfile by altering the runtime
-parameter in the .
+By default, the logfile is named ``flash.log`` and found in the output
+directory. The user may change the name of the logfile by altering the
+runtime parameter ``Logfile/log_file`` in the ``flash.par``.
 
 .. container:: codeseg
 
@@ -42,29 +45,31 @@ parameter in the .
 Meta Data
 ---------
 
-The stores meta data about a given run including the time and date of
-the run, the number of MPI tasks, dimensionality, compiler flags and
-other information about the run. The snippet below is an example from a
-showing the basic setup and compilation information:
+The ``logfile`` stores meta data about a given run including the time
+and date of the run, the number of MPI tasks, dimensionality, compiler
+flags and other information about the run. The snippet below is an
+example from a ``logfile`` showing the basic setup and compilation
+information:
 
 Runtime Parameters, Physical Constants, and Multispecies Data
 -------------------------------------------------------------
 
-The also records which units were included in a simulation, the runtime
-parameters, physical constants, and any species and their properties
-from the Multispecies unit. The logfile keeps track of whether a runtime
-parameter is a default value or whether its value has been redefined in
-the The symbol will occur next to a runtime parameter if its value has
-been redefined in the . Note that the runtime parameters are output in
+The ``logfile`` also records which units were included in a simulation,
+the runtime parameters, physical constants, and any species and their
+properties from the ``Multispecies`` unit. The |flashx| logfile keeps
+track of whether a runtime parameter is a default value or whether its
+value has been redefined in the ``flash.par`` The ``[CHANGED]`` symbol
+will occur next to a runtime parameter if its value has been redefined
+in the ``flash.par``. Note that the runtime parameters are output in
 alphabetical order within the Fortran datatype – so integer parameters
 are shown first, then real, then string, then Boolean. The snippet below
-shows the this portion of the ; omitted sections are indicated with
-“...".
+shows the this portion of the ``logfile``; omitted sections are
+indicated with “...".
 
 .. container:: codeseg
 
    ==============================================================================
-   Flash-X Units used: Driver Driver/DriverMain
+   |flashx| Units used: Driver Driver/DriverMain
    Driver/DriverMain/TimeDep Grid Grid/GridMain Grid/GridMain/paramesh
    Grid/GridMain/paramesh/paramesh4 ... Multispecies Particles
    PhysicalConstants PhysicalConstants/PhysicalConstantsMain
@@ -113,18 +118,22 @@ shows the this portion of the ; omitted sections are indicated with
 Accessor Functions and Timestep Data
 ------------------------------------
 
-Other units within Flash-X may make calls to write information, or
-stamp, the logfile. For example, the Driver unit calls the API routine
-after each timestep. The Grid unit calls whenever refinement occurs in
-an adaptive grid simulation. If there is an error that is caught in the
-code the API routine stamps the before aborting the code. Any unit can
-stamp the logfile with one of two routines which includes a data and
-time stamp along with a logfile message, or which simply writes a string
-to the .
+Other units within |flashx| may make calls to write information, or
+stamp, the logfile. For example, the ``Driver`` unit calls the API
+routine ``monitors/Logfile/Logfile_stamp`` after each timestep. The
+``Grid`` unit calls ``monitors/Logfile/Logfile_stamp`` whenever
+refinement occurs in an adaptive grid simulation. If there is an error
+that is caught in the code the API routine ``Driver/Driver_abortFlash``
+stamps the ``logfile`` before aborting the code. Any unit can stamp the
+logfile with one of two routines ``monitors/Logfile/Logfile_stamp``
+which includes a data and time stamp along with a logfile message, or
+``monitors/Logfile/Logfile_stampMessage`` which simply writes a string
+to the ``logfile``.
 
-The routine is overloaded so the user must use the interface file in the
-calling routine. The next snippit shows logfile output during the
-evolution loop of a Flash-X run.
+The routine ``monitors/Logfile/Logfile_stamp`` is overloaded so the user
+must use the interface file ``Logfile_interface.F90`` in the calling
+routine. The next snippit shows logfile output during the evolution loop
+of a |flashx| run.
 
 .. container:: codeseg
 
@@ -162,9 +171,10 @@ evolution loop of a Flash-X run.
 Performance Data
 ----------------
 
-Finally, the records performance data for the simulation. The Timers
-unit (see ) is responsible for storing, collecting and interpreting the
-performance data. The Timers unit calls the API routine to format the
+Finally, the ``logfile`` records performance data for the simulation.
+The ``Timers`` unit (see ) is responsible for storing, collecting and
+interpreting the performance data. The ``Timers`` unit calls the API
+routine ``monitors/Logfile/Logfile_writeSummary`` to format the
 performance data and write it to the logfile. The snippet below shows
 the performance data section of a logfile.
 
@@ -191,7 +201,7 @@ the performance data section of a logfile.
    0.868 writePlotfile 0.079 2 0.039 0.340 diagnostics 0.040 20 0.002
    0.173
    ==============================================================================
-   [ 04-19-2006 16:41.06 ] LOGFILE_END: Flash-X run complete.
+   [ 04-19-2006 16:41.06 ] LOGFILE_END: |flashx| run complete.
 
 Example Usage
 -------------

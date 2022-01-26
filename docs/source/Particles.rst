@@ -1,15 +1,18 @@
+.. include:: defs.h
+
 .. _`Chp:Particles`:
 
 Particles Unit
 ==============
 
-The support for particles in will eventually be in two flavors, *active*
-and *passive*. This version only supports passive particles. Passive
-particles acquire their kinematic information (velocities) directly from
-the mesh. They are meant to be used as passive flow tracers and do not
-make sense outside of a hydrodynamical context. The governing equation
-for the :math:`i`\ th passive particle is particularly simple and
-requires only the time integration of interpolated mesh velocities.
+The support for particles in |flashx| will eventually be in two flavors,
+*active* and *passive*. This version only supports passive particles.
+Passive particles acquire their kinematic information (velocities)
+directly from the mesh. They are meant to be used as passive flow
+tracers and do not make sense outside of a hydrodynamical context. The
+governing equation for the :math:`i`\ th passive particle is
+particularly simple and requires only the time integration of
+interpolated mesh velocities.
 
 .. math::
 
@@ -17,9 +20,9 @@ requires only the time integration of interpolated mesh velocities.
    {d{\bf x}_i\over dt}    =  {\bf v}_i
 
 Active particles experience forces and may themselves contribute to the
-problem dynamics (, through long-range forces or through collisions).
-They may additionally have their own motion independent of the grid, so
-an additional motion equation of
+problem dynamics (*e.g.*, through long-range forces or through
+collisions). They may additionally have their own motion independent of
+the grid, so an additional motion equation of
 
 .. math::
 
@@ -49,7 +52,7 @@ For both types of particles, the primary challenge is to integrate
 forward through time. Many alternative integration methods are described
 in Section  below. Additional information about the mesh to particle
 mapping is described in . An introduction to the particle techniques
-used in Flash-X is given by R. W. Hockney and J. W. Eastwood in
+used in |flashx| is given by R. W. Hockney and J. W. Eastwood in
 *Computer Simulation using Particles* (Taylor and Francis, 1988).
 
 .. _`Sec:Particles Integration`:
@@ -58,14 +61,19 @@ Time Integration
 ----------------
 
 The passive particles have many different time integration schemes
-available. The subroutine handles the movement of particles through
-space and time. Because will have support for including different types
-of both active and passive particles in a single simulation, the
-implementation of may call several helper routines of the form (, , , ),
-each acting on an appropriate subset of existing particles. The here is
-determined by the part of the statement (or the par of a option) for the
-type of particle. See the source code for the mapping from keyword to
-subroutine call.
+available. The subroutine ``Particles/Particles_advance`` handles the
+movement of particles through space and time. Because |flashx| will have
+support for including different types of both active and passive
+particles in a single simulation, the implementation of
+``Particles/Particles_advance`` may call several helper routines of the
+form ``pt_advanceMETHOD`` (*e.g.*, ``pt_advanceLeapfrog``,
+``pt_advanceEuler_active``, ``pt_advanceCustom``), each acting on an
+appropriate subset of existing particles. The *METHOD* here is
+determined by the ``ADVMETHOD`` part of the ``PARTICLETYPE`` ``Config``
+statement (or the ``ADV`` par of a ``-particlemethods`` option) for the
+type of particle. See the ``Particles_advance`` source code for the
+mapping from ``ADVMETHOD`` keyword to ``pt_advanceMETHOD`` subroutine
+call.
 
 .. _`Sec:Passive Partices Integration`:
 
@@ -73,7 +81,7 @@ Passive Particles
 ~~~~~~~~~~~~~~~~~
 
 Passive particles may be moved using one of several different methods
-available in . With the exception of **Midpoint**, they are all
+available in |flashx|. With the exception of **Midpoint**, they are all
 single-step schemes. The methods are either first-order or second-order
 accurate, and all are explicit, as described below. In all
 implementations, particle velocities are obtained by mapping grid-based
@@ -90,24 +98,30 @@ motion ODE solver [1]_. Statements about the order of a method in this
 context should be understood as referring to the same method if it were
 applied in a hypothetical simulation where evaluations of velocities
 :math:`{\bf v}_i` could be performed at arbitrary times (and with
-unlimited accuracy). Note that does not attempt to provide a particle
-motion ODE solver of higher accuracy than second order, since it makes
-little sense to integrate particle motion to a higher order than the
-fluid dynamics that provide its inputs.
+unlimited accuracy). Note that |flashx| does not attempt to provide a
+particle motion ODE solver of higher accuracy than second order, since
+it makes little sense to integrate particle motion to a higher order
+than the fluid dynamics that provide its inputs.
 
 In all cases, particles are advanced in time from :math:`t^n` (or, in
-the case of , from :math:`t^{n-1}`) to :math:`t^{n+1} = t^n + \Delta
+the case of ``Midpoint``, from :math:`t^{n-1}`) to
+:math:`t^{n+1} = t^n + \Delta
 t^n` using one of the difference equations described below. The
-implementations assume that at the time when is called, the fluid fields
-have already been updated to :math:`t^{n+1}`, as is the case with the
-implementations provided with . A specific implementation of the passive
-portion of is selected by a setup option such as , or by specifying
-something like in a simulation’s file (or by listing the path in the
-file if not using the configuration option). Further details are given
-is below.
+implementations assume that at the time when
+``Particles/Particles_advance`` is called, the fluid fields have already
+been updated to :math:`t^{n+1}`, as is the case with the
+``Driver/Driver_evolveFlash`` implementations provided with |flashx|. A
+specific implementation of the passive portion of
+``Particles/Particles_advance`` is selected by a setup option such as
+``-with-unit=Particles/ParticlesMain/passive/Euler``, or by specifying
+something like ``REQUIRES Particles/ParticlesMain/passive/Euler`` in a
+simulation’s ``Config`` file (or by listing the path in the ``Units``
+file if not using the ``-auto`` configuration option). Further details
+are given is below.
 
--  **Forward Euler ().** Particles are advanced in time from :math:`t^n`
-   to :math:`t^{n+1} = t^n + \Delta t^n` using the following difference
+-  **Forward Euler (``Particles/ParticlesMain/passive/Euler``).**
+   Particles are advanced in time from :math:`t^n` to
+   :math:`t^{n+1} = t^n + \Delta t^n` using the following difference
    equation:
 
    .. math::
@@ -127,10 +141,12 @@ is below.
    particle attributes. Similar concerns apply to the remaining methods
    but will not be explicitly mentioned every time.
 
--  **Two-Stage Runge-Kutta ().** This 2-stage Runge-Kutta scheme is the
-   preferred choice in . It is also the default which is compiled in if
-   particles are included in the setup but no specific is requested. The
-   scheme is also known as Heun’s Method:
+-  **Two-Stage Runge-Kutta
+   (``Particles/ParticlesMain/passive/RungeKutta``).** This 2-stage
+   Runge-Kutta scheme is the preferred choice in |flashx|. It is also the
+   default which is compiled in if particles are included in the setup
+   but no specific alternative implementation is requested. The scheme
+   is also known as Heun’s Method:
 
    .. math::
 
@@ -151,8 +167,9 @@ is below.
    the particle, obtained using particle-mesh interpolation from the
    grid at :math:`t=t^n` as usual.
 
--  **Midpoint ().** This Midpoint scheme is a two-step scheme. Here, the
-   particles are advanced from time :math:`t^{n-1}` to
+-  **Midpoint (``Particles/ParticlesMain/passive/Midpoint``).** This
+   Midpoint scheme is a two-step scheme. Here, the particles are
+   advanced from time :math:`t^{n-1}` to
    :math:`t^{n+1} = t^{n-1} + \Delta t^{n-1} + \Delta t^{n}` by the
    equation
 
@@ -160,10 +177,13 @@ is below.
 
    The scheme is second order if :math:`\Delta t^n = \Delta t^{n-1}`.
 
-   To get the scheme started, an Euler step (as described for ) is taken
-   the first time is called.
+   To get the scheme started, an Euler step (as described for
+   ``passive/Euler``) is taken the first time
+   ``Particles/ParticlesMain/passive/Midpoint/pt_advancePassive`` is
+   called.
 
-   The uses the following additional particle attributes:
+   The ``Midpoint`` alternative implementation uses the following
+   additional particle attributes:
 
    .. container:: codeseg
 
@@ -171,12 +191,14 @@ is below.
       PARTICLEPROP pos2PrevY REAL # two previous y-coordinate
       PARTICLEPROP pos2PrevZ REAL # two previous z-coordinate
 
--  **Estimated Midpoint with Correction ().** The scheme is second order
-   even if :math:`\Delta t^n = \Delta t^{n+1}` is not assumed. It is
-   essentially the or “Predictor-Corrector” method of previous releases,
-   with a correction for non-constant time steps by using additional
-   evaluations (at times and positions that are easily available,
-   without requiring more particle attributes).
+-  **Estimated Midpoint with Correction
+   (``Particles/ParticlesMain/passive/EstiMidpoint2``).** The scheme is
+   second order even if :math:`\Delta t^n = \Delta t^{n+1}` is not
+   assumed. It is essentially the ``EstiMidpoint`` or
+   “Predictor-Corrector” method of previous releases, with a correction
+   for non-constant time steps by using additional evaluations (at times
+   and positions that are easily available, without requiring more
+   particle attributes).
 
    Particle advancement follows the equation ‘_=8 ‘_=8
 
@@ -308,22 +330,24 @@ is below.
    `[Eqn:EstiMidpoint2] <#Eqn:EstiMidpoint2>`__ simplifies
    significantly.
 
-   An Euler step, as described for in
+   An Euler step, as described for ``passive/Euler`` in
    `[Eqn:particle_passive_euler] <#Eqn:particle_passive_euler>`__, is
-   taken the first time when is called and when the time step has
-   changed too much. Since the integration scheme is tolerant of time
-   step changes, it should usually not be necessary to apply the second
-   criterion; even when it is to be employed, the criteria should be
-   less strict than for an uncorrected scheme. For the timestep is
-   considered to have changed too much if either of the following is
-   true:
+   taken the first time when
+   ``Particles/ParticlesMain/passive/EstiMidpoint2/pt_advancePassive``
+   is called and when the time step has changed too much. Since the
+   integration scheme is tolerant of time step changes, it should
+   usually not be necessary to apply the second criterion; even when it
+   is to be employed, the criteria should be less strict than for an
+   uncorrected ``EstiMidpoint`` scheme. For ``EstiMidPoint2`` the
+   timestep is considered to have changed too much if either of the
+   following is true:
 
    .. math::
 
       \Delta t^{n} > \Delta t^{n-1} 
       \quad\mbox{and}\quad
           \left| \Delta t^{n} - \Delta t^{n-1} \right| \geq
-                                                            \code{pt\_dtChangeToleranceUp} \times  \Delta t^{n-1}
+                                                            {\tt pt\_dtChangeToleranceUp} \times  \Delta t^{n-1}
 
    or
 
@@ -332,13 +356,16 @@ is below.
       \Delta t^{n} < \Delta t^{n-1} 
       \quad\mbox{and}\quad
           \left| \Delta t^{n} - \Delta t^{n-1} \right| \geq
-                                                            \code{pt\_dtChangeToleranceDown} \times  \Delta t^{n-1},
+                                                            {\tt pt\_dtChangeToleranceDown} \times  \Delta t^{n-1},
 
-   where and are runtime parameter specific to the .
+   where ``Particles/pt_dtChangeToleranceUp`` and
+   ``Particles/pt_dtChangeToleranceDown`` are runtime parameter specific
+   to the ``EstiMidPoint2`` alternative implementation.
 
-   The uses the following additional particle attributes for storing the
-   values of :math:`{\bf x}_i^{*,n+\frac 12}` and
-   :math:`{\bf v}_i^{*,n+\frac 12}` between the calls at :math:`t^n` and
+   The ``EstiMidpoint2`` alternative implementation uses the following
+   additional particle attributes for storing the values of
+   :math:`{\bf x}_i^{*,n+\frac 12}` and :math:`{\bf v}_i^{*,n+\frac 12}`
+   between the ``Particles_advance`` calls at :math:`t^n` and
    :math:`t^{n+1}`:
 
    .. container:: codeseg
@@ -347,8 +374,9 @@ is below.
       velPredZ REAL PARTICLEPROP posPredX REAL PARTICLEPROP posPredY
       REAL PARTICLEPROP posPredZ REAL
 
-The time integration of passive particles is tested in the unit test,
-which can be used to examine the convergence behavior, see .
+The time integration of passive particles is tested in the
+``ParticlesAdvance`` unit test, which can be used to examine the
+convergence behavior, see .
 
 .. _`Sec:Particles Mapping`:
 
@@ -363,10 +391,11 @@ case, there is a need to convert grid-based quantities into similar
 attributes defined on particles, or vice versa. The method for
 interpolating mesh quantities to tracer particle positions must be
 consistent with the numerical method to avoid introducing systematic
-error. In the case of a finite-volume methods such as those used in ,
-the mesh quantities have cell-averaged rather than point values, which
-requires that the interpolation function for the particles also
-represent cell-averaged values. Cell averaged quantities are defined as
+error. In the case of a finite-volume methods such as those used in
+|flashx|, the mesh quantities have cell-averaged rather than point
+values, which requires that the interpolation function for the particles
+also represent cell-averaged values. Cell averaged quantities are
+defined as
 
 .. math::
 
@@ -375,10 +404,12 @@ represent cell-averaged values. Cell averaged quantities are defined as
 
 where :math:`i` is the cell index and :math:`\Delta x` is the spatial
 resolution. The mapping back and forth from the mesh to the particle
-properties are defined in the routines and .
+properties are defined in the routines ``Particles_mapFromMesh`` and
+``Particles_mapToMeshOneBlk``.
 
 Specifying the desired mapping method is accomplished by designating the
-in the Simulation file for each type of particle. See for more details.
+``MAPMETHOD`` in the Simulation ``Config`` file for each type of
+particle. See for more details.
 
 Quadratic Mesh Mapping
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -621,18 +652,21 @@ Cloud in Cell Mapping
 
 Other interpolation routines can be defined that take into account the
 actual quantities defined on the grid. These “mesh-based” algorithms are
-represented in by the Cloud-in-Cell mapping, where the interpolation
-to/from the particles is defined as a simple linear weighting from
-nearby grid points. The weights are defined by considering only the
-region of one “cell” size around each particle location; the
-proportional volume of the particle “cloud” corresponds to the amount
-allocated to/from the mesh. The method can be used with both types of
-particles. When using it with active particles the MapToMesh methods
-should also be selected. In order to include the CIC method with passive
-particles, the command line option is . Two additional command line
-option and are necessary when using the active particles. All of these
-command line options can be replaced by placing the appropriate
-directives in the Simulation file.
+represented in |flashx| by the Cloud-in-Cell mapping, where the
+interpolation to/from the particles is defined as a simple linear
+weighting from nearby grid points. The weights are defined by
+considering only the region of one “cell” size around each particle
+location; the proportional volume of the particle “cloud” corresponds to
+the amount allocated to/from the mesh. The ``CIC`` method can be used
+with both types of particles. When using it with active particles the
+MapToMesh methods should also be selected. In order to include the CIC
+method with passive particles, the ``setup`` command line option is
+``-with-unit=Particles/ParticlesMapping/CIC``. Two additional command
+line option ``-with-unit=Particles/ParticlesMapping/MapToMesh`` and
+``-with-unit=Grid/GridParticles/MapToMesh`` are necessary when using the
+active particles. All of these command line options can be replaced by
+placing the appropriate ``REQUIRES/REQUESTS`` directives in the
+Simulation ``Config`` file.
 
 .. _`Sec:ParticlesUsing`:
 
@@ -644,116 +678,133 @@ particles. The exceptions are input/output the movement of related data
 structures between different blocks as the particles move from one block
 to another, and mapping the particle attributes to and from the grid.
 
-Particle types must be specified in the file of the Simulations unit
-setup directory for the application, and the syntax is explained in . At
-configuration time, the setup script parses the specifications in the
-Config files, and generates an F90 file that populates a data structure
-. This data structure contains information about the method of
-initialization and interpolation methods for mapping the particle
-attributes to and from the grid for each included particle type.
-Different time integration schemes are applied to active and passive
-particles. However, in one simulation, all active particles are
-integrated using the same scheme, regardless of how many active types
-exists. Similarly, only one passive integration scheme is used. The
-added complexity of multiple particle types allows different methods to
-be used for initialization of particles positions and their mapping to
-and from the grid quantities. Because several different implementations
-of each type of functionality can co-exist in one simulation, there are
-no defaults in the unit files. These various functionalities are
-organized into different ; a brief description of each subunit is
-included below and further expanded in subsections in this chapter.
+Particle types must be specified in the ``Config`` file of the
+Simulations unit setup directory for the application, and the syntax is
+explained in . At configuration time, the setup script parses the
+``PARTICLETYPE`` specifications in the Config files, and generates an
+F90 file ``Particles/Particles_specifyMethods``\ ``.F90`` that populates
+a data structure ``gr_ptTypeInfo``. This data structure contains
+information about the method of initialization and interpolation methods
+for mapping the particle attributes to and from the grid for each
+included particle type. Different time integration schemes are applied
+to active and passive particles. However, in one simulation, all active
+particles are integrated using the same scheme, regardless of how many
+active types exists. Similarly, only one passive integration scheme is
+used. The added complexity of multiple particle types allows different
+methods to be used for initialization of particles positions and their
+mapping to and from the grid quantities. Because several different
+implementations of each type of functionality can co-exist in one
+simulation, there are no defaults in the ``Particles`` unit ``Config``
+files. These various functionalities are organized into different
+subunits; a brief description of each subunit is included below and
+further expanded in subsections in this chapter.
 
--  The subunit distributes a given set of particles through the spatial
-   domain at the simulation startup. Some type of spatial initialization
-   is always required; the functionality is provided by . The users of
+-  The ``ParticlesInitialization`` subunit distributes a given set of
+   particles through the spatial domain at the simulation startup. Some
+   type of spatial initialization is always required; the functionality
+   is provided by ``Particles/Particles_initPositions``. The users of
    active particles typically have their own custom initialization. The
    following two implementations of initialization techniques are
-   included in the distribution (they are more likely to used with the
-   passive tracer particles):
+   included in the |flashx| distribution (they are more likely to used
+   with the passive tracer particles):
 
+   ``Lattice``
       distributes particles regularly along the axes directions
       throughout a subsection of the physical grid.
 
+   ``WithDensity``
       distributes particles randomly, with particle density being
       proportional to the grid gas density.
 
    Users have two options for implementing custom initialization
-   methods. The two files involved in the process are: and
-   pt_initPositions. The former does some housekeeping such as allowing
-   for inclusion of one of the available methods along with the user
-   specified one, and assigning tags at the end. A user wishing to add
-   one custom method with no constraints on tags etc is advised to
-   implement a custom version of the latter. This approach allows the
-   user to focus the implementation on the placement of particles only.
-   Users desirous of refining the grid based on particles count during
-   initialiation should see the setup for an example implementation of
-   the Particles_initPositions routine. If more than one implementation
-   of pt_initPositions is desired in the same simulation then it is
-   necessary to implement each one separately with different names (as
-   we do for tracer particles: pt_initPositionsLattice and
+   methods. The two files involved in the process are:
+   ``Particles/Particles_initPositions`` and pt_initPositions. The
+   former does some housekeeping such as allowing for inclusion of one
+   of the available methods along with the user specified one, and
+   assigning tags at the end. A user wishing to add one custom method
+   with no constraints on tags etc is advised to implement a custom
+   version of the latter. This approach allows the user to focus the
+   implementation on the placement of particles only. Users desirous of
+   refining the grid based on particles count during initialiation
+   should see the setup ``PoisParticles`` for an example implementation
+   of the Particles_initPositions routine. If more than one
+   implementation of pt_initPositions is desired in the same simulation
+   then it is necessary to implement each one separately with different
+   names (as we do for tracer particles: pt_initPositionsLattice and
    pt_initPositionsWithDensity) in their simulation setup directory. In
    addition, a modified copy of Particles_initPostions, which calls
    these new routines in the loop over types, must also be placed in the
    same directory.
 
--  The contains the various time-integration options for both active and
-   passive particles. A detailed overview of the different schemes is
-   given in .
+-  The ``ParticlesMain`` subunit contains the various time-integration
+   options for both active and passive particles. A detailed overview of
+   the different schemes is given in .
 
--  The controls the mapping of particle properties to and from the grid.
-   Flash-X currently supplies the following mapping schemes:
+-  The ``ParticlesMapping`` subunit controls the mapping of particle
+   properties to and from the grid. |flashx| currently supplies the
+   following mapping schemes:
 
-      (), which weights values at nearby grid cells; and
+   ``Cloud-in-cell``
+      (``ParticlesMapping/meshWeighting/CIC``), which weights values at
+      nearby grid cells; and
 
-      (), which performs quadratic interpolation.
+   ``Quadratic``
+      (``ParticlesMapping/Quadratic``), which performs quadratic
+      interpolation.
 
 Some form of mapping must always be included when running a simulation
 with particles. As mentioned in the quadratic mapping scheme is only
 available to map *from* the grid quantities to the corresponding
 particle attributes. Since active particles require the same mapping
 scheme to be used in mapping to and from the mesh, they cannot use the
-quadratic mapping scheme as currently implemented in . The CIC scheme
-may be used by both the active and passive particles.
+quadratic mapping scheme as currently implemented in |flashx|. The CIC
+scheme may be used by both the active and passive particles.
 
 After particles are moved during time integration or by forces, they may
 end up on other blocks within or without the current processor. The
 redistribution of particles among processors is handled by the
-GridParticles subunit, as the algorithms required vary considerably
+``GridParticles`` subunit, as the algorithms required vary considerably
 between the grid implementations. The boundary conditions are also
 implemented by the GridParticles unit. See for more details of these
-redistribution algorithms. The user should include the option on the
-setup line, or in the Config file.
+redistribution algorithms. The user should include the option
+``-with-unit=Grid/GridParticles`` on the setup line, or
+``REQUIRES Grid/GridParticles`` in the Config file.
 
 In addition, the input-output routines for the Particles unit are
-contained in a subunit IOParticles. Particles are written to the main
-checkpoint files. If the user desires, a separate output file can be
-created which contains only the particle information. See below as well
-as for more details. The user should include the option on the setup
-line, or in the Config file.
+contained in a subunit ``IOParticles``. Particles are written to the
+main checkpoint files. If the user desires, a separate output file can
+be created which contains only the particle information. See below as
+well as for more details. The user should include the option
+``-with-unit=IO/IOParticles`` on the setup line, or
+``REQUIRES IO/IOParticles`` in the Config file.
 
-In , the initial particle positions can be used to construct an
+In |flashx|, the initial particle positions can be used to construct an
 appropriately refined grid, i.e. more refined in places where there is a
-clustering of particles. To use this feature the file must include: and
-. Please be aware that Flash-X will abort if the criterion is too
-demanding. To overcome the abort, specify a less demanding criterion, or
-increase the value of .
+clustering of particles. To use this feature the ``flash.par`` file must
+include: ``refine_on_particle_count=.true.`` and
+``max_particles_per_blk=[some value]``. Please be aware that |flashx|
+will abort if the criterion is too demanding. To overcome the abort,
+specify a less demanding criterion, or increase the value of
+``lrefine_max``.
 
 .. _`Sec:Particles Runtime Parameters`:
 
 Particles Runtime Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are several general runtime parameters applicable to the unit,
-which affect every implementation. The variable obviously must be set
-equal to to utilize the Particles unit. The time stepping is controlled
-with ; a value less than one ensures that particles will not step
-farther than one entire cell in any given time interval. The
-initialization routines have additional parameters. The number of evenly
-spaced particles is controlled in each direction by and similar
-variables in :math:`Y` and :math:`Z`. The physical range of
-initialization is controlled by and the like. Finally, note that the
-output of particle properties to special particle files is controlled by
-runtime parameters found in the unit. See for more details.
+There are several general runtime parameters applicable to the
+``Particles`` unit, which affect every implementation. The variable
+``Particles/useParticles`` obviously must be set equal to ``.true.`` to
+utilize the Particles unit. The time stepping is controlled with
+``Particles/pt_dtFactor``; a value less than one ensures that particles
+will not step farther than one entire cell in any given time interval.
+The ``Lattice`` initialization routines have additional parameters. The
+number of evenly spaced particles is controlled in each direction by
+``Particles/pt_numX`` and similar variables in :math:`Y` and :math:`Z`.
+The physical range of initialization is controlled by
+``Particles/pt_initialXMin`` and the like. Finally, note that the output
+of particle properties to special particle files is controlled by
+runtime parameters found in the ``IO`` unit. See for more details.
 
 .. _`Sec:Particle Properties`:
 
@@ -768,30 +819,34 @@ example, active particles usually have the additional properties of mass
 and acceleration (needed for the integration routines, see Table ).
 Depending upon the simulation, the user can define particle properties
 in a manner similar to that used for mesh-based solution variables. To
-define a particle attribute, add to a file a line of the form
+define a particle attribute, add to a ``Config`` file a line of the form
 
-   *property-name*
+   ``PARTICLEPROP`` *property-name*
 
 For attributes that are meant to merely sample and record the state of
-certain mesh variables along trajectories, Flash-X can automatically
+certain mesh variables along trajectories, |flashx| can automatically
 invoke interpolation (or, in general, some map method) to generate
 attribute values from the appropriate grid quantities. (For passive
 tracer particles, these are typically the only attributes beyond the
-default set of eight mentioned above.) The routine is invoked by Flash-X
-at appropriate times to effect this mapping, namely before writing
-particle data to checkpoint and particle plot files. To direct the
-default implementation of to act as desired for tracer attributes, the
-user must define the association of the particle attribute with the
-appropriate mesh variable by including the following line in the file:
+default set of eight mentioned above.) The routine
+``Particles/Particles_updateAttributes`` is invoked by |flashx| at
+appropriate times to effect this mapping, namely before writing particle
+data to checkpoint and particle plot files. To direct the default
+implementation of ``Particles_updateAttributes`` to act as desired for
+tracer attributes, the user must define the association of the particle
+attribute with the appropriate mesh variable by including the following
+line in the ``Config`` file:
 
-   *property-name* *variable-name*
+   ``PARTICLEMAP TO`` *property-name* ``FROM VARIABLE`` *variable-name*
 
 These particle attributes are carried along in the simulation and output
 in the checkpoint files. At runtime, the user can specify the attributes
-to output through runtime parameters , , etc. These specified attributes
-are collected in an array by the routine. This array in turn is used by
-to calculate the values of the specified attributes from the
-corresponding mesh quantities before they are output.
+to output through runtime parameters ``Particles/particle_attribute_1``,
+``Particles/particle_attribute_2``, etc. These specified attributes are
+collected in an array by the ``Particles/Particles_init`` routine. This
+array in turn is used by ``Particles/Particles_updateAttributes`` to
+calculate the values of the specified attributes from the corresponding
+mesh quantities before they are output.
 
 .. _`Sec:Particles IO`:
 
@@ -802,19 +857,21 @@ Particle data are written to and read from checkpoint files by the I/O
 modules (). For more information on the format of particle data written
 to output files, see and .
 
-Particle data can also be written out to the file. The user should
-include a local copy of in their Simulation directory. The test problem
-supplies an example routine that is useful for writing individual
-particle trajectories to disk at every timestep.
+Particle data can also be written out to the ``flash.dat`` file. The
+user should include a local copy of ``IO/IO_writeIntegralQuantities`` in
+their Simulation directory. The ``Orbit`` test problem supplies an
+example ``IO_writeIntegralQuantities`` routine that is useful for
+writing individual particle trajectories to disk at every timestep.
 
-There is also a utility routine which can be used to dump particle
-output to a plain text file. An example of usage can be found in .
-Output from this routine can be read using the fidlr routine .
+There is also a utility routine ``Particles/Particles_dump`` which can
+be used to dump particle output to a plain text file. An example of
+usage can be found in ``Particles/Particles_unitTest``. Output from this
+routine can be read using the fidlr routine ``particles_dump.pro``.
 
 .. [1]
-   Even though it is possible to do so, see , one does not in general
-   wish to let particles integration dictate the time step of the
-   simulation.
+   Even though it is possible to do so, see
+   ``Particles/Particles_computeDt``, one does not in general wish to
+   let particles integration dictate the time step of the simulation.
 
 .. [2]
    They can be considered “predicted” positions and velocities.

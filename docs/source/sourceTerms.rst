@@ -1,26 +1,35 @@
+.. include:: defs.h
+
 .. _`Sec:source terms`:
 
 Local Source Terms
 ==================
 
-The organizational directory contains several units that implement
-forcing terms. The , , , and units contain implementations in . Two
-other units, and , contain only stub level routines in their API.
+The ``physics/sourceTerms`` organizational directory contains several
+units that implement forcing terms. The ``Burn``, ``Stir``, ``Ionize``,
+and ``Diffuse`` units contain implementations in |flashx|. Two other
+units, ``Cool`` and ``Heat``, contain only stub level routines in their
+API.
 
 .. _`Sec:burn`:
 
 Burn Unit
 ---------
 
-The nuclear burning implementation of the unit uses a sparse-matrix
-semi-implicit ordinary differential equation (ODE) solver to calculate
-the nuclear burning rate and to update the fluid variables accordingly
-(Timmes 1999). The primary interface routines for this unit are , which
-sets up the nuclear isotope tables needed by the unit, and , which calls
-the ODE solver and updates the hydrodynamical variables in a single row
-of a single block. The routine may limit the computational timestep
-because of burning considerations. There is also a helper routine (see )
-which provides the properties of ions included in the burning network.
+The nuclear burning implementation of the ``Burn`` unit uses a
+sparse-matrix semi-implicit ordinary differential equation (ODE) solver
+to calculate the nuclear burning rate and to update the fluid variables
+accordingly (Timmes 1999). The primary interface routines for this unit
+are ``physics/sourceTerms/Burn/Burn_init``, which sets up the nuclear
+isotope tables needed by the unit, and
+``physics/sourceTerms/Burn/Burn``, which calls the ODE solver and
+updates the hydrodynamical variables in a single row of a single block.
+The routine ``physics/sourceTerms/Burn/Burn_computeDt`` may limit the
+computational timestep because of burning considerations. There is also
+a helper routine
+``Simulation/SimulationComposition/Simulation_initSpecies`` (see
+``Simulation/Simulation_initSpecies``) which provides the properties of
+ions included in the burning network.
 
 Algorithms
 ~~~~~~~~~~
@@ -37,12 +46,14 @@ sensitive to temperature. The resulting stiffness of the system of
 equations requires the use of an implicit time integration scheme.
 
 A user can choose between two implicit integration methods and two
-linear algebra packages in Flash-X. The runtime parameter controls which
-integration method is used in the simulation. The choice is the default
-and invokes a Bader-Deuflhard scheme. The choice invokes a Kaps-Rentrop
-or Rosenbrock scheme. The runtime parameter controls which linear
-algebra package is used in the simulation. The choice is the default and
-invokes the sparse matrix MA28 package. The choice invokes the GIFT
+linear algebra packages in |flashx|. The runtime parameter
+``Burn/odeStepper`` controls which integration method is used in the
+simulation. The choice ``odeStepper = 1`` is the default and invokes a
+Bader-Deuflhard scheme. The choice ``odeStepper = 2`` invokes a
+Kaps-Rentrop or Rosenbrock scheme. The runtime parameter
+``Burn/algebra`` controls which linear algebra package is used in the
+simulation. The choice ``algebra = 1`` is the default and invokes the
+sparse matrix MA28 package. The choice ``algebra = 2`` invokes the GIFT
 linear algebra routines. While any combination of the integration
 methods and linear algebra packages will produce correct answers, some
 combinations may execute more efficiently than others for certain types
@@ -56,7 +67,7 @@ performed in the Timmes paper cited below.
 
 Timmes (1999) reviewed several methods for solving stiff nuclear
 reaction networks, providing the basis for the reaction network solvers
-included with Flash-X. The scaling properties and behavior of three
+included with |flashx|. The scaling properties and behavior of three
 semi-implicit time integration algorithms (a traditional first-order
 accurate Euler method, a fourth-order accurate Kaps-Rentrop / Rosenbrock
 method, and a variable order Bader-Deuflhard method) and eight linear
@@ -68,7 +79,7 @@ Timmes’ analysis suggested that the best balance of accuracy, overall
 efficiency, memory footprint, and ease-of-use was provided by the two
 integration methods (Bader-Deuflhard and Kaps-Rentrop) and the two
 linear algebra packages (MA28 and GIFT) that are provided with the
-Flash-X code.
+|flashx| code.
 
 Reaction networks
 ~~~~~~~~~~~~~~~~~
@@ -95,12 +106,12 @@ Mass conservation is then expressed by
    \label{Eqn:mass conservation}
    \sum_{i=1}^N X_i = 1~.
 
-At the end of each timestep, Flash-X checks that the stored abundances
+At the end of each timestep, |flashx| checks that the stored abundances
 satisfy `[Eqn:mass conservation] <#Eqn:mass conservation>`__ to machine
 precision in order to avoid the unphysical buildup (or decay) of the
 abundances or energy generation rate. Roundoff errors in this equation
-can lead to significant problems in some contexts (, classical nova
-envelopes), where trace abundances are important.
+can lead to significant problems in some contexts (*e.g.*, classical
+nova envelopes), where trace abundances are important.
 
 The general continuity equation for the :math:`i`\ th isotope is given
 in Lagrangian formulation by
@@ -108,15 +119,15 @@ in Lagrangian formulation by
 .. math::
 
    \label{Eqn:isotope continuity}
-   \drvf {Y_i} {t} + \nabla \cdot \left ( Y_i \avec {V}_i \right ) = \dt {R_i}\ .
+   {dY_i\over dt} + \nabla \cdot \left ( Y_i \textbf{V}_i \right ) = \dot{R_i}\ .
 
-In this equation :math:`\dt {R_i}` is the total reaction rate due to all
+In this equation :math:`\dot{R_i}` is the total reaction rate due to all
 binary reactions of the form *i(j,k)l*,
 
 .. math::
 
    \label{Eqn:binary rate}
-   \dt {R_{i}}
+   \dot{R_{i}}
     = \sum_{j,k}
                  Y_{l} Y_{k} \lambda _{kj}(l)  - Y_{i} Y_{j} \lambda _{jk}(i)\ ,
 
@@ -125,29 +136,29 @@ where :math:`\lambda _{kj}` and :math:`\lambda _{jk}` are the reverse
 respectively. Contributions from three-body reactions, such as the
 triple-:math:`\alpha` reaction, are easy to append to
 `[Eqn:binary rate] <#Eqn:binary rate>`__. The mass diffusion velocities
-:math:`\avec{V}_i` in
+:math:`\textbf{V}_i` in
 `[Eqn:isotope continuity] <#Eqn:isotope continuity>`__ are obtained from
 the solution of a multicomponent diffusion equation (Chapman & Cowling
 1970; Burgers 1969; Williams 1988) and reflect the fact that mass
 diffusion processes arise from pressure, temperature, and/or abundance
 gradients as well as from external gravitational or electrical forces.
 
-The case :math:`\avec{V}_i\equiv 0` is important for two reasons. First,
-mass diffusion is often unimportant when compared to other transport
-processes, such as thermal or viscous diffusion (, large Lewis numbers
-and/or small Prandtl numbers). Such a situation obtains, for example, in
-the study of laminar flame fronts propagating through the quiescent
-interior of a white dwarf. Second, this case permits the decoupling of
-the reaction network solver from the hydrodynamical solver through the
-use of operator splitting, greatly simplifying the algorithm. This is
-the method used by the default Flash-X distribution. Setting
-:math:`\avec{V}_i\equiv 0` transforms
+The case :math:`\textbf{V}_i\equiv 0` is important for two reasons.
+First, mass diffusion is often unimportant when compared to other
+transport processes, such as thermal or viscous diffusion (*i.e.*, large
+Lewis numbers and/or small Prandtl numbers). Such a situation obtains,
+for example, in the study of laminar flame fronts propagating through
+the quiescent interior of a white dwarf. Second, this case permits the
+decoupling of the reaction network solver from the hydrodynamical solver
+through the use of operator splitting, greatly simplifying the
+algorithm. This is the method used by the default |flashx| distribution.
+Setting :math:`\textbf{V}_i\equiv 0` transforms
 `[Eqn:isotope continuity] <#Eqn:isotope continuity>`__ into
 
 .. math::
 
    \label{Eqn:nucrate 1}
-   \drvf {Y_i} {t} = \dt {R_i}\ ,
+   {dY_i\over dt} = \dot{R_i}\ ,
 
 which may be written in the more compact, standard form
 
@@ -227,26 +238,27 @@ and reverse reaction rates are generally not equal. In addition, the
 magnitudes of the matrix entries change as the abundances, temperature,
 or density change with time.
 
-This release of contains three reaction networks. A seven-isotope
-alpha-chain () is useful for problems that do not have enough memory to
-carry a larger set of isotopes. The 13-isotope :math:`\alpha`-chain plus
-heavy-ion reaction network () is suitable for most multi-dimensional
-simulations of stellar phenomena, where having a reasonably accurate
-energy generation rate is of primary concern. The 19-isotope reaction
-network () has the same :math:`\alpha`-chain and heavy-ion reactions as
-the 13-isotope network, but it includes additional isotopes to
-accommodate some types of hydrogen burning (PP chains and steady-state
-CNO cycles), along with some aspects of photo-disintegration into
-:math:`^{54}`\ Fe. This 19 isotope reaction network is described in
-Weaver, Zimmerman, & Woosley (1978).
+This release of |flashx| contains three reaction networks. A
+seven-isotope alpha-chain (``Iso7``) is useful for problems that do not
+have enough memory to carry a larger set of isotopes. The 13-isotope
+:math:`\alpha`-chain plus heavy-ion reaction network (``Aprox13``) is
+suitable for most multi-dimensional simulations of stellar phenomena,
+where having a reasonably accurate energy generation rate is of primary
+concern. The 19-isotope reaction network (``Aprox19``) has the same
+:math:`\alpha`-chain and heavy-ion reactions as the 13-isotope network,
+but it includes additional isotopes to accommodate some types of
+hydrogen burning (PP chains and steady-state CNO cycles), along with
+some aspects of photo-disintegration into :math:`^{54}`\ Fe. This 19
+isotope reaction network is described in Weaver, Zimmerman, & Woosley
+(1978).
 
-The networks supplied with Flash-X are examples of a “hard-wired”
+The networks supplied with |flashx| are examples of a “hard-wired”
 reaction network, where each of the reaction sequences are carefully
 entered by hand. This approach is suitable for small networks, when
 minimizing the CPU time required to run the reaction network is a
 primary concern, although it suffers the disadvantage of inflexibility.
 
-The MA28 sparse matrix package used by Flash-X is described by Duff,
+The MA28 sparse matrix package used by |flashx| is described by Duff,
 Erisman, & Reid (1986) and is used as an external library. This package,
 which has been described as the “Coke classic” of sparse linear algebra
 packages, uses a direct – as opposed to an iterative – method for
@@ -257,10 +269,10 @@ decomposition, and a backsubstitution phase. In the symbolic LU
 decomposition phase, the pivot order of a matrix is determined, and a
 sequence of decomposition operations that minimizes the amount of
 fill-in is recorded. Fill-in refers to zero matrix elements which become
-nonzero (, a sparse matrix times a sparse matrix is generally a denser
-matrix). The matrix is not decomposed; only the steps to do so are
-stored. Since the nonzero pattern of a chosen nuclear reaction network
-does not change, the symbolic LU decomposition is a one-time
+nonzero (*e.g.*, a sparse matrix times a sparse matrix is generally a
+denser matrix). The matrix is not decomposed; only the steps to do so
+are stored. Since the nonzero pattern of a chosen nuclear reaction
+network does not change, the symbolic LU decomposition is a one-time
 initialization cost for reaction networks. In the numerical LU
 decomposition phase, a matrix with the same pivot order and nonzero
 pattern as a previously factorized matrix is numerically decomposed into
@@ -279,7 +291,7 @@ continuous real parameter sets the amount of searching done to locate
 the pivot element. When this parameter is set to zero, no searching is
 done and the diagonal element is the pivot, while when set to unity,
 partial pivoting is done. Since the matrices generated by reaction
-networks are usually diagonally dominant, the routine is set in Flash-X
+networks are usually diagonally dominant, the routine is set in |flashx|
 to use the diagonal as the pivot element. Several test cases showed that
 using partial pivoting did not make a significant accuracy difference
 but was less efficient, since a search for an appropriate pivot element
@@ -291,7 +303,7 @@ storage than storing the full dense matrix.
 Two time integration methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One of the time integration methods used by Flash-X for evolving the
+One of the time integration methods used by |flashx| for evolving the
 reaction networks is a 4th-order accurate Kaps-Rentrop, or Rosenbrock
 method. In essence, this method is an implicit Runge-Kutta algorithm.
 The reaction network is advanced over a timestep :math:`h` according to
@@ -333,12 +345,12 @@ equations (:math:`\Delta_4` depends on :math:`\Delta_3 \ldots` depends
 on :math:`\Delta_1`). Not all of the right-hand sides are known in
 advance. This general feature of higher-order integration methods
 impacts the optimal choice of a linear algebra package. The fourth-order
-Kaps-Rentrop routine in Flash-X makes use of the routine GRK4T given by
+Kaps-Rentrop routine in |flashx| makes use of the routine GRK4T given by
 Kaps & Rentrop (1979).
 
-Another time integration method used by Flash-X for evolving the
-reaction networks is the variable order Bader-Deuflhard method (, Bader
-& Deuflhard 1983). The reaction network is advanced over a large
+Another time integration method used by |flashx| for evolving the
+reaction networks is the variable order Bader-Deuflhard method (*e.g.*,
+Bader & Deuflhard 1983). The reaction network is advanced over a large
 timestep :math:`H` from :math:`{\bf y}^n` to :math:`{\bf y}^{n+1}` by
 the following sequence of matrix equations. First,
 
@@ -381,7 +393,7 @@ This staged sequence of matrix equations is executed at least twice with
 may be executed a maximum of seven times, which yields a fifteenth-order
 method. The exact number of times the staged sequence is executed
 depends on the accuracy requirements (set to one part in 10\ :math:`^6`
-in Flash-X) and the smoothness of the solution. Estimates of the
+in |flashx|) and the smoothness of the solution. Estimates of the
 accuracy of an integration step are made by comparing the solutions
 derived from different orders. The minimum cost of this method — which
 applies for a single timestep that met or exceeded the specified
@@ -404,10 +416,11 @@ right-hand sides are known in advance, since the sequence of linear
 equations is staged. This staging feature of the integration method may
 make some matrix packages, such as MA28, a more efficient choice.
 
-The Flash-X runtime parameter controls which integration method is used
-in the simulation. The choice is the default and invokes the variable
-order Bader-Deuflhard scheme. The choice invokes the fourth order
-Kaps-Rentrop / Rosenbrock scheme.
+The |flashx| runtime parameter ``Burn/odeStepper`` controls which
+integration method is used in the simulation. The choice
+``odeStepper = 1`` is the default and invokes the variable order
+Bader-Deuflhard scheme. The choice ``odeStepper = 2`` invokes the fourth
+order Kaps-Rentrop / Rosenbrock scheme.
 
 Detecting shocks
 ~~~~~~~~~~~~~~~~
@@ -419,8 +432,9 @@ their physical counterparts, it is possible for a significant amount of
 burning to occur within the shock. Allowing this to happen can lead to
 unphysical results. The burner unit includes a multidimensional shock
 detection algorithm that can be used to prevent burning in shocks. If
-the parameter is set to , this algorithm is used to detect shocks in the
-Burn unit and to switch off the burning in shocked cells.
+the ``Burn/useShockBurn`` parameter is set to ``.false.``, this
+algorithm is used to detect shocks in the Burn unit and to switch off
+the burning in shocked cells.
 
 Currently, the shock detection algorithm supports Cartesian and
 2-dimensional cylindrical coordinates. The basic algorithm is to compare
@@ -433,50 +447,51 @@ then a cell is considered to be within a shock.
 This computation is done on a block by block basis. It is important that
 the velocity and pressure variables have up-to-date guard cells, so a
 guard cell call is done for the burners only if we are detecting shocks
-(*i.e.* ).
+(*i.e.* ``useShockBurning = .false.``).
 
 Energy generation rates and reaction rates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The instantaneous energy generation rate is given by the sum
 
-.. math:: \dot {\epsilon}_{\rm nuc} = N_A \ \sum_i \ \drvf {Y_{i}} {t} \ .
+.. math:: \dot {\epsilon}_{\rm nuc} = N_A \ \sum_i \ {dY_{i}\over dt} \ .
 
 Note that a nuclear reaction network does not need to be evolved in
 order to obtain the instantaneous energy generation rate, since only the
 right hand sides of the ordinary differential equations need to be
-evaluated. It is more appropriate in the Flash-X program to use the
+evaluated. It is more appropriate in the |flashx| program to use the
 average nuclear energy generated over a timestep
 
 .. math:: \dot {\epsilon}_{\rm nuc} = N_A \ \sum_i \ {\Delta Y_i \over \Delta t}\ .
 
 In this case, the nuclear reaction network does need to be evolved. The
 energy generation rate, after subtraction of any neutrino losses, is
-returned to the Flash-X program for use with the operator splitting
+returned to the |flashx| program for use with the operator splitting
 technique.
 
-The tabulation of Caughlan & Fowler (1988) is used in Flash-X for most
+The tabulation of Caughlan & Fowler (1988) is used in |flashx| for most
 of the key nuclear reaction rates. Modern values for some of the
 reaction rates were taken from the reaction rate library of Hoffman
 (2001, priv. comm.). A user can choose between two reaction rate
-evaluations in Flash-X. The runtime parameter controls which reaction
-rate evaluation method is used in the simulation. The choice is the
-default and evaluates the reaction rates from analytical expressions.
-The choice evaluates the reactions rates from table interpolation. The
-reaction rate tables are formed on-the-fly from the analytical
-expressions. Tests on one-dimensional detonations and hydrostatic
-burnings suggest that there are no major differences in the abundance
-levels if tables are used instead of the analytic expressions; we find
-less than 1% differences at the end of long timescale runs. Table
-interpolation is about 10 times faster than evaluating the analytic
-expressions, but the speedup to Flash-X is more modest, a few percent at
-best, since reaction rate evaluation never dominates in a real
-production run.
+evaluations in |flashx|. The runtime parameter ``Burn/useBurnTable``
+controls which reaction rate evaluation method is used in the
+simulation. The choice ``useBurnTable = 0`` is the default and evaluates
+the reaction rates from analytical expressions. The choice
+``useBurnTable = 1`` evaluates the reactions rates from table
+interpolation. The reaction rate tables are formed on-the-fly from the
+analytical expressions. Tests on one-dimensional detonations and
+hydrostatic burnings suggest that there are no major differences in the
+abundance levels if tables are used instead of the analytic expressions;
+we find less than 1% differences at the end of long timescale runs.
+Table interpolation is about 10 times faster than evaluating the
+analytic expressions, but the speedup to |flashx| is more modest, a few
+percent at best, since reaction rate evaluation never dominates in a
+real production run.
 
 Finally, nuclear reaction rate screening effects as formulated by
 Wallace *et al.* (1982) and decreases in the energy generation rate
 :math:`\dot {\epsilon}_{\rm nuc}` due to neutrino losses as given by
-Itoh *et al.* (1996) are included in Flash-X.
+Itoh *et al.* (1996) are included in |flashx|.
 
 Temperature-based timestep limiting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -484,7 +499,7 @@ Temperature-based timestep limiting
 When using explicit hydrodynamics methods, a timestep limiter must be
 used to ensure the stability of the numerical solution. The standard CFL
 limiter is always used when an explicit hydrodynamics unit is included
-in Flash-X. This constraint does not allow any information to travel
+in |flashx|. This constraint does not allow any information to travel
 more than one computational cell per timestep. When coupling burning
 with the hydrodynamics, the CFL timestep may be so large compared to the
 burning timescales that the nuclear energy release in a cell may exceed
@@ -494,14 +509,15 @@ operations (hydrodynamics and nuclear burning) become decoupled.
 To limit the timestep when burning is performed, an additional
 constraint is imposed. The limiter tries to force the energy generation
 from burning to be smaller than the internal energy in a cell. The
-runtime parameter controls this ratio. The timestep limiter is
-calculated as
+runtime parameter ``Burn/enucDtFactor`` controls this ratio. The
+timestep limiter is calculated as
 
-.. math:: \Delta t_{burn} = \code{enucDtFactor} \cdot \frac{E_{int}}{E_{nuc}}
+.. math:: \Delta t_{burn} = {\tt enucDtFactor} \cdot \frac{E_{int}}{E_{nuc}}
 
 where :math:`E_{nuc}` is the nuclear energy, expressed as energy per
 volume per time, and :math:`E_{int}` is the internal energy per volume.
-For good coupling between the hydrodynamics and burning, should be
-:math:`< 1`. The default value is kept artificially high so that in most
-simulations the time limiting due to burning is turned off. Care must be
-exercised in the use of this routine.
+For good coupling between the hydrodynamics and burning,
+``enucDtFactor`` should be :math:`< 1`. The default value is kept
+artificially high so that in most simulations the time limiting due to
+burning is turned off. Care must be exercised in the use of this
+routine.

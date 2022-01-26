@@ -1,3 +1,5 @@
+.. include:: defs.h
+
 .. _`Chp:EOS Unit`:
 
 Equation of State Unit
@@ -8,29 +10,31 @@ Equation of State Unit
 Introduction
 ------------
 
-The unit implements the equation of state needed by the hydrodynamics
-and nuclear burning solvers. The function provides the interface for
-operating on a one-dimensional vector. The same interface can be used
-for a single cell by reducing the vector size to 1. Additionally, this
-function can be used to find the thermodynamic quantities either from
-the density, temperature, and composition or from the density, internal
-energy, and composition. For user’s convenience, a wrapper function ()
-is provided, which takes a section of a block and translates it into the
-data format required by the function, then calls the function. Upon
-return from the function, the wrapper translates the returned data back
-to the same section of the block.
+The ``Eos`` unit implements the equation of state needed by the
+hydrodynamics and nuclear burning solvers. The function
+``physics/Eos/Eos`` provides the interface for operating on a
+one-dimensional vector. The same interface can be used for a single cell
+by reducing the vector size to 1. Additionally, this function can be
+used to find the thermodynamic quantities either from the density,
+temperature, and composition or from the density, internal energy, and
+composition. For user’s convenience, a wrapper function
+(``physics/Eos/Eos_wrapped``) is provided, which takes a section of a
+block and translates it into the data format required by the
+``physics/Eos/Eos`` function, then calls the function. Upon return from
+the ``physics/Eos/Eos`` function, the wrapper translates the returned
+data back to the same section of the block.
 
-Four implementations of the () unit are available in the current release
-of : ``Gamma`` which implements a perfect-gas equation of state;
-``Gamma/RHD`` which implements a perfect-gas equation taking
-relativistic effects into account; which implements a perfect-gas
-equation of state with multiple fluids, each of which can have its own
-adiabatic index (:math:`\gamma`); and which uses a fast Helmholtz
-free-energy table interpolation to handle degenerate/relativistic
-electrons/positrons and includes radiation pressure and ions (via the
-perfect gas approximation).
+Four implementations of the (``Eos``) unit are available in the current
+release of |flashx|: ``Gamma`` which implements a perfect-gas equation of
+state; ``Gamma/RHD`` which implements a perfect-gas equation taking
+relativistic effects into account; ``Multigamma`` which implements a
+perfect-gas equation of state with multiple fluids, each of which can
+have its own adiabatic index (:math:`\gamma`); and ``Helmholtz`` which
+uses a fast Helmholtz free-energy table interpolation to handle
+degenerate/relativistic electrons/positrons and includes radiation
+pressure and ions (via the perfect gas approximation).
 
-As described in previous sections, Flash-X evolves the Euler equations
+As described in previous sections, |flashx| evolves the Euler equations
 for compressible, inviscid flow. This system of equations must be closed
 by an additional equation that provides a relation between the
 thermodynamic quantities of the gas. This relationship is known as the
@@ -42,7 +46,7 @@ than :math:`10^9` times during a two-dimensional simulation and more
 than :math:`10^{11}` times during the course of a three-dimensional
 simulation of stellar phenomena. Thus, it is very desirable to have an
 EOS that is as efficient as possible, yet accurately represents the
-relevant physics. While Flash-X is capable of using any general equation
+relevant physics. While |flashx| is capable of using any general equation
 of state, we discuss here the three equation of state routines that are
 supplied: an ideal-gas or gamma-law EOS, an EOS for a fluid composed of
 multiple gamma-law gases, and a tabular Helmholtz free energy EOS
@@ -57,7 +61,7 @@ performance.
 Gamma Law and Multigamma
 ------------------------
 
-Flash-X uses the method of Colella & Glaz (1985) to handle general
+|flashx| uses the method of Colella & Glaz (1985) to handle general
 equations of state. General equations of state contain 4 adiabatic
 indices (Chandrasekhar 1939), but the method of Colella & Glaz
 parameterizes the EOS and requires only two of the adiabatic indices The
@@ -70,9 +74,10 @@ The second relates the pressure to the energy and is given by
 
 .. math:: \label{Eqn:game}\gamma_4 = 1 + \frac{P}{\rho\epsilon} \; .
 
-These two adiabatic indices are stored as the mesh-based variables and .
-All EOS routines must return :math:`\gamma_1`, and :math:`\gamma_4` is
-calculated from `[Eqn:game] <#Eqn:game>`__.
+These two adiabatic indices are stored as the mesh-based variables
+``GAMC_VAR`` and ``GAME_VAR``. All EOS routines must return
+:math:`\gamma_1`, and :math:`\gamma_4` is calculated from
+`[Eqn:game] <#Eqn:game>`__.
 
 The gamma-law EOS models a simple ideal gas with a constant adiabatic
 index :math:`\gamma`. Here we have dropped the subscript on
@@ -134,7 +139,7 @@ for astrophysical problems.
 Helmholtz
 ---------
 
-The Helmholtz EOS provided with the Flash-X distribution contains more
+The Helmholtz EOS provided with the |flashx| distribution contains more
 physics and is appropriate for addressing astrophysical phenomena in
 which electrons and positrons may be relativistic and/or degenerate and
 in which radiation may significantly contribute to the thermodynamic
@@ -246,7 +251,7 @@ in Fryxell *et al.* (2000) and references therein.
 The above formalism requires many complex calculations to evaluate the
 thermodynamic quantities, and routines for these calculations typically
 are designed for accuracy and thermodynamic consistency at the expense
-of speed. The Helmholtz EOS in Flash-X provides a table of the Helmholtz
+of speed. The Helmholtz EOS in |flashx| provides a table of the Helmholtz
 free energy (hence the name) and makes use of a thermodynamically
 consistent interpolation scheme obviating the need to perform the
 complex calculations required of the above formalism during the course
@@ -268,7 +273,7 @@ The Helmholtz free energy,
 
 is the appropriate thermodynamic potential for use when the temperature
 and density are the natural thermodynamic variables. The free energy
-table distributed with Flash-X was produced from the Timmes EOS (Timmes
+table distributed with |flashx| was produced from the Timmes EOS (Timmes
 & Arnett 1999). The Timmes EOS evaluates the Fermi-Dirac integrals
 `[Eqn:eos7] <#Eqn:eos7>`__ and their partial derivatives with respect to
 :math:`\eta` and :math:`\beta` to machine precision with the efficient
@@ -327,30 +332,33 @@ Usage
 Initialization
 ~~~~~~~~~~~~~~
 
-The initialization function of the Eos unit is fairly simple for the two
-ideal gas gamma law implementations included. It gathers the runtime
-parameters and the physical constants needed by the equation of state
-and stores them in the data module. The Helmholtz EOS routine is a
-little more complex. The EOS requires an input file that contains the
-lookup table for the electron contributions. This table is currently
-stored in ASCII for portability purposes. When the table is first read
-in, a binary version called is created. This binary format can be used
-for faster subsequent restarts on the same machine but may not be
-portable across platforms. The routine reads in the table data on
-processor 0 and broadcasts it to all other processors.
+The initialization function of the Eos unit ``physics/Eos/Eos_init`` is
+fairly simple for the two ideal gas gamma law implementations included.
+It gathers the runtime parameters and the physical constants needed by
+the equation of state and stores them in the data module. The Helmholtz
+EOS ``physics/Eos/Eos_init`` routine is a little more complex. The
+``Helmholtz`` EOS requires an input file ``helm_table.dat`` that
+contains the lookup table for the electron contributions. This table is
+currently stored in ASCII for portability purposes. When the table is
+first read in, a binary version called ``helm_table.bdat`` is created.
+This binary format can be used for faster subsequent restarts on the
+same machine but may not be portable across platforms. The ``Eos_init``
+routine reads in the table data on processor 0 and broadcasts it to all
+other processors.
 
 .. _`Sec:Eos Runtime Parameters`:
 
 Runtime Parameters
 ~~~~~~~~~~~~~~~~~~
 
-Runtime parameters for the unit require the user to set the
-thermodynamic properties for the single gas. , , set the ratio of
+Runtime parameters for the ``Gamma`` unit require the user to set the
+thermodynamic properties for the single gas. ``Eos/gamma``,
+``Eos/eos_singleSpeciesA``, ``Eos/eos_singleSpeciesZ`` set the ratio of
 specific heats and the nucleon and proton numbers for the gas. In
-contrast, the implementation does not set runtime parameters to define
-properties of the multiple species. Instead, the simulation file
-indicates the requested species, for example helium and oxygen can be
-defined as
+contrast, the ``Multigamma`` implementation does not set runtime
+parameters to define properties of the multiple species. Instead, the
+simulation ``Config`` file indicates the requested species, for example
+helium and oxygen can be defined as
 
 .. container:: center
 
@@ -359,7 +367,8 @@ defined as
       SPECIES HE4
       SPECIES O16
 
-The properties of the gases are initialized in the file , for example
+The properties of the gases are initialized in the file
+``Simulation/Simulation_initSpecies``\ ``.F90``, for example
 
 .. container:: center
 
@@ -381,22 +390,24 @@ The properties of the gases are initialized in the file , for example
 For the Helmholtz equation of state, the table-lookup algorithm requires
 a given temperature and density. When temperature or internal energy are
 supplied as the input parameter, an iterative solution is found.
-Therefore, no matter what mode is selected for input, the best initial
-value of temperature should be provided to speed convergence of the
-iterations. The iterative solver is controlled by two runtime parameters
-and which define the maximum number of iterations and convergence
-tolerance. An additional runtime parameter for , , indicates whether or
-not to apply Coulomb corrections. In some regions of the
-:math:`\rho`-:math:`T` plane, the approximations made in the Coulomb
-corrections may be invalid and result in negative pressures. When the
-parameter is set to zero, the Coulomb corrections are not applied.
+Therefore, no matter what mode is selected for ``Helmholtz`` input, the
+best initial value of temperature should be provided to speed
+convergence of the iterations. The iterative solver is controlled by two
+runtime parameters ``Eos/eos_maxNewton`` and ``Eos/eos_tolerance`` which
+define the maximum number of iterations and convergence tolerance. An
+additional runtime parameter for ``Helmholtz``, ``Eos/eos_coulumbMult``,
+indicates whether or not to apply Coulomb corrections. In some regions
+of the :math:`\rho`-:math:`T` plane, the approximations made in the
+Coulomb corrections may be invalid and result in negative pressures.
+When the parameter ``eos_coulombMult`` is set to zero, the Coulomb
+corrections are not applied.
 
 .. _`Sec:Eos Wrapper`:
 
 Direct and Wrapped Calls
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The primary function in the Eos unit operates on a vector, taking
+The primary function in the ``Eos`` unit operates on a vector, taking
 density, composition, and either temperature, internal energy, or
 pressure as input, and returning :math:`\gamma_1`, and either the
 pressure, temperature or internal energy (whichever was not used as
@@ -407,12 +418,12 @@ data format is more efficient than calling the equation of state routine
 directly on a point by point basis, since it permits pipelining and
 provides better cache performance. Certain optional quantities such
 electron pressure, degeneracy parameter, and thermodynamic derivatives
-can be calculated by the function if needed. These quantities are
-selected for computation based upon a logical mask array provided as an
-input argument. A .true. value in the mask array results in the
-corresponding quantity being computed and reported back to the calling
-function. Examples of calling the basic implementation are provided in
-the API description, see .
+can be calculated by the ``physics/Eos/Eos`` function if needed. These
+quantities are selected for computation based upon a logical mask array
+provided as an input argument. A .true. value in the mask array results
+in the corresponding quantity being computed and reported back to the
+calling function. Examples of calling the basic implementation ``Eos``
+are provided in the API description, see ``physics/Eos/Eos``.
 
 The hydrodynamic and burning computations repeatedly call the Eos
 function to update pressure and temperature during the course of their
@@ -420,15 +431,16 @@ calculation. Typically, values in all the cells of the block need of be
 updated in these calls. Since the primary Eos interface requires the
 data to be organized as a vector, using it directly could make the code
 in the calling unit very cumbersome and error prone. The wrapper
-interface, provides a means by which the details of translating the data
-from block to vector and back are hidden from the calling unit. The
-wrapper interface permits the caller to define a section of block by
-giving the limiting indices along each dimension. The routine translates
-the block section thus described into the vector format of the
-interface, and upon return translates the vector format back to the
-block section. This wrapper routine cannot calculate the optional
-derivative quantities. If they are needed, call the routine directly
-with the optional mask set to true and space allocated for the returned
+interface, ``physics/Eos/Eos_wrapped`` provides a means by which the
+details of translating the data from block to vector and back are hidden
+from the calling unit. The wrapper interface permits the caller to
+define a section of block by giving the limiting indices along each
+dimension. The ``Eos_wrapped`` routine translates the block section thus
+described into the vector format of the ``physics/Eos/Eos`` interface,
+and upon return translates the vector format back to the block section.
+This wrapper routine cannot calculate the optional derivative
+quantities. If they are needed, call the ``Eos`` routine directly with
+the optional mask set to true and space allocated for the returned
 quantities.
 
 .. _`Sec:Eos Unit Test`:
@@ -439,22 +451,25 @@ Unit Test
 The unit test of the Eos function can exercise all three
 implementations. Because the Gamma law allows only one species, the
 setup required for the three implementations is specific. To invoke any
-three-dimensional Eos unit test, the command is:
+three-dimensional ``Eos`` unit test, the command is:
 
-where is one of , , . The Eos unit test works on the assumption that if
-the four physical variables in question (density, pressure, energy and
+   ``./setup unitTest/Eos/``\ *implementation* ``-auto -3d``
+
+where *implementation* is one of ``Gamma``, ``Multigamma``,
+``Helmholtz``. The ``Eos`` unit test works on the assumption that if the
+four physical variables in question (density, pressure, energy and
 temperature) are in thermal equilibrium with one another, then applying
 the equation of state to any two of them should leave the other two
 completely unchanged. Hence, if we initialize density and temperature
-with some arbitrary values, and apply the equation of state to them in ,
-then we should get pressure and energy values that are thermodynamically
-consistent with density and temperature. Now after saving the original
-temperature value, we apply the equation of state to density and newly
-calculated pressure. The new value of the temperature should be
-identical to the saved original value. This verifies that the Eos unit
-is computing correctly in mode. By repeating this process for the
-remaining two modes, we can say with great confidence that the Eos unit
-is functioning normally.
+with some arbitrary values, and apply the equation of state to them in
+``MODE_DENS_TEMP``, then we should get pressure and energy values that
+are thermodynamically consistent with density and temperature. Now after
+saving the original temperature value, we apply the equation of state to
+density and newly calculated pressure. The new value of the temperature
+should be identical to the saved original value. This verifies that the
+``Eos`` unit is computing correctly in ``MODE_DENS_PRES`` mode. By
+repeating this process for the remaining two modes, we can say with
+great confidence that the ``Eos`` unit is functioning normally.
 
 In our implementation of the Eos unit test, the initial conditions
 applied to the domain create a gradient for density along the :math:`x`

@@ -1,7 +1,9 @@
-The Configuration Toolchain
-=======================
+.. include:: defs.h
 
-This section covers the structure of Flash-X configuration toolchain.
+The Configuration Toolchain
+===========================
+
+This section covers the structure of |flashx| configuration toolchain.
 
 
 .. toctree::

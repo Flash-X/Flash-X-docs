@@ -1,34 +1,24 @@
+.. include:: defs.h
+
 .. _`Chp:Architecture`:
 
-Architecture
-========================
+Overview of |flashx| architecture
+================================
 
-Flash-X has a component based architecture where
-different permutations and combinations of various components generate
-different applications. The code has hierarchy in its components. At
-the top level are *Units* that implement a specific
-functionality. They are equivalent of *Classes* in object oriented
-models without explicitly making use of the Class construct. The
-reason is both a design choice and historical. Through a somewhat
-loose interpretation of classes it is possible to obtain arbitrary
-granularities in components without cumbersome inheritance
-structure. And it allows legacy components to become compatible with
-the code architecture by attaching meta information to them without
-having to modify the code itself. Units publish a high level API
-through which any code outside of the Unit interacts with them. 
-Units can have *subunits* where each subunit implements a subset of
-the Unit's API such that the union of all subunits covers the whole
-API of the Unit. Subunits cover disjointed sets of API in that the
-subset of API implemented by a subunit is unique to it. Below subunit
-level the code components are not given any specific name. For
-convenience heretofore they will be referred to as *components* with
-the understanding that they represent the unix subtree in the source starting at
-their path.
+|flashx| is a component based software system where different
+permutations and combinations of various components generate different
+applications. Some aspects of |flashx| architecture are adapted from
+|flash| :raw-latex:`\cite{Dubey2009}`, but it is fundamentally a new
+software with a new architecture designed for use with heterogeneous
+platforms. Portability on heterogeneous platforms is achieved through an
+**orchestration system** (``ORS``), comprised of three sets of tools:
+the **configuration tools** (``CFT``), **code translators** (``CT``) and
+the **orchestration runtime** subsystem (``OR``).
 
-The include a configuration domain specific language (DSL) for program
-synthesis through assembly, and a key-value dictionary with a
+The ``CFT`` include a configuration domain specific language (DSL) for
+program synthesis through assembly, and a key-value dictionary with a
 correspoding translator *macroprocessor*. The configuration toolchain
-takes its inspiration from the *setup tool* of FLASH which has been used
+takes its inspiration from the *setup tool* of |flash| which has been used
 to implement composability at the level of major functionalities in the
 code. The setup tool interprets the configuration (DSL), which encode
 metadata about each component and subcomponent of the code in a
@@ -48,34 +38,36 @@ metaprogramming tools such as Kokkos and Raja that permits maintenance
 of single source code that can be specialized for target devices as
 needed.
 
-The enable the maintained source code to be augmented with performance
-hints in the form of native directives. Another DSL has been built for
-expressing *recipies* for overall control flow of the simulation. The
-recipes replace the timestepper functionality because control flow
-during evolution of solution now may involve offloading work and data to
-different devices, therefore, simple drivers are no longer adequate. The
-have two tasks: (1) parse the directives for optimization within the
-physics operators; and (2) to translate the recipe into a data flow
-description of the execution suitable for the . The then uses this
-generated information to orchestrate computation and data movement
-between devices as needed. The overarching design principle of the is to
-enable both domain-specific knowledge and platform knowledge to be
-utilized in application configuration without placing undue burden on
-either the tool developers or the domain experts.
+The ``CT``\ enable the maintained source code to be augmented with
+performance hints in the form of |flashx| native directives. Another DSL
+has been built for expressing *recipies* for overall control flow of the
+simulation. The recipes replace the timestepper functionality because
+control flow during evolution of solution now may involve offloading
+work and data to different devices, therefore, simple drivers are no
+longer adequate. The ``CT``\ have two tasks: (1) parse the |flashx|
+directives for optimization within the physics operators; and (2) to
+translate the recipe into a data flow description of the execution
+suitable for the ``OR``. The ``OR`` then uses this generated information
+to orchestrate computation and data movement between devices as needed.
+The overarching design principle of the ``ORS`` is to enable both
+domain-specific knowledge and platform knowledge to be utilized in
+application configuration without placing undue burden on either the
+tool developers or the domain experts.
 
-The exposes the hierarchy of data motion and allocations deep within the
-components of the applications and separates them from the arithmetic
-and logic implementing the numerical method. On the platform hardware
-side, they expose the hierarchical parallelism of a given platform’s
-hardware through appropriately designed interfaces. The objective of
-this exercise is to enable the software to take maximal advantage of the
-exposed parallelism in hardware without having to alter the arithmetic.
-The directives serve the purpose of letting the code translators know
-which kind of transformations are safe for specific devices. Some
-program synthesis is involved in the process that can take several
-passes of code generation. Similar to the code expression, the offline
-tools themselves subscribe to separation of concerns in the sense that
-each tool addresses itself to a very focused program synthesis step.
+The ``ORS`` exposes the hierarchy of data motion and allocations deep
+within the components of the applications and separates them from the
+arithmetic and logic implementing the numerical method. On the platform
+hardware side, they expose the hierarchical parallelism of a given
+platform’s hardware through appropriately designed interfaces. The
+objective of this exercise is to enable the software to take maximal
+advantage of the exposed parallelism in hardware without having to alter
+the arithmetic. The directives serve the purpose of letting the code
+translators know which kind of transformations are safe for specific
+devices. Some program synthesis is involved in the process that can take
+several passes of code generation. Similar to the code expression, the
+offline tools themselves subscribe to separation of concerns in the
+sense that each tool addresses itself to a very focused program
+synthesis step.
 
 We begin by casting every non-trivial function in the physics operators
 of the code as a collection of code blocks. Some code blocks may be
@@ -90,7 +82,7 @@ meta-programming in C++ where a single expression of an algorithm can
 have specializations through alternative definitions of the key (see for
 details).
 
-The information encoded in the directives is utilized by the to
+The information encoded in the directives is utilized by the ``CT``\ to
 determine which code blocks can be treated as kernels on devices such as
 accelerators, which code blocks can have overlapped computation with
 other code blocks, which code blocks can be queued sequentially so that
@@ -114,49 +106,49 @@ runtime overheads. Also, by design, every step in program synthesis is
 human-readable to facilitate both correctness-debugging and
 performance-debugging.
 
-The design goal of the is to develop a base set of runtime elements,
-such as thread teams, that can be composed at runtime into **thread team
-configurations** in ways that maximize the efficient use of the node.
-For a given simulation, the operates with :math:`N` thread teams that
-are created when the simulation starts and persist until the simulation
-terminates, where each team is allowed to simultaneously use at most
-:math:`M` threads at any given time. The thread teams are run in cycles
-such that for each cycle a team is assigned an action routine and a data
-type. Examples of data types are tiles, blocks, and data packets of
-blocks. Upon starting a cycle, the team is given data items of the
-appropriate type and the threads of the team work in a coordinated
-fashion so that the given action is applied to each data item once. The
-cycle ends once the team has been informed that no more data items will
-be given and the action has been applied to all given data items. In our
-design, the pairing of the action with data items is viewed as a task so
-that thread teams implement task-based parallelism *via* thread-level
-parallelism. While the threads in the team execute code in the host,
-they can also be used to launch kernels in accelerators and therefore
-make use of finer-grained parallelism. Ideally, the data type assigned
-to a thread team for a given action will be chosen based on the hardware
-that the action routine has been written to use. For instance, a tile
-would be a sensible data type for executing an action routine that uses
-the CPU for heavy computation or a data packet of blocks for a routine
-that launches kernels on a remote device with its own memory system.
-While it might have been possible to adapt existing tools such as Legion
-:raw-latex:`\cite{legion}` for some of the functionality we are aiming
-for, we have opted for an end-to-end domain specific solution that has
-simple enough tools that even a small team can customize and maintain
-with their own code. Additionally, our orchestration system is
-absolutely language agnostic, even though we are exercising it with
-Fortran.
+The design goal of the ``OR`` is to develop a base set of runtime
+elements, such as thread teams, that can be composed at runtime into
+**thread team configurations** in ways that maximize the efficient use
+of the node. For a given simulation, the ``OR`` operates with :math:`N`
+thread teams that are created when the simulation starts and persist
+until the simulation terminates, where each team is allowed to
+simultaneously use at most :math:`M` threads at any given time. The
+thread teams are run in cycles such that for each cycle a team is
+assigned an action routine and a data type. Examples of data types are
+tiles, blocks, and data packets of blocks. Upon starting a cycle, the
+team is given data items of the appropriate type and the threads of the
+team work in a coordinated fashion so that the given action is applied
+to each data item once. The cycle ends once the team has been informed
+that no more data items will be given and the action has been applied to
+all given data items. In our design, the pairing of the action with data
+items is viewed as a task so that thread teams implement task-based
+parallelism *via* thread-level parallelism. While the threads in the
+team execute code in the host, they can also be used to launch kernels
+in accelerators and therefore make use of finer-grained parallelism.
+Ideally, the data type assigned to a thread team for a given action will
+be chosen based on the hardware that the action routine has been written
+to use. For instance, a tile would be a sensible data type for executing
+an action routine that uses the CPU for heavy computation or a data
+packet of blocks for a routine that launches kernels on a remote device
+with its own memory system. While it might have been possible to adapt
+existing tools such as Legion :raw-latex:`\cite{legion}` for some of the
+functionality we are aiming for, we have opted for an end-to-end domain
+specific solution that has simple enough tools that even a small team
+can customize and maintain with their own code. Additionally, our
+orchestration system is absolutely language agnostic, even though we are
+exercising it with Fortran.
 
 Note that no part of this design limits itself to using manually built
 task graphs nor requires extreme simplicity in them. The interfaces are
-designed to be robust enough that the can also execute complex task
-graphs. By disassociating the executor of the graph from the generator,
-we have ensured that in the future, we will be able to use automation in
-task graph generation without having to alter the mechanics of the . All
-the heavy lifting of analysis and scheduling can be done separately in
-the generator which never needs to interface with the executor. We
-believe that this model of combination of program synthesis with
-orthogonal composition concepts will have longevity because of its
-ability to adapt to new systems incrementally.
+designed to be robust enough that the ``OR`` can also execute complex
+task graphs. By disassociating the executor of the graph from the
+generator, we have ensured that in the future, we will be able to use
+automation in task graph generation without having to alter the
+mechanics of the ``OR``. All the heavy lifting of analysis and
+scheduling can be done separately in the generator which never needs to
+interface with the executor. We believe that this model of combination
+of program synthesis with orthogonal composition concepts will have
+longevity because of its ability to adapt to new systems incrementally.
 
 .. _s.trans:
 
@@ -184,17 +176,17 @@ translator will read all ‘.ini’ files in the directory, then process all
 
 .. _`Sec:Inheritance`:
 
-Inheritance
------------
+|flashx| Inheritance
+-------------------
 
-inheritance is implemented through the Unix directory structure and the
-setup tool. When the tool parses the source tree, it treats each child
-or subdirectory as inheriting all of the Config and Makefile files in
-its parent’s directory. While source files at a given level of the
-directory hierarchy override files with the same name at higher levels,
-Makefiles and configuration files are cumulative. Since functions can
-have multiple implementations, selection for a specific application
-follows a few simple rules applied in order described in
+|flashx| inheritance is implemented through the Unix directory structure
+and the setup tool. When the ``setup`` tool parses the source tree, it
+treats each child or subdirectory as inheriting all of the Config and
+Makefile files in its parent’s directory. While source files at a given
+level of the directory hierarchy override files with the same name at
+higher levels, Makefiles and configuration files are cumulative. Since
+functions can have multiple implementations, selection for a specific
+application follows a few simple rules applied in order described in
 
 However, we must take care that this special use of the directory
 structure for inheritance does not interfere with its traditional use
@@ -207,22 +199,27 @@ namespace directories. See for naming conventions.
 Unit Test Framework
 -------------------
 
-In keeping with good software practice, incorporates a unit test
+In keeping with good software practice, |flashx| incorporates a unit test
 framework that allows for rigorous testing and easy isolation of errors.
 The components of the unit test show up in two different places in the
-source tree. One is a dedicated path in the unit, , where is the name of
-a specific unit test. The other place is a subdirectory called ,
-somewhere in the hierarchy of the corresponding unit which implements a
-function and any helper functions it may need. The primary reason for
-organizing unit tests in this somewhat confusing way is that unit tests
-are special cases of simulation setups that also need extensive access
-to internal data of the unit being tested. By splitting the unit test
-into two places, it is possible to meet both requirements without
-violating unit encapsulation. We illustrate the functioning of the unit
-test framework with the unit test of the Eos unit. For more details
-please see . The Eos unit test needs its own version of the routine
-which makes a call to its routine. The initial conditions specification
-and unit test specific are placed in , since the Simulation unit allows
-any substitute function to be placed in the specific simulation
-directory. The function resides in , and therefore has access to all
-internal Eos data structures and helper functions.
+|flashx| source tree. One is a dedicated path in the ``Simulation`` unit,
+``Simulation/SimulationMain/unitTest/UnitTestName``, where
+*UnitTestName* is the name of a specific unit test. The other place is a
+subdirectory called ``unitTest``, somewhere in the hierarchy of the
+corresponding unit which implements a function ``Unit_unitTest`` and any
+helper functions it may need. The primary reason for organizing unit
+tests in this somewhat confusing way is that unit tests are special
+cases of simulation setups that also need extensive access to internal
+data of the unit being tested. By splitting the unit test into two
+places, it is possible to meet both requirements without violating unit
+encapsulation. We illustrate the functioning of the unit test framework
+with the unit test of the ``Eos`` unit. For more details please see .
+The ``Eos`` unit test needs its own version of the routine
+``Driver/Driver_evolveFlash`` which makes a call to its ``Eos_unitTest``
+routine. The initial conditions specification and unit test specific
+``Driver_evolveFlash`` are placed in
+``Simulation/SimulationMain/unitTest/Eos``, since the ``Simulation``
+unit allows any substitute |flashx| function to be placed in the specific
+simulation directory. The function ``Eos_unitTest`` resides in
+``physics/Eos/unitTest``, and therefore has access to all internal
+``Eos`` data structures and helper functions.

@@ -1,77 +1,88 @@
+.. include:: defs.h
+
 .. _`Sec:visit`:
 
 VisIt
 =====
 
-The developers of also highly recommend VisIt, a free parallel
-interactive visualization package provided by Lawrence Livermore
-National Laboratory (see https://wci.llnl.gov/codes/visit/). VisIt runs
-on Unix and PC platforms, and can handle small desktop-size datasets as
-well as very large parallel datasets in the terascale range. VisIt
-provides a native reader to import and . Version 1.10 and higher
-natively support . For VisIt versions 1.8 or less, support can be
-obtained by installing a tarball patch available at
+The developers of ``|flashx|`` also highly recommend VisIt, a free
+parallel interactive visualization package provided by Lawrence
+Livermore National Laboratory (see https://wci.llnl.gov/codes/visit/).
+VisIt runs on Unix and PC platforms, and can handle small desktop-size
+datasets as well as very large parallel datasets in the terascale range.
+VisIt provides a native reader to import ``|flashx|2.5`` and |flashx|.
+Version 1.10 and higher natively support |flashx|. For VisIt versions 1.8
+or less, |flashx| support can be obtained by installing a tarball patch
+available at
 http://flash.uchicago.edu/site/flashcode/user_support/visit/. Full
 instructions are also available at that site.
 
 .. _`Chp:sfocu`:
 
-Serial Flash-X Output Comparison Utility ()
-===========================================
+Serial |flashx| Output Comparison Utility (``sfocu``)
+====================================================
 
-(Serial Flash Output Comparison Utility) is mainly used as part of an
-automated testing suite called and was introduced in Flash-X version 2.0
-as a replacement for focu.
+``Sfocu`` (Serial Flash Output Comparison Utility) is mainly used as
+part of an automated testing suite called ``flashTest`` and was
+introduced in |flashx| version 2.0 as a replacement for focu.
 
-is a serial utility which examines two Flash-X checkpoint files and
-decides whether or not they are “equal” to ensure that any changes made
-to Flash-X do not adversely affect subsequent simulation output. By
-“equal”, we mean that
+``Sfocu`` is a serial utility which examines two |flashx| checkpoint
+files and decides whether or not they are “equal” to ensure that any
+changes made to |flashx| do not adversely affect subsequent simulation
+output. By “equal”, we mean that
 
 -  The leaf-block structure matches – each leaf block must have the same
    position and size in both datasets.
 
--  The data arrays in the leaf blocks (, ...) are identical.
+-  The data arrays in the leaf blocks (``dens``, ``pres``...) are
+   identical.
 
 -  The number of particles are the same, and all floating point particle
    attributes are identical.
 
-Thus, ignores information such as the particular numbering of the blocks
-and particles, the timestamp, the build information, and so on.
+Thus, ``sfocu`` ignores information such as the particular numbering of
+the blocks and particles, the timestamp, the build information, and so
+on.
 
-can read and Flash-X checkpoint files. Although is a serial program, it
-is able to do comparisons on the output of large parallel simulations.
-``Sfocu`` has been used on irix, linux, AIX and OSF1.
+``Sfocu`` can read ``HDF5`` and ``PnetCDF`` |flashx| checkpoint files.
+Although ``sfocu`` is a serial program, it is able to do comparisons on
+the output of large parallel simulations. ``Sfocu`` has been used on
+irix, linux, AIX and OSF1.
 
 .. _`Sec:building sfocu`:
 
-Building 
---------
+Building ``sfocu``
+------------------
 
 The process is entirely manual, although Makefiles for certain machines
 have been provided. There are a few compile-time options which you set
 via the following preprocessor definitions in the Makefile (in the
-macro):
+``CDEFINES`` macro):
 
+``NO_HDF5``
    build without HDF5 support
 
+``NO_NCDF``
    build without PnetCDF support
 
+``NEED_MPI``
    certain parallel versions of HDF5 and all versions of PnetCDF need to
-   be linked with the MPI library. This adds the necessary and calls to
-   . There is no advantage to running on more than one processor; it
-   will only give you multiple copies of the same report.
+   be linked with the MPI library. This adds the necessary ``MPI_Init``
+   and ``MPI_Finalize`` calls to ``sfocu``. There is no advantage to
+   running ``sfocu`` on more than one processor; it will only give you
+   multiple copies of the same report.
 
 .. _`Sec:using sfocu`:
 
-Using 
------
+Using ``sfocu``
+---------------
 
-The basic and most common usage is to run the command . The option
-allows a distance tolerance in comparing bounding boxes of blocks in two
-different files to determine which are the same (which have data to
-compare to one another). You might need to widen your terminal to view
-the output, since it can be over 80 columns. Sample output follows:
+The basic and most common usage is to run the command
+``sfocu <file1> <file2>``. The option ``-t <dist>`` allows a distance
+tolerance in comparing bounding boxes of blocks in two different files
+to determine which are the same (which have data to compare to one
+another). You might need to widen your terminal to view the output,
+since it can be over 80 columns. Sample output follows:
 
    .. container:: tiny
 
@@ -130,13 +141,13 @@ are defined in the output above. In addition, the last six columns
 report the sum, maximum and minimum of the variables in the two files.
 Note that the sum is physically meaningless, since it is not
 volume-weighted. Finally, the last line permits other programs to parse
-the output easily: when the files are identical, the line will instead
-read .
+the ``sfocu`` output easily: when the files are identical, the line will
+instead read ``SUCCESS``.
 
-It is possible for to miss machine-precision variations in the data on
-certain machines because of compiler or library issues, although this
-has only been observed on one platform, where the compiler produced code
-that ignored IEEE rules until the right flag was found.
+It is possible for ``sfocu`` to miss machine-precision variations in the
+data on certain machines because of compiler or library issues, although
+this has only been observed on one platform, where the compiler produced
+code that ignored IEEE rules until the right flag was found.
 
 .. _`Chp:drift`:
 
@@ -146,7 +157,7 @@ Drift
 Introduction
 ------------
 
-Drift is a debugging tool added to Flash-X to help catch programming
+Drift is a debugging tool added to |flashx| to help catch programming
 mistakes that occur while refactoring code in a way that *should not*
 change numerical behavior. Historically, simulation checkpoints have
 been used to verify that results obtained after a code modification have
@@ -157,24 +168,25 @@ sequentially. The first pair to compare unequal will tell you that
 somewhere between that checkpoint and its immediate predecessor
 something in the code changed the numerics. Therefor, the search space
 can only be narrowed to the limit allow by the checkpointing interval,
-which in Flash-X, without clever calls to IO sprinkled about, is at best
+which in |flashx|, without clever calls to IO sprinkled about, is at best
 once per time cycle.
 
 Drift aims to refine that granularity considerably by allowing
 comparisons to be made upon every modification to a block’s contents. To
-achieve this, drift intercepts calls to , and inserts into them a step
-to checksum each of the variables stored on the block. Any checksums
-that do not match with respect to the last checksums recorded for that
-block are logged to a text file along with the source file and line
-number. The developer can then compare two drift logs generated by the
-different runs using to find the first log entry that generates unequal
-checksums, thus telling the developer which call to first witnessed
-divergent values.
+achieve this, drift intercepts calls to ``Grid_releaseBlkPtr``, and
+inserts into them a step to checksum each of the variables stored on the
+block. Any checksums that do not match with respect to the last
+checksums recorded for that block are logged to a text file along with
+the source file and line number. The developer can then compare two
+drift logs generated by the different runs using ``diff`` to find the
+first log entry that generates unequal checksums, thus telling the
+developer which call to ``Grid_releaseBlkPtr`` first witnessed divergent
+values.
 
 The following are example excerpts from two drift logs. Notice the
-checksum value has changed for variable on block 18. This should clue
-the developer in that the cause of divergent behavior lies somewhere
-between and .
+checksum value has changed for variable ``dens`` on block 18. This
+should clue the developer in that the cause of divergent behavior lies
+somewhere between ``Eos_wrapped.F90:249`` and ``hy_ppm_sweep.F90:533``.
 
 +----------------------------------+----------------------------------+
 | .. container:: scriptsize        | .. container:: scriptsize        |
@@ -205,113 +217,140 @@ between and .
 Enabling drift
 --------------
 
-In Flash-X, drift is disabled by default. Enabling drift is done by hand
+In |flashx|, drift is disabled by default. Enabling drift is done by hand
 editing the Simulation.h file generated by the setup process. The
-directive line should be changed to . Once this has been changed, a
-recompilation will be necessary by executing .
+directive line ``#define DRIFT_ENABLE 0`` should be changed to
+``#define DRIFT_ENABLE 1``. Once this has been changed, a recompilation
+will be necessary by executing ``make``.
 
-With drift enabled, the Flash-X executable will generate log files in
-the same directory it is executed in. These files will be named , one
-for each MPI process.
+With drift enabled, the |flashx| executable will generate log files in
+the same directory it is executed in. These files will be named
+``drift.<rank>.log``, one for each MPI process.
 
 The following runtime parameters are read by drift to control its
 behavior:
 
-+-----------+---------+----------------------------------------------+
-| Parameter | Default | Description                                  |
-+===========+=========+==============================================+
-|           | 2       | The number of least significant mantissa     |
-|           |         | bits to zero out before hashing a floating   |
-|           |         | point value. This can be used to stop        |
-|           |         | numerical noise from altering checksum       |
-|           |         | values.                                      |
-+-----------+---------+----------------------------------------------+
-|           | 0       | The instance index at which drift should     |
-|           |         | start logging checksums per call to . Before |
-|           |         | this instance is hit, only user calls to     |
-|           |         | will generate log data. A value of zero      |
-|           |         | means never log checksums per block.         |
-|           |         | Instance counting is described below.        |
-+-----------+---------+----------------------------------------------+
-|           | .false. | A boolean switch indicating if drift should  |
-|           |         | write logs in the more human readable        |
-|           |         | "non-tuples" format or the machine friendly  |
-|           |         | "tuples" format that can be read in by the   |
-|           |         | script found in the directory. Generally the |
-|           |         | "non-tuples" format is a better choice to    |
-|           |         | use with tools such as .                     |
-+-----------+---------+----------------------------------------------+
++--------------------------+---------+----------------------------+
+| Parameter                | Default | Description                |
++==========================+=========+============================+
+| ``drift_trunc_mantissa`` | 2       | The number of least        |
+|                          |         | significant mantissa bits  |
+|                          |         | to zero out before hashing |
+|                          |         | a floating point value.    |
+|                          |         | This can be used to stop   |
+|                          |         | numerical noise from       |
+|                          |         | altering checksum values.  |
++--------------------------+---------+----------------------------+
+| ``drift_verbose_inst``   | 0       | The instance index at      |
+|                          |         | which drift should start   |
+|                          |         | logging checksums per call |
+|                          |         | to ``Grid_releaseBlkPtr``. |
+|                          |         | Before this instance is    |
+|                          |         | hit, only user calls to    |
+|                          |         | ``Driver_driftUnk`` will   |
+|                          |         | generate log data. A value |
+|                          |         | of zero means never log    |
+|                          |         | checksums per block.       |
+|                          |         | Instance counting is       |
+|                          |         | described below.           |
++--------------------------+---------+----------------------------+
+| ``drift_tuples``         | .false. | A boolean switch           |
+|                          |         | indicating if drift should |
+|                          |         | write logs in the more     |
+|                          |         | human readable             |
+|                          |         | "non-tuples" format or the |
+|                          |         | machine friendly "tuples"  |
+|                          |         | format that can be read in |
+|                          |         | by the ``driftDee`` script |
+|                          |         | found in the ``tools/``    |
+|                          |         | directory. Generally the   |
+|                          |         | "non-tuples" format is a   |
+|                          |         | better choice to use with  |
+|                          |         | tools such as ``diff``.    |
++--------------------------+---------+----------------------------+
 
 Typical workflow
 ----------------
 
 Drift has two levels of output verbosity, let us refer to them as
 verbose and not verbose. When in non-verbose mode, drift will only
-generate output when directly told to do so through the API call. This
-call tells drift to generate a checksum for each variable over all
-blocks in the domain and then log those checksums that have changed
-since the last call to . Verbose mode also generates this information
-and additionally includes the per-block checksums for every call to .
-Verbose mode can generate *a lot* of log data and so should only be
-activated when the simulation nears the point at which divergence
-originates. This is the reason for the runtime parameter.
+generate output when directly told to do so through the
+``Driver_driftUnk`` API call. This call tells drift to generate a
+checksum for each ``unk`` variable over all blocks in the domain and
+then log those checksums that have changed since the last call to
+``Driver_driftUnk``. Verbose mode also generates this information and
+additionally includes the per-block checksums for every call to
+``Grid_releaseBlkPtr``. Verbose mode can generate *a lot* of log data
+and so should only be activated when the simulation nears the point at
+which divergence originates. This is the reason for the
+``drift_verbose_inst`` runtime parameter.
 
 Drift internally maintains an "instance" counter that is incremented
-with every intercepted call to . This is drift’s way of enumerating the
-program states. When comparing two drift logs, if the first checksum
-discrepancy occurs at instance number 1349 (arbitrary), then it is clear
-that somewhere between the 1348’th and 1349’th call to a divergent event
-occurred.
+with every intercepted call to ``Grid_releaseBlkPtr``. This is drift’s
+way of enumerating the program states. When comparing two drift logs, if
+the first checksum discrepancy occurs at instance number 1349
+(arbitrary), then it is clear that somewhere between the 1348’th and
+1349’th call to ``Grid_releaseBlkPtr`` a divergent event occurred.
 
 The suggested workflow once drift is enabled is to first run both
-simulations with verbose mode off (=0). The main implementations have
-calls to between all calls to Flash-X unit advancement routines. So the
-default behavior of drift will generate multiple unk-wide checksums for
-each variable per timestep. These two drift logs should be compared to
-find the first entry with a mismatched checksum. Each entry generated by
-will contain an instance range like in the following:
+simulations with verbose mode off (``dirft_verbse_inst``\ =0). The main
+``Driver_evolveFlash`` implementations have calls to ``Driver_driftUnk``
+between all calls to |flashx| unit advancement routines. So the default
+behavior of drift will generate multiple unk-wide checksums for each
+variable per timestep. These two drift logs should be compared to find
+the first entry with a mismatched checksum. Each entry generated by
+``Driver_driftUnk`` will contain an instance range like in the
+following:
 
 .. container:: codeseg
 
    step=1 from=Driver_evolveFlash.F90:276 unks inst=1234 to 2345 dens
    9CF3C169A5BB129C eint 9573173C3B51CD12 ener 028A5D0DED1BC399 ...
 
-The line "" informs us these checksums were generated sometime after the
-2345’th call to . Assume this entry is the first such entry to not match
-checksums with its counterpart. Then we know that somewhere between
-instance 1234 and 2345 divergence began. So we set in the runtime
-parameters file of each simulation and then run them both again. Now
-drift will run up to instance 1234 as before, only printing at calls to
-, but starting with instance 1234 each call to will induce a per block
-checksum to be logged as well. Now these two drift files can be compared
-to find the first difference, and hopefully get you on your way to
-hunting down the cause of the bug.
+The line "``unks inst=1349 to 2345``" informs us these checksums were
+generated sometime after the 2345’th call to ``Grid_releaseBlkPtr``.
+Assume this entry is the first such entry to not match checksums with
+its counterpart. Then we know that somewhere between instance 1234 and
+2345 divergence began. So we set ``drift_verbose_inst = 1234`` in the
+runtime parameters file of each simulation and then run them both again.
+Now drift will run up to instance 1234 as before, only printing at calls
+to ``Driver_driftUnk``, but starting with instance 1234 each call to
+``Grid_releaseBlkPtr`` will induce a per block checksum to be logged as
+well. Now these two drift files can be compared to find the first
+difference, and hopefully get you on your way to hunting down the cause
+of the bug.
 
 Caveats and Annoyances
 ----------------------
 
-The machinery drift uses to intercept calls to is lacking in
-sophistication, and as such can put some unwanted constraints on the
-code base. The technique used is to declare a preprocessor in to expand
-occurrences of to something larger that includes and . This is how drift
-is able to correlate calls to with the originating line of source code.
+The machinery drift uses to intercept calls to ``Grid_releaseBlkPtr`` is
+lacking in sophistication, and as such can put some unwanted constraints
+on the code base. The technique used is to declare a preprocessor
+``#define`` in ``Simulation.h`` to expand occurrences of
+``Grid_releaseBlkPtr`` to something larger that includes ``__FILE__``
+and ``__LINE__``. This is how drift is able to correlate calls to
+``Grid_releaseBlkPtr`` with the originating line of source code.
 Unfortunately this technique places a very specific restriction on the
 code once drift is enabled. The trouble comes from the types of source
 lines that may refer to a subroutine without calling it. The primary
-offender being statements with clauses listing the module members to
-import into scope. Because macro expansion is dumb with respect to
-context, it will expand occurrences of in these statements, turning them
-into syntactic rubbish. The remedy for this issue is to make sure the
-line comes after all statements involving but not calling it, and before
-all statements that are calls to . In practice this is quite easy. With
-only one subroutine per file, there will only be one line like:
+offender being ``use`` statements with ``only`` clauses listing the
+module members to import into scope. Because macro expansion is dumb
+with respect to context, it will expand occurrences of
+``Grid_releaseBlkPtr`` in these ``use`` statements, turning them into
+syntactic rubbish. The remedy for this issue is to make sure the line
+``#include "Simulation.h"`` comes after all statements involving
+``Grid_releaseBlkPtr`` but not calling it, and before all statements
+that are calls to ``Grid_releaseBlkPtr``. In practice this is quite
+easy. With only one subroutine per file, there will only be one line
+like:
 
 .. container:: codeseg
 
    use Grid_interface, only: ..., Grid_releaseBlkPtr, ...
 
-and it will come before all calls to , so just move the after the
-statements. The following is an example:
+and it will come before all calls to ``Grid_releaseBlkPtr``, so just
+move the ``#include "Simulation.h"`` after the ``use`` statements. The
+following is an example:
 
 +----------------------------------+----------------------------------+
 | Incorrect                        | Correct                          |
@@ -331,11 +370,14 @@ statements. The following is an example:
 |       Flash_subroutine           |       Flash_subroutine           |
 +----------------------------------+----------------------------------+
 
-If such a solution is not possible because no separation between all and
-statements exists, then there are two remaining courses of action to get
-the source file to compile. One, hide these calls to from drift by
-forceably disabling the macro expansion. To do so, just add the line
-after . The second option is to carry out the macro expansion by hand.
-This also requires disabling the macro with the undef just mentioned,
-but then also rewriting each call to just as the preprocessor would.
-Please consult to see the text that gets substituted in for .
+If such a solution is not possible because no separation between all
+``use`` and ``call`` statements exists, then there are two remaining
+courses of action to get the source file to compile. One, hide these
+calls to ``Grid_releaseBlkPtr`` from drift by forceably disabling the
+macro expansion. To do so, just add the line
+``#undef Grid_releaseBlkPtr`` after ``#include "Simulation.h"``. The
+second option is to carry out the macro expansion by hand. This also
+requires disabling the macro with the undef just mentioned, but then
+also rewriting each call to ``Grid_releaseBlkPtr`` just as the
+preprocessor would. Please consult ``Simulation.h`` to see the text that
+gets substituted in for ``Grid_releaseBlkPtr``.

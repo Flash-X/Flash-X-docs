@@ -1,3 +1,5 @@
+.. include:: defs.h
+
 .. _`Chp:Grid Unit`:
 
 Grid Unit
@@ -8,91 +10,93 @@ Grid Unit
 Overview
 --------
 
-The Grid unit has four subunits: GridMain is responsible for maintaining
-the Eulerian grid used to discretize the spatial dimensions of a
-simulation; GridParticles manages the data movement related to active,
-and Lagrangian tracer particles; GridBoundaryConditions handles the
-application of boundary conditions at the physical boundaries of the
-domain; and GridSolvers provides services for solving some types of
-partial differential equations on the grid. In the Eulerian grid,
-discretization is achieved by dividing the computational domain into one
-or more sub-domains or blocks and using these blocks as the primary
-computational entity visible to the physics units. A block contains a
-number of computational cells ( in the :math:`x`-direction, in the
-:math:`y`-direction, and in the :math:`z`-direction). A perimeter of
-guardcells of width cells in each coordinate direction, surrounds each
-block of local data, providing it with data from the neighboring blocks
-or with boundary conditions, as shown in . Since the majority of physics
-solvers used in Flash-X are explicit, a block with its surrounding guard
-cells becomes a self-contained computational domain. Thus the physics
-units see and operate on only one block at a time, and this abstraction
-is reflected in their design.
+The ``Grid`` unit has four subunits: ``GridMain`` is responsible for
+maintaining the Eulerian grid used to discretize the spatial dimensions
+of a simulation; ``GridParticles`` manages the data movement related to
+active, and Lagrangian tracer particles; ``GridBoundaryConditions``
+handles the application of boundary conditions at the physical
+boundaries of the domain; and ``GridSolvers`` provides services for
+solving some types of partial differential equations on the grid. In the
+Eulerian grid, discretization is achieved by dividing the computational
+domain into one or more sub-domains or blocks and using these blocks as
+the primary computational entity visible to the physics units. A block
+contains a number of computational cells (``nxb`` in the
+:math:`x`-direction, ``nyb`` in the :math:`y`-direction, and ``nzb`` in
+the :math:`z`-direction). A perimeter of guardcells of width ``nguard``
+cells in each coordinate direction, surrounds each block of local data,
+providing it with data from the neighboring blocks or with boundary
+conditions, as shown in . Since the majority of physics solvers used in
+|flashx| are explicit, a block with its surrounding guard cells becomes a
+self-contained computational domain. Thus the physics units see and
+operate on only one block at a time, and this abstraction is reflected
+in their design.
 
 Therefore any mesh package that can present a self contained block as a
-computational domain to a client unit can be used with Flash-X. However,
+computational domain to a client unit can be used with |flashx|. However,
 such interchangeability of grid packages also requires a careful design
-of the Grid API to make the underlying management of the discretized
+of the ``Grid`` API to make the underlying management of the discretized
 grid completely transparent to outside units. The data structures for
 physical variables, the spatial coordinates, and the management of the
-grid are kept private to the unit, and client units can access them only
-through accessor functions. This strict protocol for data management
-along with the use of blocks as computational entities enables Flash-X
-to abstract the grid from physics solvers and facilitates the ability of
-Flash-X to use multiple mesh packages.
+grid are kept private to the ``Grid`` unit, and client units can access
+them only through accessor functions. This strict protocol for data
+management along with the use of blocks as computational entities
+enables |flashx| to abstract the grid from physics solvers and
+facilitates the ability of |flashx| to use multiple mesh packages.
 
 .. container:: center
 
    |image|
 
 Any unit in the code can retrieve all or part of a block of data from
-the Grid unit along with the coordinates of corresponding cells; it can
-then use this information for internal computations, and finally return
-the modified data to the Grid unit. The Grid unit also manages the
-parallelization of Flash-X. It consists of a suite of subroutines which
-handle distribution of work to processors and guard cell filling. When
-using an adaptive mesh, the Grid unit is also responsible for
-refinement/derefinement and conservation of flux across block
-boundaries.
+the ``Grid`` unit along with the coordinates of corresponding cells; it
+can then use this information for internal computations, and finally
+return the modified data to the ``Grid`` unit. The ``Grid`` unit also
+manages the parallelization of |flashx|. It consists of a suite of
+subroutines which handle distribution of work to processors and guard
+cell filling. When using an adaptive mesh, the Grid unit is also
+responsible for refinement/derefinement and conservation of flux across
+block boundaries.
 
-Flash-X can interchangeably use either a or for most problems.
-Additionally, a new feature in is an option to replicate the mesh; that
-is processors are assumed to be partitioned into groups, each group gets
-a copy of the entire domain mesh. This feature is useful when it is
-possible to decompose the computation based upon certain compute
-intensive tasks that apply across the domain. One such example is
-radiation transfer with multigroup flux limited diffusion where each
-group needs an implicit solve. Here the state variable of the mesh are
-replicated on each group of processors, while the groups are unique.
-Thus at the cost of some memory redundancy, it becomes possible to
-compute a higher fidelity problem (see for an example). Because of this
-feature, the parallel environment of the simulation is now controlled by
-the Driver which differentiates between global communicators and mesh
-communicators. The Grid unit queries the Driver unit for mesh
-communicators. In all other respects this change is transparent to the
-Grid unit. Mesh replication can be invoked through the runtime parameter
+|flashx| can interchangeably use either a **uniform** or **adaptive
+grid** for most problems. Additionally, a new feature in |flashx| is an
+option to replicate the mesh; that is processors are assumed to be
+partitioned into groups, each group gets a copy of the entire domain
+mesh. This feature is useful when it is possible to decompose the
+computation based upon certain compute intensive tasks that apply across
+the domain. One such example is radiation transfer with multigroup flux
+limited diffusion where each group needs an implicit solve. Here the
+state variable of the mesh are replicated on each group of processors,
+while the groups are unique. Thus at the cost of some memory redundancy,
+it becomes possible to compute a higher fidelity problem (see for an
+example). Because of this feature, the parallel environment of the
+simulation is now controlled by the Driver which differentiates between
+global communicators and mesh communicators. The Grid unit queries the
+Driver unit for mesh communicators. In all other respects this change is
+transparent to the Grid unit. Mesh replication can be invoked through
+the runtime parameter ``Driver/meshCopyCount``
 
-The uniform grid supported in Flash-X discretizes the physical domain by
+The uniform grid supported in |flashx| discretizes the physical domain by
 placing grid points at regular intervals defined by the geometry of the
 problem. The grid configuration remains unchanged throughout the
 simulation, and exactly one block is mapped per processor. An adaptive
 grid changes the discretization over the course of the computation, and
 several blocks can be mapped to each computational processor. Two AMR
-packages are currently supported in Flash-X for providing adaptive grid
-capbility. The block-structured oct-tree based AMR package, has been the
-work horse since the beginning of the code.
+packages are currently supported in |flashx| for providing adaptive grid
+capbility. The block-structured oct-tree based AMR package, ``PARAMESH``
+has been the work horse since the beginning of the code.
 
 .. container:: flashtip
 
    The following two commands will create the same (identical)
    application: a simulation of a Sod shock tube in 3 dimensions with
-   managing the grid.
+   ``PARAMESH`` 4 managing the grid.
 
    .. container:: codeseg
 
       ./setup Sod -3d -auto
 
       ./setup Sod -3d -auto
-      -unit=Grid/GridMain/paramesh/paramesh4/Paramesh4.0
+      -unit=Grid/GridMain/paramesh/paramesh4/|paramesh|4.0
 
    However, if the command is changed to
 
@@ -101,72 +105,82 @@ work horse since the beginning of the code.
       ./setup Sod -3d -auto -unit=Grid/GridMain/UG
 
    the application is set up with a uniform grid instead. Additionally,
-   because two different grids types are supported in Flash-X, the user
-   must match up the correct IO with the correct Grid . Please see for
-   more details. Note that the script has capabilities to let the user
-   set up shortcuts, such as , which makes sure that the appropriate
-   branch of IO is included when the uniform grid is being used. Please
-   see for more information. Also see for shortcuts useful for the Grid
-   unit.
+   because two different grids types are supported in |flashx|, the user
+   must match up the correct ``IO`` alternative implementation with the
+   correct ``Grid`` alternative implementation. Please see for more
+   details. Note that the ``setup`` script has capabilities to let the
+   user set up shortcuts, such as “``+ugio``”, which makes sure that the
+   appropriate branch of ``IO`` is included when the uniform grid is
+   being used. Please see for more information. Also see for shortcuts
+   useful for the Grid unit.
 
-GridMain Data Structures
-------------------------
+``GridMain`` Data Structures
+----------------------------
 
-The Grid unit is the most extensive infrastructure unit in the Flash-X
-code, and it owns data that most other units wish to fetch and modify.
-Since the data layout in this unit has implications on the manageability
-and performance of the code, we describe it in some detail here.
+The ``Grid`` unit is the most extensive infrastructure unit in the
+|flashx| code, and it owns data that most other units wish to fetch and
+modify. Since the data layout in this unit has implications on the
+manageability and performance of the code, we describe it in some detail
+here.
 
-Flash-X can be run with a grid discretization that assumes cell-centered
-data, face-centered data, or a combination of the two. Paramesh and
-Uniform Grid store physical data in multidimensional arrays;
-cell-centered variables in , short for “unknowns”, and face-centered
-variables in arrays called , , and , which contain the face-centered
-data along the :math:`x`, :math:`y`, and :math:`z` dimensions,
-respectively. The cell-centered array is dimensioned as , where , , are
-the spatial dimensions of a single block, and is the number of blocks
-per processor ( for and 1 for UG). The face-centered arrays have one
-extra data point along the dimension they are representing, for example
-is dimensioned as . Some or all of the actual values dimensioning these
-arrays are determined at application setup time. The number of variables
-and the value of are always determined at setup time. The spatial
-dimensions ,, can either be fixed at setup time, or they may be
-determined at runtime. These two modes are referred to as FIXEDBLOCKSIZE
-and NONFIXEDBLOCKSIZE.
+|flashx| can be run with a grid discretization that assumes cell-centered
+data, face-centered data, or a combination of the two. |paramesh| and
+Uniform Grid store physical data in multidimensional F90 arrays;
+cell-centered variables in ``unk``, short for “unknowns”, and
+face-centered variables in arrays called ``facevarx``, ``facevary``, and
+``facevarz``, which contain the face-centered data along the :math:`x`,
+:math:`y`, and :math:`z` dimensions, respectively. The cell-centered
+array ``unk`` is dimensioned as ``array(NUNK_VARS,nxb,nyb,nzb,blocks)``,
+where ``nxb``, ``nyb``, ``nzb`` are the spatial dimensions of a single
+block, and *blocks* is the number of blocks per processor (``MAXBLOCKS``
+for ``PARAMESH`` and 1 for UG). The face-centered arrays have one extra
+data point along the dimension they are representing, for example
+``facevarx`` is dimensioned as
+``array(NFACE_VARS,nxb+1,nyb,nzb,blocks)``. Some or all of the actual
+values dimensioning these arrays are determined at application setup
+time. The number of variables and the value of ``MAXBLOCKS`` are always
+determined at setup time. The spatial dimensions
+``nxb``,\ ``nyb``,\ ``nzb`` can either be fixed at setup time, or they
+may be determined at runtime. These two modes are referred to as
+FIXEDBLOCKSIZE and NONFIXEDBLOCKSIZE.
 
 All values determined at setup time are defined as constants in a file
-generated by the setup tool. This file contains all application-specific
-global constants such as the number and naming of physical variables,
-number and naming of fluxes and species, ; it is described in detail in
-.
+``Simulation.h`` generated by the setup tool. This file contains all
+application-specific global constants such as the number and naming of
+physical variables, number and naming of fluxes and species, *etc.*; it
+is described in detail in .
 
-For cell-centered variables, the Grid unit also stores a that can be
-retrieved using the routine; see for the syntax and meaning of the
-optional attribute that can be specified as part of a definition read by
-the setup tool.
+For cell-centered variables, the ``Grid`` unit also stores a **variable
+type** that can be retrieved using the
+``Simulation/Simulation_getVarnameType`` routine; see for the syntax and
+meaning of the optional ``TYPE`` attribute that can be specified as part
+of a ``VARIABLE`` definition read by the setup tool.
 
-In addition to the primary physical variables, the Grid unit has another
-set of data structures for storing auxiliary fluid variables. This set
-of data structures provides a mechanism for storing such variables whose
-spatial scope is the entire physical domain, but who do not need to
-maintain their guard cells updated at all times. The data structures in
-this set include: , which has the same shape as the cell centered
-variables data structure; and , and , which have the same shape as the
-corresponding face centered variables data structures. Early releases of
-Flash-X3 had , dimensioned , as the only grid scope scratch data
-structure. For reasons of backward compatibility, and to maximize
-reusability of space, continues to exist as a supported data structure,
-though its use is deprecated. The datastructures for face variables,
-though supported, are not used anywhere in the released code base. The
-unsplit MHD solver discussed in gives an example of the use of some of
+In addition to the primary physical variables, the ``Grid`` unit has
+another set of data structures for storing auxiliary fluid variables.
+This set of data structures provides a mechanism for storing such
+variables whose spatial scope is the entire physical domain, but who do
+not need to maintain their guard cells updated at all times. The data
+structures in this set include: ``SCRATCHCENTERVAR``, which has the same
+shape as the cell centered variables data structure; and
+``SCRATCHFACEXVAR``, ``SCRATCHFACEYVAR`` and ``SCRATCHFACEZVAR``, which
+have the same shape as the corresponding face centered variables data
+structures. Early releases of |flashx|3 had ``SCRATCHVAR``, dimensioned
+``array(NSCRATCH_GRID_VARS,nxb+1,nyb+1,nzb+1,blocks)``, as the only grid
+scope scratch data structure. For reasons of backward compatibility, and
+to maximize reusability of space, ``SCRATCHVAR`` continues to exist as a
+supported data structure, though its use is deprecated. The
+datastructures for face variables, though supported, are not used
+anywhere in the released code base. The unsplit MHD solver
+``StaggeredMesh`` discussed in gives an example of the use of some of
 these data structures. It is important to note that there is no
 guardcell filling for the scratch variables, and the values in the
 scratch variables become invalid after a grid refinement step. While
 users can define scratch variables to be written to the plotfiles, they
-are not by default written to checkpoint files. The Grid unit also
+are not by default written to checkpoint files. The ``Grid`` unit also
 stores the metadata necessary for work distribution, load balancing, and
 other housekeeping activities. These activities are further discussed in
-and , which describe individual implementations of the Grid unit.
+and , which describe individual implementations of the ``Grid`` unit.
 
 .. _`Sec:computational domain`:
 
@@ -174,86 +188,96 @@ Computational Domain
 --------------------
 
 The size of the computational domain in physical units is specified at
-runtime through the (, ) (, ) (, ) runtime parameters. When working with
-curvilinear coordinates (see below in ), the extrema for angle
-coordinates are specified in degrees. Internally all angles are
-represented in radians, so angles are converted to radians at Grid
+runtime through the (``Grid/xmin``, ``Grid/xmax``) (``Grid/ymin``,
+``Grid/ymax``) (``Grid/zmin``, ``Grid/zmax``) runtime parameters. When
+working with curvilinear coordinates (see below in ), the extrema for
+angle coordinates are specified in degrees. Internally all angles are
+represented in radians, so angles are converted to radians at ``Grid``
 initialization.
 
 The physical domain is mapped into a computational domain at problem
-initialization through routine in and in .When using the uniform grid ,
-the mapping is easy: one block is created for each processor in the run,
+initialization through routine ``Grid/Grid_initDomain`` in ``PARAMESH``
+and ``Grid/Grid_init`` in ``UG``.When using the uniform grid ``UG``, the
+mapping is easy: one block is created for each processor in the run,
 which can be sized either at build time or runtime depending upon the
 mode of UG use.  [1]_ Further description can be found in . When using
-the AMR grid , the mapping is non-trivial. The adaptive mesh function
-creates an initial mesh of top level blocks, where , , and are runtime
+the AMR grid ``PARAMESH``, the mapping is non-trivial. The adaptive mesh
+``gr_createDomain`` function creates an initial mesh of
+``nblockx * nblocky * nblockz`` top level blocks, where
+``Grid/nblockx``, ``Grid/nblocky``, and ``Grid/nblockz`` are runtime
 parameters which default to 1. [2]_ The resolution of the computational
 domain is usually very coarse and unsuitable for computation after the
-initial mapping. The routine remedies the situation by applying the
-refinement process to the initial domain until a satisfactory level of
-resolution is reached everywhere in the domain. This method of mapping
-the physical domain to computational domain is effective because the
-resultant resolution in any section is related to the demands of the
-initial conditions there.
+initial mapping. The ``gr_expandDomain`` routine remedies the situation
+by applying the refinement process to the initial domain until a
+satisfactory level of resolution is reached everywhere in the domain.
+This method of mapping the physical domain to computational domain is
+effective because the resultant resolution in any section is related to
+the demands of the initial conditions there.
 
 .. _`Sec:BndryCond`:
 
 Boundary Conditions
 -------------------
 
-Much of the code within the Grid unit that deals with implementing
-boundary conditions has been organized into a separate ,
-GridBoundaryConditions. Note that the following aspects are still
-handled elsewhere:
+Much of the |flashx| code within the ``Grid`` unit that deals with
+implementing boundary conditions has been organized into a separate
+subunit, ``GridBoundaryConditions``. Note that the following aspects are
+still handled elsewhere:
 
 -  Recognition of bounday condition names as strings (in runtime
    parameters) and constants (in the source code); these are defined in
-   and in , respectively.
+   ``RuntimeParameters/RuntimeParameters_mapStrToInt`` and in
+   ``constants.h``, respectively.
 
 -  Handling of periodic boundary conditions; this is done within the
-   underlying GridMain implementation. When using , the subroutine is
-   responsible for setting the neighbors of top-level blocks (to either
-   other top-level blocks or to external boundary conditions) at
-   initialization, after :math:`\times` :math:`\times` root blocks have
-   been created. periodic (wrap-around) boundary conditions are
-   initially configured in this routine as well. If periodic boundary
-   conditions are set in the :math:`x`-direction, for instance, the
-   first blocks in the :math:`x`-direction are set to have as their
-   left-most neighbor the blocks that are last in the
-   :math:`x`-direction, and *vice versa*. Thus, when the guard cell
-   filling is performed, the periodic boundary conditions are
-   automatically maintained.
+   underlying ``GridMain`` implementation. When using ``PARAMESH``, the
+   subroutine ``gr_createDomain`` is responsible for setting the
+   neighbors of top-level blocks (to either other top-level blocks or to
+   external boundary conditions) at initialization, after
+   ``Grid/Nblockx`` :math:`\times` ``Grid/Nblocky`` :math:`\times`
+   ``Grid/Nblockz`` root blocks have been created. periodic
+   (wrap-around) boundary conditions are initially configured in this
+   routine as well. If periodic boundary conditions are set in the
+   :math:`x`-direction, for instance, the first blocks in the
+   :math:`x`-direction are set to have as their left-most neighbor the
+   blocks that are last in the :math:`x`-direction, and *vice versa*.
+   Thus, when the guard cell filling is performed, the periodic boundary
+   conditions are automatically maintained.
 
 -  Handling of user-defined boundary conditions; this should be
-   implemented by code under the Simulation directory.
+   implemented by code under the ``Simulation`` directory.
 
 -  Low-level implementation and interfacing, such as are part of the
-   code.
+   ``PARAMESH`` code.
 
 -  Behavior of particles at a domain boundary. This is based on the
    boundary types described below, but their handling is implemented in
-   GridParticles.
+   ``GridParticles``.
 
-Although the GridBoundaryConditions is included in a setup by default,
-it can be excluded (if no file it) by specifying . This will generally
-only make sense if all domain boundaries are to be treated as periodic.
-(All relevant runtime parameters need to be set to in that case.)
+Although the ``GridBoundaryConditions`` subunit is included in a setup
+by default, it can be excluded (if no ``Config`` file “``REQUIRES``” it)
+by specifying ``-without-unit=Grid/GridBoundaryConditions``. This will
+generally only make sense if all domain boundaries are to be treated as
+periodic. (All relevant runtime parameters ``Grid/xl_boundary_type``
+*etc.* need to be set to ``"periodic"`` in that case.)
 
 Boundary Condition Types
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Boundary conditions are determined by the physical problem. Within
-Flash-X, the parallel structure of blocks means that each processor
+|flashx|, the parallel structure of blocks means that each processor
 works independently. If a block is on a physical boundary, the guard
 cells are filled by calculation since there are no neighboring blocks
 from which to copy values. Boundaries are selected by setting runtime
-parameters such as (for the ‘left’ :math:`X`–boundary) to one of the
-supported boundary types () in . Even though the runtime parameters for
-specifying boundary condition types are strings, the Grid unit
-understands them as defined integer constants defined in the file ,
-which contains all global constants for the code. The translation from
-the string specified in “flash.par” to the constant understood by the
-Grid unit is done by the routine .
+parameters such as ``Grid/xl_boundary_type`` (for the ‘left’
+:math:`X`–boundary) to one of the supported boundary types () in
+``flash.par``. Even though the runtime parameters for specifying
+boundary condition types are strings, the ``Grid`` unit understands them
+as defined integer constants defined in the file ``constants.h``, which
+contains all global constants for the code. The translation from the
+string specified in “flash.par” to the constant understood by the
+``Grid`` unit is done by the routine
+``RuntimeParameters/RuntimeParameters_mapStrToInt``.
 
 .. container:: center
 
@@ -261,70 +285,83 @@ Grid unit is done by the routine .
       :name: Tab:Boundaries
 
       .. table::  Hydrodynamical boundary conditions supported by
-      Flash-X. Boundary type *ab* may be replaced with
+      |flashx|. Boundary type *ab* may be replaced with
       :math:`a`\ ={x,y,z} for direction and :math:`b`\ ={l,r} for
-      left/right edge. All boundary types listed except the last () have
-      an implementation in GridBoundaryConditions.
+      left/right edge. All boundary types listed except the last
+      (``user``) have an implementation in ``GridBoundaryConditions``.
 
-         +---------------------------+-----------------------------------------+
-         | ***ab*\ \_boundary_type** | **Description**                         |
-         +===========================+=========================================+
-         |                           | Periodic (‘wrap-around’)                |
-         +---------------------------+-----------------------------------------+
-         | ,                         | Non-penetrating boundaries; plane       |
-         |                           | symmetry, the normal vector components  |
-         |                           | change sign                             |
-         +---------------------------+-----------------------------------------+
-         |                           | Zero-gradient boundary conditions;      |
-         |                           | allows shocks to leave the domain       |
-         +---------------------------+-----------------------------------------+
-         |                           | like outflow, but fluid velocities are  |
-         |                           | never allowed to let matter flow into   |
-         |                           | the domain: normal velocity components  |
-         |                           | are forced to zero in guard cells if    |
-         |                           | necessary                               |
-         +---------------------------+-----------------------------------------+
-         |                           | like , but both normal and toroidal     |
-         |                           | vector components change sign.          |
-         |                           | Typically used with cylindrical         |
-         |                           | geometry (R-Z) for the Z symmetry axis. |
-         +---------------------------+-----------------------------------------+
-         |                           | like reflect for velocities but the     |
-         |                           | magnetic field components, poloidal and |
-         |                           | toroidal, change sign. The sign of the  |
-         |                           | normal magnetic field component remains |
-         |                           | the same. Typically used with           |
-         |                           | cylindrical geometry (R-Z) for the R    |
-         |                           | axis to emulate equatorial symmetry.    |
-         +---------------------------+-----------------------------------------+
-         |                           | Hydrostatic boundary handling as in .   |
-         |                           | See remark in text.                     |
-         +---------------------------+-----------------------------------------+
-         | , ,                       | Variants of , where the **n**\ ormal    |
-         |                           | **v**\ elocity is handled specially in  |
-         |                           | various ways, analogous to , , and      |
-         |                           | boundary conditions, respectively. See  |
-         |                           | remark in text.                         |
-         +---------------------------+-----------------------------------------+
-         | or                        | The user must implement the desired     |
-         |                           | boundary behavior; see text.            |
-         +---------------------------+-----------------------------------------+
+         +----------------------------------+----------------------------------+
+         | ***ab*\ \_boundary_type**        | **Description**                  |
+         +==================================+==================================+
+         | ``periodic``                     | Periodic (‘wrap-around’)         |
+         +----------------------------------+----------------------------------+
+         | ``reflect``,\ ``reflecting``     | Non-penetrating boundaries;      |
+         |                                  | plane symmetry, the normal       |
+         |                                  | vector components change sign    |
+         +----------------------------------+----------------------------------+
+         | ``outflow``                      | Zero-gradient boundary           |
+         |                                  | conditions; allows shocks to     |
+         |                                  | leave the domain                 |
+         +----------------------------------+----------------------------------+
+         | ``diode``                        | like outflow, but fluid          |
+         |                                  | velocities are never allowed to  |
+         |                                  | let matter flow into the domain: |
+         |                                  | normal velocity components are   |
+         |                                  | forced to zero in guard cells if |
+         |                                  | necessary                        |
+         +----------------------------------+----------------------------------+
+         | ``axisymmetric``                 | like ``reflect``, but both       |
+         |                                  | normal and toroidal vector       |
+         |                                  | components change sign.          |
+         |                                  | Typically used with cylindrical  |
+         |                                  | geometry (R-Z) for the Z         |
+         |                                  | symmetry axis.                   |
+         +----------------------------------+----------------------------------+
+         | ``eqtsymmetric``                 | like reflect for velocities but  |
+         |                                  | the magnetic field components,   |
+         |                                  | poloidal and toroidal, change    |
+         |                                  | sign. The sign of the normal     |
+         |                                  | magnetic field component remains |
+         |                                  | the same. Typically used with    |
+         |                                  | cylindrical geometry (R-Z) for   |
+         |                                  | the R axis to emulate equatorial |
+         |                                  | symmetry.                        |
+         +----------------------------------+----------------------------------+
+         | ``hydrostatic-f2``               | Hydrostatic boundary handling as |
+         |                                  | in |flashx|. See remark in text.  |
+         +----------------------------------+----------------------------------+
+         | ``hydrostatic-f2+nvrefl``,       | Variants of ``hydrostatic-f2``,  |
+         | ``hydrostatic-f2+nvout``,        | where the **n**\ ormal           |
+         | ``hydrostatic-f2+nvdiode``       | **v**\ elocity is handled        |
+         |                                  | specially in various ways,       |
+         |                                  | analogous to ``reflect``,        |
+         |                                  | ``outflow``, and ``diode``       |
+         |                                  | boundary conditions,             |
+         |                                  | respectively. See remark in      |
+         |                                  | text.                            |
+         +----------------------------------+----------------------------------+
+         | ``user-defined`` or ``user``     | The user must implement the      |
+         |                                  | desired boundary behavior; see   |
+         |                                  | text.                            |
+         +----------------------------------+----------------------------------+
 
-To use any of the boundary conditions, the setup must include . This
-must usually be explicitly requested, for example with a line
+To use any of the ``hydrostatic-f2*`` boundary conditions, the setup
+must include ``Grid/GridBoundaryConditions/Flash2HSE``. This must
+usually be explicitly requested, for example with a line
 
 .. container:: codeseg
 
    REQUIRES Grid/GridBoundaryConditions/Flash2HSE
 
-in the simulation directory’s file.
+in the simulation directory’s ``Config`` file.
 
-Note that the runtime parameter is used by some implementations of the
-Gravity unit to define the type of boundary for solving a self-gravity
-(Poisson) problem; see . This runtime parameter is separate from the
-***ab*\ \_boundary_type** ones interpreted by GridBoundaryConditions,
-and its recognized values are not the same (although there is some
-overlap).
+Note that the ``Gravity/grav_boundary_type`` runtime parameter is used
+by some implementations of the ``Gravity`` unit to define the type of
+boundary for solving a self-gravity (Poisson) problem; see
+``physics/Gravity/Gravity_init``. This runtime parameter is separate
+from the ***ab*\ \_boundary_type** ones interpreted by
+``GridBoundaryConditions``, and its recognized values are not the same
+(although there is some overlap).
 
 .. container:: center
 
@@ -332,173 +369,207 @@ overlap).
       :name: Tab:RecognizedBoundaries
 
       .. table:: Additional boundary condition types recognized by
-      Flash-X. Boundary type *ab* may be replaced with a={x,y,z} for
+      |flashx|. Boundary type *ab* may be replaced with a={x,y,z} for
       direction and b={l,r} for left/right edge. These boundary types
       are either reserved for implementation by users and/or future
-      Flash-X versions for a specific purpose (as indicate by the
-      remarks), or are for special uses within the Grid unit.
+      |flashx| versions for a specific purpose (as indicate by the
+      remarks), or are for special uses within the ``Grid`` unit.
 
-         +--------------------------+--------------+--------------------------+
-         | *                        | **Constant** | **Remark**               |
-         | **ab*\ \_boundary_type** |              |                          |
-         +==========================+==============+==========================+
-         |                          | —            | used by Gravity only for |
-         +--------------------------+--------------+--------------------------+
-         | —                        |              | used for multigrid       |
-         |                          |              | solver                   |
-         +--------------------------+--------------+--------------------------+
-         | —                        |              | for use by multigrid     |
-         |                          |              | solver                   |
-         +--------------------------+--------------+--------------------------+
-         | —                        |              | (for use by multigrid    |
-         |                          |              | solver)                  |
-         +--------------------------+--------------+--------------------------+
-         |                          |              | Hydrostatic, other       |
-         |                          |              | implementation than      |
-         +--------------------------+--------------+--------------------------+
-         |                          |              | Hydrostatic variant,     |
-         |                          |              | other impl.  than        |
-         +--------------------------+--------------+--------------------------+
-         |                          |              | Hydrostatic variant,     |
-         |                          |              | other impl.  than        |
-         +--------------------------+--------------+--------------------------+
-         |                          |              | Hydrostatic variant,     |
-         |                          |              | other impl.  than        |
-         +--------------------------+--------------+--------------------------+
+         +----------------------+----------------------+----------------------+
+         | ***ab                | **Constant**         | **Remark**           |
+         | *\ \_boundary_type** |                      |                      |
+         +======================+======================+======================+
+         | ``isolated``         | —                    | used by Gravity only |
+         |                      |                      | for                  |
+         |                      |                      | ``Gravity/           |
+         |                      |                      | grav_boundary_type`` |
+         +----------------------+----------------------+----------------------+
+         | —                    | ``DIRICHLET``        | used for multigrid   |
+         |                      |                      | solver               |
+         +----------------------+----------------------+----------------------+
+         | —                    | ``GRI                | for use by multigrid |
+         |                      | DBC_MG_EXTRAPOLATE`` | solver               |
+         +----------------------+----------------------+----------------------+
+         | —                    | ``PNEUMANN``         | (for use by          |
+         |                      |                      | multigrid solver)    |
+         +----------------------+----------------------+----------------------+
+         | ``hydrostatic``      | ``HYDROSTATIC``      | Hydrostatic, other   |
+         |                      |                      | implementation than  |
+         |                      |                      | |flashx|              |
+         +----------------------+----------------------+----------------------+
+         | ``                   | ``                   | Hydrostatic variant, |
+         | hydrostatic+nvrefl`` | HYDROSTATIC_NVREFL`` | other impl.  than    |
+         |                      |                      | |flashx|              |
+         +----------------------+----------------------+----------------------+
+         | `                    | `                    | Hydrostatic variant, |
+         | `hydrostatic+nvout`` | `HYDROSTATIC_NVOUT`` | other impl.  than    |
+         |                      |                      | |flashx|              |
+         +----------------------+----------------------+----------------------+
+         | ``h                  | ``H                  | Hydrostatic variant, |
+         | ydrostatic+nvdiode`` | YDROSTATIC_NVDIODE`` | other impl.  than    |
+         |                      |                      | |flashx|              |
+         +----------------------+----------------------+----------------------+
 
 Boundary Conditions at Obstacles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The initial coarse grid of root blocks can be modified by removing
 certain blocks. This is done by providing a non-trivial implementation
-of . Effectively this creates additional domain boundaries at the
-interface between blocks removed and regions still included. All
-boundary conditions other than are possible at these additional
-boundaries, and are handled there in the same way as on external domain
-boundaries. This feature is only available with . See the documentation
-and example in for more details and some caveats.
+of ``Simulation/Simulation_defineDomain``. Effectively this creates
+additional domain boundaries at the interface between blocks removed and
+regions still included. All boundary conditions other than ``periodic``
+are possible at these additional boundaries, and are handled there in
+the same way as on external domain boundaries. This feature is only
+available with ``PARAMESH``. See the documentation and example in
+``Simulation/Simulation_defineDomain`` for more details and some
+caveats.
 
 Implementing Boundary Conditions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Users may need to implement boundary conditions beyond those provided
-with , and the Grid  Boundary  Conditions provides several ways to
-achieve this. Users can provide an implementation for the boundary type;
-or can provide or override an implementation for one of the other
-recognized types.
+with |flashx|, and the ``GridBoundaryConditions`` subunit provides
+several ways to achieve this. Users can provide an implementation for
+the ``user`` boundary type; or can provide or override an implementation
+for one of the other recognized types.
 
-The simple boundary condition types , , are implemented in the file in .
-A users can add or modify the handling of some boundary condition types
-in a version of this file in the simulation directory, which overrides
-the regular version. There is, however, also the interface which by
-default is only provided as a stub and is explicitly intended to be
-implemented by users. A implementation gets called before and can decide
-to either handle a specific combination of boundary condition type,
-direction, grid data structure, , or leave it to . These calls operate
-on a region of one block’s cells at a time. Flash-X will pass additional
-information beyond that needed for handling simple boundary conditions
-to , in particular a block handle through which an implementation can
-retrieve coordinate information and access other information associated
-with a block and its cells.
+The simple boundary condition types ``reflect``, ``outflow``, ``diode``
+are implemented in the ``Grid/Grid_bcApplyToRegion``\ ``.F90`` file in
+``Grid/GridBoundaryConditions``. A users can add or modify the handling
+of some boundary condition types in a version of this file in the
+simulation directory, which overrides the regular version. There is,
+however, also the interface ``Grid/Grid_bcApplyToRegionSpecialized``
+which by default is only provided as a stub and is explicitly intended
+to be implemented by users. A ``Grid/Grid_bcApplyToRegionSpecialized``
+implementation gets called before ``Grid/Grid_bcApplyToRegion`` and can
+decide to either handle a specific combination of boundary condition
+type, direction, grid data structure, *etc.*, or leave it to
+``Grid/Grid_bcApplyToRegion``. These calls operate on a region of one
+block’s cells at a time. |flashx| will pass additional information beyond
+that needed for handling simple boundary conditions to
+``Grid/Grid_bcApplyToRegionSpecialized``, in particular a block handle
+through which an implementation can retrieve coordinate information and
+access other information associated with a block and its cells.
 
-The GridBoundaryConditions also provides a simpler kind of interface if
-one includes in the setup. When using this style of interface, users can
-implement guard cell filling one row at a time. Flash-X passes to the
-implementation one row of cells at a time, some of which are interior
-cells while the others represent guard cells outside the boundary that
-are to be modified in the call. A row here means a contiguous set of
-cells along a line perpendicular to the boundary surface. There are two
-versions of this interface: is given only one fluid variable at a time,
-but can also handle data structures other than ; whereas handles all
-variables of along a row in one call. Cell coordinate information is
-included in the call arguments. Flash-X invokes these functions through
-an implementation of in which acts as a wrapper. also provides a default
-implementation of (which implements the simple boundary conditions) and
-(which calls ) each. Another implementation of can be found in , this
-one calls or, for -type hydrostatic boundaries, the code for handling
-them. These can be used as templates for overriding implementations
-under . It is not recommended to try to mix both -style and -style
+The ``GridBoundaryConditions`` subunit also provides a simpler kind of
+interface if one includes ``Grid/GridBoundaryConditions/OneRow`` in the
+setup. When using this style of interface, users can implement guard
+cell filling one row at a time. |flashx| passes to the implementation one
+row of cells at a time, some of which are interior cells while the
+others represent guard cells outside the boundary that are to be
+modified in the call. A row here means a contiguous set of cells along a
+line perpendicular to the boundary surface. There are two versions of
+this interface: ``Grid/Grid_applyBCEdge`` is given only one fluid
+variable at a time, but can also handle data structures other than
+``unk``; whereas ``Grid/Grid_applyBCEdgeAllUnkVars`` handles all
+variables of ``unk`` along a row in one call. Cell coordinate
+information is included in the call arguments. |flashx| invokes these
+functions through an implementation of
+``Grid/Grid_bcApplyToRegionSpecialized`` in
+``Grid/GridBoundaryConditions/OneRow`` which acts as a wrapper.
+``GridBoundaryConditions/OneRow`` also provides a default implementation
+of ``Grid/Grid_applyBCEdge`` (which implements the simple boundary
+conditions) and ``Grid/Grid_applyBCEdgeAllUnkVars`` (which calls
+``Grid_applyBCEdge``) each. Another implementation of
+``Grid/Grid_applyBCEdgeAllUnkVars`` can be found in
+``GridBoundaryConditions/OneRow/Flash2HSE``, this one calls
+``Grid_applyBCEdge`` or, for |flashx|-type hydrostatic boundaries, the
+code for handling them. These can be used as templates for overriding
+implementations under ``Simulation``. It is not recommended to try to
+mix both ``Grid_bcApplyToRegion*``-style and ``Grid_applyBCEdge*``-style
 overriding implementations in a simulation directory, since this could
 become confusing.
 
-Note that in all of these cases, , whether boundary guard cell filling
-for a boundary type is implemented in , , , or , the implementation does
-not fill guard cells in permanent data storage (the array and similar
-data structures) directly, but operates on buffers. fills some parts of
-the buffers with current values for interior cells before the call, and
-copies updated guardcell data from some (other) parts of the buffers
-back into (or similar) storage after the handling routine returns.
+Note that in all of these cases, *i.e.*, whether boundary guard cell
+filling for a boundary type is implemented in
+``Grid/Grid_bcApplyToRegion``, ``Grid/Grid_bcApplyToRegionSpecialized``,
+``Grid/Grid_applyBCEdge``, or ``Grid/Grid_applyBCEdgeAllUnkVars``, the
+implementation does not fill guard cells in permanent data storage (the
+``unk`` array and similar data structures) directly, but operates on
+buffers. |flashx| fills some parts of the buffers with current values for
+interior cells before the call, and copies updated guardcell data from
+some (other) parts of the buffers back into ``unk`` (or similar) storage
+after the handling routine returns.
 
 All calls to handlers for boundary conditions are for one face in a
-given dimension at a time. Thus for each of the , , and dimensions there
-can be up to two series of calls, once for the left, , “,” and once for
-the right, , “,” face. makes additional calls for filling guard cells in
-edge and corner regions of blocks, these calls result in additional
- invocations for those cells that lie in diagonal directions from the
-block interior.
+given dimension at a time. Thus for each of the ``IAXIS``, ``JAXIS``,
+and ``KAXIS`` dimensions there can be up to two series of calls, once
+for the left, *i.e.*, “``LOW``,” and once for the right, *i.e.*,
+“``HIGH``,” face. ``PARAMESH`` 4 makes additional calls for filling
+guard cells in edge and corner regions of blocks, these calls result in
+additional ``Grid_bcApplyToRegion*`` invocations for those cells that
+lie in diagonal directions from the block interior.
 
 The boundary condition handling interfaces described so far can be
-implemented (and will be used!) independent of the Grid implementation
-chosen. At a lower level, the various implementations of GridMain have
-different ways of requesting that boundary guard cells be filled. The
-GridBoundaryConditions collaborates with GridMain implementations to
-provide to user code uniform interfaces that are agnostic of lower-level
-details. However, it is also possible — but not recommended — for users
-to replace a routine that is located deeper in the Grid unit. For , the
-most relevant routine is , for it is , and for uniform grid it is .
+implemented (and will be used!) independent of the ``Grid``
+implementation chosen. At a lower level, the various implementations of
+``GridMain`` have different ways of requesting that boundary guard cells
+be filled. The ``GridBoundaryConditions`` subunit collaborates with
+``GridMain`` implementations to provide to user code uniform interfaces
+that are agnostic of lower-level details. However, it is also possible —
+but not recommended — for users to replace a routine that is located
+deeper in the ``Grid`` unit. For ``PARAMESH`` 4, the most relevant
+routine is ``amr_1blk_bcset.F90``, for ``PARAMESH`` 2 it is
+``tot_bnd.F90``, and for uniform grid ``UG`` it is
+``gr_bcApplyToAllBlks.F90``.
 
-Additional Concerns with 
-^^^^^^^^^^^^^^^^^^^^^^^^
+Additional Concerns with ``PARAMESH`` 4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Boundary condition handling has become significantly more complex in .
-In part this is so because imposes requirements on guard cell filling
-code that do not exist in the other implementations:
+Boundary condition handling has become significantly more complex in
+|flashx|. In part this is so because ``PARAMESH`` 4 imposes requirements
+on guard cell filling code that do not exist in the other ``GridMain``
+implementations:
 
-#. In other implementations, filling of domain boundary guard cells is
-   under control of the “user” (in this context, the user of the grid
-   implementation, , Flash-X): These cells can be filled for all blocks
-   at a time that is predictable to the user code, as a standard part of
-   handling , only. With , the user-provided routine can be called from
-   within the depths of on individual blocks (and cell regions, see
-   below) during guard cell filling and at other times when the user has
-   called a routine. It is not easy to predict when and in which
-   sequence this will happen.
+#. In other ``Grid`` implementations, filling of domain boundary guard
+   cells is under control of the “user” (in this context, the user of
+   the grid implementation, *i.e.*, |flashx|): These cells can be filled
+   for all blocks at a time that is predictable to the user code, as a
+   standard part of handling ``Grid/Grid_fillGuardCells``, only. With
+   ``PARAMESH`` 4, the user-provided ``amr_1blk_bcset`` routine can be
+   called from within the depths of ``PARAMESH`` on individual blocks
+   (and cell regions, see below) during guard cell filling and at other
+   times when the user has called a ``PARAMESH`` routine. It is not easy
+   to predict when and in which sequence this will happen.
 
-#. does not want all boundary guard cells filled in one call, but
-   requests individual regions in various calls.
+#. ``PARAMESH`` 4 does not want all boundary guard cells filled in one
+   call, but requests individual regions in various calls.
 
-#. does not let the user routine operate on permanent storage ( )
-   directly, but on (regions of) one-block buffers.
+#. ``PARAMESH`` 4 does not let the user routine ``amr_1blk_bcset``
+   operate on permanent storage (``unk`` *etc.*) directly, but on
+   (regions of) one-block buffers.
 
-#. occasionally invokes to operate on regions of a block that belongs to
-   a remote processor (and for which data has been cached locally). Such
-   block data is not associated with a valid local , making it more
-   complicated for user code to retrieve metadata that may be needed to
-   implement the desired boundary handling.
+#. ``PARAMESH`` 4 occasionally invokes ``amr_1blk_bcset`` to operate on
+   regions of a block that belongs to a remote processor (and for which
+   data has been cached locally). Such block data is not associated with
+   a valid local ``blockID``, making it more complicated for user code
+   to retrieve metadata that may be needed to implement the desired
+   boundary handling.
 
-Some consequences of this for users:
+Some consequences of this for |flashx| users:
 
 -  User code that implements boundary conditions for the grid inherits
    the requirement that it must be ready to be called at various times
-   (when certain Grid routines are called).
+   (when certain ``Grid`` routines are called).
 
 -  User code that implements boundary conditions for the grid inherits
    the requirement that it must operate on a region of the cells of a
    block, where the region is specified by the caller.
 
 -  Such user code must not assume that it operates on permanent data (in
-   ). Rather, it must be prepared to fill guardcells for a block-shaped
-   buffer that may or may not end up being copied back to permanent
-   storage.
+   ``unk`` *etc.*). Rather, it must be prepared to fill guardcells for a
+   block-shaped buffer that may or may not end up being copied back to
+   permanent storage.
 
-   User code also is not allowed to make certain calls while a call to
-   is active, namely those that would modify the same one-block buffers
-   that the current call is working on.
+   User code also is not allowed to make certain ``PARAMESH`` 4 calls
+   while a call to ``amr_1blk_bcset`` is active, namely those that would
+   modify the same one-block buffers that the current call is working
+   on.
 
 -  The user code must not assume that the block data it is acting on
-   belongs to a local block. The data may not have a valid . The code
-   will be passed a “block hande” which can be used in some ways, but
-   not all, like a valid .
+   belongs to a local block. The data may not have a valid ``blockID``.
+   The code will be passed a “block hande” which can be used in some
+   ways, but not all, like a valid ``blockID``.
 
 .. _`Sec:Grid UG`:
 
@@ -516,13 +587,14 @@ block size version uses dynamic memory allocation of grid variables.
 FIXEDBLOCKSIZE Mode
 ~~~~~~~~~~~~~~~~~~~
 
-mode, also called static mode, is the default for the uniform grid. In
-this mode, the block size is specified at compile time as
-:math:`\times`\ :math:`\times`. These variables default to :math:`8` if
-the dimension is defined and :math:`1` otherwise – for a two-dimensional
-simulation, the defaults are :math:`=8`, :math:`=8`, :math:`=1`. To
-change the static dimensions, specify the desired values on the command
-line of the script; for example
+``FIXEDBLOCKSIZE`` mode, also called static mode, is the default for the
+uniform grid. In this mode, the block size is specified at compile time
+as ``NXB``\ :math:`\times`\ ``NYB``\ :math:`\times`\ ``NZB``. These
+variables default to :math:`8` if the dimension is defined and :math:`1`
+otherwise – *e.g.* for a two-dimensional simulation, the defaults are
+``NXB``\ :math:`=8`, ``NYB``\ :math:`=8`, ``NZb``\ :math:`=1`. To change
+the static dimensions, specify the desired values on the command line of
+the ``setup`` script; for example
 
 .. container:: codeseg
 
@@ -532,8 +604,8 @@ The distribution of processors along the three dimensions is given at
 run time as :math:`iprocs\times jprocs\times kprocs` with the constraint
 that this product must be equal to the number of processors that the
 simulation is using. The global domain size in terms of number of grid
-points is :math:`\code{NXB}*iprocs \times \code{NYB}*jprocs \times 
-\code{NZB}*kprocs`. For example, if :math:`iprocs=jprocs=4` and
+points is :math:`{\tt NXB}*iprocs \times {\tt NYB}*jprocs \times 
+{\tt NZB}*kprocs`. For example, if :math:`iprocs=jprocs=4` and
 :math:`kprocs=1`, the execution command should specify :math:`np=16`
 processors.
 
@@ -553,10 +625,10 @@ a row of processors along each dimension becomes a part of the same
 communicator. We also define MPI datatypes for each of these
 communicators, which describe the layout of the block on the processor
 to MPI. The communicators and datatypes, once generated, persist for the
-entire run of the application. Thus the function with specific
-communicator and its corresponding datatype is able to carry out all
-data exchange for guardcell fill in the selected direction in a single
-step.
+entire run of the application. Thus the ``MPI_SEND/RECV`` function with
+specific communicator and its corresponding datatype is able to carry
+out all data exchange for guardcell fill in the selected direction in a
+single step.
 
 Since all blocks exist at the same resolution in the Uniform Grid, there
 is no need for interpolation while filling the guardcells. Simple
@@ -568,65 +640,68 @@ another block, or calculated based upon the boundary conditions if the
 face is on the physical domain boundary. Also, because there are no
 jumps in refinement in the Uniform Grid, the flux conservation step
 across processor boundaries is unnecessary. For correct functioning of
-the Uniform Grid in Flash-X, this conservation step should be explicitly
-turned off with a runtime parameter which controls whether or not to run
-the flux conservation step in the PPM Hydrodynamics implementation. AMR
-sets it by default to true, while UG sets it to false. Users should
-exercise care if they wish to override the defaults via their file.
+the Uniform Grid in |flashx|, this conservation step should be explicitly
+turned off with a runtime parameter ``Grid/flux_correct`` which controls
+whether or not to run the flux conservation step in the PPM
+Hydrodynamics implementation. AMR sets it by default to true, while UG
+sets it to false. Users should exercise care if they wish to override
+the defaults via their “``flash.par``” file.
 
 .. _`Sec:NONFIXEDBLOCKSIZE`:
 
 NONFIXEDBLOCKSIZE mode
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Up ot version 2, Flash-X always ran in a mode where all blocks have
+Up ot version 2, |flashx| always ran in a mode where all blocks have
 exactly the same number of grid points in exactly the same shape, and
-these were fixed at compile time. Flash-X was limited to use the fixed
-block size mode described above. With this constraint was eliminated
-through an option at setup time. The two main reasons for this
-development were: one, to allow a uniform grid based simulation to be
-able to restart with different number of processors, and two, to open up
-the possibility of using other AMR packages with Flash-X. Patch-based
+these were fixed at compile time. |flashx| was limited to use the fixed
+block size mode described above. With |flashx| this constraint was
+eliminated through an option at setup time. The two main reasons for
+this development were: one, to allow a uniform grid based simulation to
+be able to restart with different number of processors, and two, to open
+up the possibility of using other AMR packages with |flashx|. Patch-based
 packages typically have different-sized block configurations at
 different times. This mode, called the “NONFIXEDBLOCKSIZE” mode, can
 currently be selected for use with Uniform Grid. To run an application
-in “NONFIXEDBLOCKSIZE” mode the option must be used when invoking the
-setup tool; see for more information. For example:
+in “NONFIXEDBLOCKSIZE” mode the “``-nofbs``” option must be used when
+invoking the setup tool; see for more information. For example:
 
 .. container:: codeseg
 
    ./setup Sod -3d -auto -nofbs
 
-Note that mode requires the use of its own IO implementation, and a
-convenient shortcut has been provided to ensure that this mode is used
-as in the example below:
+Note that ``NONFIXEDBLOCKSIZE`` mode requires the use of its own IO
+implementation, and a convenient shortcut has been provided to ensure
+that this mode is used as in the example below:
 
 .. container:: codeseg
 
    ./setup Sod -3d -auto +nofbs
 
 In this mode, the blocksize in UG is determined at execution from
-runtime parameters , and . These parameters specify the global number of
-grid points in the computational domain along each dimension. The
-blocksize then is
+runtime parameters ``Grid/iGridSize``, ``Grid/jGridSize`` and
+``Grid/kGridSize``. These parameters specify the global number of grid
+points in the computational domain along each dimension. The blocksize
+then is
 :math:`(iGridSize/iprocs)\times(jGridSize/jprocs)\times(kGridSize/kprocs)`.
 
-Unlike mode, where memory is allocated at compile time, in the mode
-allocation is dynamic. The global data structures are allocated when the
-simulation initializes and deallocated when the simulation finalizes,
-whereas the local scratch space is allocated and deallocated every time
-a unit is invoked in the simulation. Clearly there is a trade-off
-between flexibility and performance as the mode typically runs about
+Unlike ``FIXEDBLOCKSIZE`` mode, where memory is allocated at compile
+time, in the ``NONFIXEDBLOCKSIZE`` mode allocation is dynamic. The
+global data structures are allocated when the simulation initializes and
+deallocated when the simulation finalizes, whereas the local scratch
+space is allocated and deallocated every time a unit is invoked in the
+simulation. Clearly there is a trade-off between flexibility and
+performance as the ``NONFIXEDBLOCKSIZE`` mode typically runs about
 10-15% slower. We support both to give choice to the users. The amount
 of memory consumed by the Grid data structure of the Uniform Grid is
-:math:`\code{nvar} \times (2*\code{nguard}+\code{nxb}) \times
-(2*\code{nguard}+\code{nyb})\times(2*\code{nguard}+\code{nzb})`
-irrespective of the mode. Note that this is not the total amount of
-memory used by the code, since fluxes, temporary variables, coordinate
-information and scratch space also consume a large amount of memory.
+:math:`{\tt nvar} \times (2*{\tt nguard}+{\tt nxb}) \times
+(2*{\tt nguard}+{\tt nyb})\times(2*{\tt nguard}+{\tt nzb})` irrespective
+of the mode. Note that this is not the total amount of memory used by
+the code, since fluxes, temporary variables, coordinate information and
+scratch space also consume a large amount of memory.
 
 The example shown below gives two possible ways to define parameters in
-for a 3d problem of global domain size :math:`64 \times
+``flash.par`` for a 3d problem of global domain size :math:`64 \times
 64 \times 64`, being run on 8 processors.
 
 .. container:: codeseg
@@ -648,21 +723,21 @@ In this case, each processor will now have blocks of size
 
 .. _`Sec:Grid AMR`:
 
-Adaptive Mesh Refinement (AMR) Grid with Paramesh
+Adaptive Mesh Refinement (AMR) Grid with |paramesh|
 -------------------------------------------------
 
-The default package in Flash-X is (MacNeice *et al.* 1999) for
-implementing the adaptive mesh refinement (AMR) grid. uses a
-block-structured adaptive mesh refinement scheme similar to others in
-the literature (, Parashar 1999; Berger & Oliger 1984; Berger & Colella
-1989; DeZeeuw & Powell 1993). It also shares ideas with schemes which
-refine on an individual cell basis (Khokhlov 1997). In block-structured
-AMR, the fundamental data structure is a block of cells arranged in a
-logically Cartesian fashion. “Logically Cartesian” implies that each
-cell can be specified using a block identifier (processor number and
-local block number) and a coordinate triple :math:`(i,j,k)`, where
-:math:`i=1\ldots\code{nxb}`, :math:`j=1\ldots\code{nyb}`, and
-:math:`k=1\ldots\code{nzb}` refer to the :math:`x`-, :math:`y`-, and
+The default package in |flashx| is ``PARAMESH`` (MacNeice *et al.* 1999)
+for implementing the adaptive mesh refinement (AMR) grid. ``PARAMESH``
+uses a block-structured adaptive mesh refinement scheme similar to
+others in the literature (*e.g.*, Parashar 1999; Berger & Oliger 1984;
+Berger & Colella 1989; DeZeeuw & Powell 1993). It also shares ideas with
+schemes which refine on an individual cell basis (Khokhlov 1997). In
+block-structured AMR, the fundamental data structure is a block of cells
+arranged in a logically Cartesian fashion. “Logically Cartesian” implies
+that each cell can be specified using a block identifier (processor
+number and local block number) and a coordinate triple :math:`(i,j,k)`,
+where :math:`i=1\ldots{\tt nxb}`, :math:`j=1\ldots{\tt nyb}`, and
+:math:`k=1\ldots{\tt nzb}` refer to the :math:`x`-, :math:`y`-, and
 :math:`z`-directions, respectively. It does not require a physically
 rectangular coordinate system; for example a spherical grid can be
 indexed in this same manner.
@@ -672,20 +747,20 @@ different physical cell sizes, which are related to each other in a
 hierarchical fashion using a tree data structure. The blocks at the root
 of the tree have the largest cells, while their children have smaller
 cells and are said to be refined. Three rules govern the establishment
-of refined child blocks in . First, a refined child block must be
-one-half as large as its parent block in each spatial dimension. Second,
-a block’s children must be nested; , the child blocks must fit within
-their parent block and cannot overlap one another, and the complete set
-of children of a block must fill its volume. Thus, in :math:`d`
-dimensions a given block has either zero or :math:`2^d` children. Third,
-blocks which share a common border may not differ from each other by
-more than one level of refinement.
+of refined child blocks in ``PARAMESH``. First, a refined child block
+must be one-half as large as its parent block in each spatial dimension.
+Second, a block’s children must be nested; *i.e.*, the child blocks must
+fit within their parent block and cannot overlap one another, and the
+complete set of children of a block must fill its volume. Thus, in
+:math:`d` dimensions a given block has either zero or :math:`2^d`
+children. Third, blocks which share a common border may not differ from
+each other by more than one level of refinement.
 
 A simple two-dimensional domain is shown in , illustrating the rules
 above. Each block contains
-:math:`\code{nxb}\times\code{nyb}\times\code{nzb}` interior cells and a
-set of guard cells. The guard cells contain boundary information needed
-to update the interior cells. These can be obtained from physically
+:math:`{\tt nxb}\times{\tt nyb}\times{\tt nzb}` interior cells and a set
+of guard cells. The guard cells contain boundary information needed to
+update the interior cells. These can be obtained from physically
 neighboring blocks, externally specified boundary conditions, or both.
 
 .. container:: center
@@ -694,54 +769,58 @@ neighboring blocks, externally specified boundary conditions, or both.
 
 The number of guard cells needed depends upon the interpolation schemes
 and the differencing stencils used by the various physics units (usually
-hydrodynamics). For the explicit PPM algorithm distributed with Flash-X,
+hydrodynamics). For the explicit PPM algorithm distributed with |flashx|,
 four guard cells are needed in each direction, as illustrated in . The
 blocksize while using the adaptive grid is fixed at compile time,
 resulting in static memory allocation. The total number of blocks a
-processor can manage is determined by which can be overridden at setup
-time with the argument. The amount of memory consumed by the Grid data
-structure of code when running with is :math:`\code{NUNK\_VARS} \times
-(2*\code{nguard}+\code{nxb}) \times
-(2*\code{nguard}+\code{nyb}) \times
-(2*\code{nguard}+\code{nzb}) \times \code{MAXBLOCKS}`. also needs memory
-to store its tree data structure for adaptive mesh management, over and
-above what is already mentioned with Uniform Grid. As the levels of
-refinement increase, the size of the tree also grows.
+processor can manage is determined by ``MAXBLOCKS`` which can be
+overridden at setup time with the ``setup …-maxblocks=#`` argument. The
+amount of memory consumed by the Grid data structure of code when
+running with ``PARAMESH`` is :math:`{\tt NUNK\_VARS} \times
+(2*{\tt nguard}+{\tt nxb}) \times
+(2*{\tt nguard}+{\tt nyb}) \times
+(2*{\tt nguard}+{\tt nzb}) \times {\tt MAXBLOCKS}`. ``PARAMESH`` also
+needs memory to store its tree data structure for adaptive mesh
+management, over and above what is already mentioned with Uniform Grid.
+As the levels of refinement increase, the size of the tree also grows.
 
-handles the filling of guard cells with information from other blocks
-or, at the boundaries of the physical domain, from an external boundary
-routine (see ). If a block’s neighbor exists and has the same level of
-refinement, fills the corresponding guard cells using a direct copy from
-the neighbor’s interior cells. If the neighbor has a different level of
-refinement, the data from the neighbor’s cells must be adjusted by
-either interpolation (to a finer level of resolution) or averaging (to a
-coarser level) —see below for more information. If the block and its
-neighbor are stored in the memory of different processors, handles the
-appropriate parallel communications (blocks are never split between
-processors). The filling of guard cells is a global operation that is
-triggered by calling .
+``PARAMESH`` handles the filling of guard cells with information from
+other blocks or, at the boundaries of the physical domain, from an
+external boundary routine (see ). If a block’s neighbor exists and has
+the same level of refinement, ``PARAMESH`` fills the corresponding guard
+cells using a direct copy from the neighbor’s interior cells. If the
+neighbor has a different level of refinement, the data from the
+neighbor’s cells must be adjusted by either interpolation (to a finer
+level of resolution) or averaging (to a coarser level) —see below for
+more information. If the block and its neighbor are stored in the memory
+of different processors, ``PARAMESH`` handles the appropriate parallel
+communications (blocks are never split between processors). The filling
+of guard cells is a global operation that is triggered by calling
+``Grid/Grid_fillGuardCells``.
 
 Grid Interpolation is also used when filling the blocks of children
 newly created in the course of automatic refinement. This happens during
-processing. Averaging is also used to regularly update the solution data
-in at least one level of parent blocks in the oct-tree. This ensures
-that after leaf nodes are removed during automatic refinement processing
-(in regions of the domain where the mesh is becoming coarser), the new
-leaf nodes automatically have valid data. This averaging happens as an
-initial step in processing.
+``Grid/Grid_updateRefinement`` processing. Averaging is also used to
+regularly update the solution data in at least one level of parent
+blocks in the oct-tree. This ensures that after leaf nodes are removed
+during automatic refinement processing (in regions of the domain where
+the mesh is becoming coarser), the new leaf nodes automatically have
+valid data. This averaging happens as an initial step in
+``Grid/Grid_fillGuardCells`` processing.
 
-also enforces flux conservation at jumps in refinement, as described by
-Berger and Colella (1989). At jumps in refinement, the fluxes of mass,
-momentum, energy (total and internal), and species density in the fine
-cells across boundary cell faces are summed and passed to their parent.
-The parent’s neighboring cell will be at the same level of refinement as
-the summed flux cell because limits the jumps in refinement to one level
-between blocks. The flux in the parent that was computed by the more
-accurate fine cells is taken as the correct flux through the interface
-and is passed to the corresponding coarse face on the neighboring block
-(see ). The summing allows a geometrical weighting to be implemented for
-non-Cartesian geometries, which ensures that the proper volume-corrected
-flux is computed.
+``PARAMESH`` also enforces flux conservation at jumps in refinement, as
+described by Berger and Colella (1989). At jumps in refinement, the
+fluxes of mass, momentum, energy (total and internal), and species
+density in the fine cells across boundary cell faces are summed and
+passed to their parent. The parent’s neighboring cell will be at the
+same level of refinement as the summed flux cell because ``PARAMESH``
+limits the jumps in refinement to one level between blocks. The flux in
+the parent that was computed by the more accurate fine cells is taken as
+the correct flux through the interface and is passed to the
+corresponding coarse face on the neighboring block (see ). The summing
+allows a geometrical weighting to be implemented for non-Cartesian
+geometries, which ensures that the proper volume-corrected flux is
+computed.
 
 .. container:: center
 
@@ -759,86 +838,96 @@ flux is computed.
 Additional Data Structures
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-maintains much additional information about the mesh. In particular,
-oct-tree related information is kept in various arrays which are
-declared in a module called . It includes the physical coordinate of a
-block’s center, its physical size, level of refinement, and much more.
-These data structures also acts as temporary storage while updating
-refinement in the grid and moving the blocks. This metadata should in
-general not be accessed directly by application code. The Grid API
-contains subroutines for accessing the most important pars of this
-metadata on a block by block basis, like , , , , and .
+``PARAMESH`` maintains much additional information about the mesh. In
+particular, oct-tree related information is kept in various arrays which
+are declared in a F90 module called “``tree``”. It includes the physical
+coordinate of a block’s center, its physical size, level of refinement,
+and much more. These data structures also acts as temporary storage
+while updating refinement in the grid and moving the blocks. This
+metadata should in general not be accessed directly by application code.
+The ``Grid`` API contains subroutines for accessing the most important
+pars of this metadata on a block by block basis, like
+``Grid/Grid_getBlkBoundBox``, ``Grid/Grid_getBlkCenterCoords``,
+``Grid/Grid_getBlkPhysicalSize``, ``Grid/Grid_getBlkRefineLevel``, and
+``Grid/Grid_getBlkType``.
 
-Flash-X has its own data structure that stores block specific
-information. This data structure keeps the physical coordinates of each
-cell in the block. For each dimension, the coordinates are stored for
-the , the and the center of the cell. The coordinates are determined
-from “*cornerID*” which is also a part of this data structure.
+|flashx| has its own ``oneBlock`` data structure that stores block
+specific information. This data structure keeps the physical coordinates
+of each cell in the block. For each dimension, the coordinates are
+stored for the ``LEFT_EDGE``, the ``RIGHT_EDGE`` and the center of the
+cell. The coordinates are determined from “*cornerID*” which is also a
+part of this data structure.
 
-The concept of was introduced in ; it serves three purposes. First, it
-creates a unique global identity for every cell that can come into
-existence at any time in the course of the simulation. Second, it can
-prevent machine precision error from creeping into the spatial
-coordinates calculation. Finally, it can help pinpoint the location of a
-block within the oct-tree of . Another useful integer variable is the
-concept of a *stride*. A stride indicates the spacing factor between one
-cell and the cell directly to its right when calculating the cornerID.
-At the maximum refinement level, the stride is :math:`1`, at the next
-higher level it is :math:`2`, and so on. Two consecutive cells at
-refinement level :math:`n` are numbered with a stride of
-:math:`2^{lrefine\_max-n}` where :math:`1 \le n \le
+The concept of ``cornerID`` was introduced in |flashx|; it serves three
+purposes. First, it creates a unique global identity for every cell that
+can come into existence at any time in the course of the simulation.
+Second, it can prevent machine precision error from creeping into the
+spatial coordinates calculation. Finally, it can help pinpoint the
+location of a block within the oct-tree of ``PARAMESH``. Another useful
+integer variable is the concept of a *stride*. A stride indicates the
+spacing factor between one cell and the cell directly to its right when
+calculating the cornerID. At the maximum refinement level, the stride is
+:math:`1`, at the next higher level it is :math:`2`, and so on. Two
+consecutive cells at refinement level :math:`n` are numbered with a
+stride of :math:`2^{lrefine\_max-n}` where :math:`1 \le n \le
 lrefine\_max`.
 
-The routine provides a convenient way for the user to retrieve the
-location of a block or cell. A usage example is provided in the
-documentation for that routine. The user should retrieve accurate
-physical and grid coordinates by calling the routines , , and , instead
-of calculating their own from local block information, since they take
-advantage of the scheme, and therefore avoid the possibility of
-introducing machine precision induced numerical drift in the
-calculations.
+The routine ``Grid/Grid_getBlkCornerID`` provides a convenient way for
+the user to retrieve the location of a block or cell. A usage example is
+provided in the documentation for that routine. The user should retrieve
+accurate physical and grid coordinates by calling the routines
+``Grid/Grid_getBlkCornerID``, ``Grid/Grid_getCellCoords``,
+``Grid/Grid_getBlkCenterCoords`` and ``Grid/Grid_getBlkPhysicalSize``,
+instead of calculating their own from local block information, since
+they take advantage of the ``cornerID`` scheme, and therefore avoid the
+possibility of introducing machine precision induced numerical drift in
+the calculations.
 
 .. _`Sec:gridinterp`:
 
 Grid Interpolation (and Averaging)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The adaptive grid requires data or when the refinement level (, mesh
-resolution) changes in space or in time.  [3]_ If during guardcell
-filling a block’s neighbor has a coarser level of refinement, the
-neighbor’s cells are used to guard cell values to the cells of the finer
-block. Interpolation is also used when filling the blocks of children
-newly created in the course of automatic refinement. Data is used to
-adapt data in the opposite direction, , from fine to coarse.
+The adaptive grid requires data **interpolation** or **averaging** when
+the refinement level (*i.e.*, mesh resolution) changes in space or in
+time.  [3]_ If during guardcell filling a block’s neighbor has a coarser
+level of refinement, the neighbor’s cells are used to **interpolate**
+guard cell values to the cells of the finer block. Interpolation is also
+used when filling the blocks of children newly created in the course of
+automatic refinement. Data **averaging** is used to adapt data in the
+opposite direction, *i.e.*, from fine to coarse.
 
-In the AMR context, the term is used to refer to data interpolation
-(because it is used when the tree of blocks grows longer). Similarly,
-the term is used to refer to fine-to-coarse data averaging.
+In the AMR context, the term **prolongation** is used to refer to data
+interpolation (because it is used when the tree of blocks grows longer).
+Similarly, the term **restriction** is used to refer to fine-to-coarse
+data averaging.
 
 The algorithm used for restriction is straightforward (equal-weight)
 averaging in Cartesian coordinates, but has to take cell volume factors
 into account for curvilinear coordinates; see .
 
-supports various interpolation schemes, to which user-specified
-interpolation schemes can be added. currently allows to choose between
-two interpolation schemes:
+``PARAMESH`` supports various interpolation schemes, to which
+user-specified interpolation schemes can be added. |flashx| currently
+allows to choose between two interpolation schemes:
 
 #. monotonic
 
 #. native
 
-The choice is made at time, see .
+The choice is made at ``setup`` time, see .
 
-The versions of supplied with supply their own default interpolation
-scheme, which is used when is configured with the option (see ). The
-default schemes are only appropriate for Cartesian coordinates. If is
-configured with curvilinear support, an alternative scheme (appropriate
-for all supported geometries) is compiled in. This so-called
-interpolation attempts to ensure that interpolation does not introduce
-small-scale non-monotonicity in the data. The order of “monotonic”
-interpolation can be chosen with the runtime parameter. See for some
-more details on prolongation for curvilinear coordinates. At setup time,
-monotonic interpolation is the default interpolation used.
+The versions of ``PARAMESH`` supplied with |flashx| supply their own
+default interpolation scheme, which is used when |flashx| is configured
+with the ``-gridinterpolation=native`` ``setup`` option (see ). The
+default schemes are only appropriate for Cartesian coordinates. If
+|flashx| is configured with curvilinear support, an alternative scheme
+(appropriate for all supported geometries) is compiled in. This
+so-called “**monotonic**” interpolation attempts to ensure that
+interpolation does not introduce small-scale non-monotonicity in the
+data. The order of “monotonic” interpolation can be chosen with the
+``Grid/interpol_order`` runtime parameter. See for some more details on
+prolongation for curvilinear coordinates. At setup time, monotonic
+interpolation is the default interpolation used.
 
 .. _`Sec:InterpMassSpecific`:
 
@@ -846,54 +935,57 @@ Interpolation for mass-specific solution variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To accurately preserve the total amount of conserved quantities, the
-interpolation routines have to be applied to solution data in , ,
-volume-specific, form. However, many variables are usually stored in the
-array in mass-specific form, , specific internal and total energies,
-velocities, and mass fractions. See for how to use the optional
-attribute in a file’s definitions to inform the Grid unit which
+interpolation routines have to be applied to solution data in
+**conserved**, *i.e.*, volume-specific, form. However, many variables
+are usually stored in the ``unk`` array in mass-specific form, *e.g.*,
+specific internal and total energies, velocities, and mass fractions.
+See for how to use the optional ``TYPE`` attribute in a ``Config``
+file’s ``VARIABLE`` definitions to inform the ``Grid`` unit which
 variables are considered mass-specific.
 
-provides three ways to deal with this:
+|flashx| provides three ways to deal with this:
 
-#. Do nothing—, assume that ignoring the difference between
+#. Do nothing—*i.e.*, assume that ignoring the difference between
    mass-specific and conserved form is a reasonable approximation.
    Depending on the smoothness of solutions in regions where refinement,
    derefinement, and jumps in refinement level occur, this assumption
-   may be acceptable. This behavior can be forced by setting the runtime
-   parameter to
+   may be acceptable. This behavior can be forced by setting the
+   ``Grid/convertToConsvdInMeshInterp`` runtime parameter to ``.false.``
 
 #. Convert mass-specific variables to conserved form *in all blocks
-   throughout the physical domain* before invoking a Grid function that
-   may result in some data interpolation or restriction (refinement,
-   derefinement, guardcell filling); and convert back after these
-   functions return. Conversion is done by cell-by-cell multiplication
-   with the density (, the value of the variable, which should be
-   declared as
+   throughout the physical domain* before invoking a ``Grid`` function
+   that may result in some data interpolation or restriction
+   (refinement, derefinement, guardcell filling); and convert back after
+   these functions return. Conversion is done by cell-by-cell
+   multiplication with the density (*i.e.*, the value of the “``dens``”
+   variable, which should be declared as
 
    .. container:: codeseg
 
       VARIABLE dens TYPE: PER_VOLUME
 
-   in a file).
+   in a ``Config`` file).
 
-   This behavior is available in both and . It is enabled by setting the
-   runtime parameter and corresponds roughly to with enabled.
+   This behavior is available in both ``PARAMESH`` 2 and ``PARAMESH`` 4.
+   It is enabled by setting the ``Grid/convertToConsvdForMeshCalls``
+   runtime parameter and corresponds roughly to |flashx| with
+   ``conserved_var`` enabled.
 
 #. Convert mass-specific variables to conserved form only where and when
-   necessary, from the user’s point of view *as part of data
+   necessary, from the ``Grid`` user’s point of view *as part of data
    interpolation*. Again, conversion is done by cell-by-cell
    multiplication with the value of density. In the actual
    implementation of this approach, the conversion and back-conversion
    operations are closely bracketing the interpolation (or restriction)
    calls. The implementation avoids spurious back-and-forth conversions
-   (, repeated successive multiplications and divisions of data by the
-   density) in blocks that should not be modified by interpolation or
-   restriction.
+   (*i.e.*, repeated successive multiplications and divisions of data by
+   the density) in blocks that should not be modified by interpolation
+   or restriction.
 
-   This behavior is available only for . As of , this is the default
-   behavior whenever available. It can be enabled explicitly (only
-   necessary in setups that change the default) by setting the runtime
-   parameter.
+   This behavior is available only for ``PARAMESH`` 4. As of |flashx|,
+   this is the default behavior whenever available. It can be enabled
+   explicitly (only necessary in setups that change the default) by
+   setting the ``Grid/convertToConsvdInMeshInterp`` runtime parameter.
 
 .. _`Sec: refinement`:
 
@@ -903,22 +995,24 @@ Refinement
 Refinement Criteria
 ^^^^^^^^^^^^^^^^^^^
 
-The refinement criterion used by is adapted from Löhner (1987). Löhner’s
-error estimator was originally developed for finite element applications
-and has the advantage that it uses a mostly local calculation.
-Furthermore, the estimator is dimensionless and can be applied with
-complete generality to any of the field variables of the simulation or
-any combination of them.
+The refinement criterion used by ``PARAMESH`` is adapted from Löhner
+(1987). Löhner’s error estimator was originally developed for finite
+element applications and has the advantage that it uses a mostly local
+calculation. Furthermore, the estimator is dimensionless and can be
+applied with complete generality to any of the field variables of the
+simulation or any combination of them.
 
 .. container:: flashtip
 
-   does not define any refinement variables by default. Therefore
-   simulations using AMR have to make the appropriate runtime parameter
-   definitions in , or in the simulation’s file. If this is not done,
-   the program generates a warning at startup, and no automatic
-   refinement will be performed. The mistake of not specifying
-   refinement variables is thus easily detected. To define a refinement
-   variable, use (where stands for a number from 1 to 4) in the file.
+   |flashx| does not define any refinement variables by default.
+   Therefore simulations using AMR have to make the appropriate runtime
+   parameter definitions in ``flash.par``, or in the simulation’s
+   ``Config`` file. If this is not done, the program generates a warning
+   at startup, and no automatic refinement will be performed. The
+   mistake of not specifying refinement variables is thus easily
+   detected. To define a refinement variable, use ``Grid/refine_var_#``
+   (where ``#`` stands for a number from 1 to 4) in the ``flash.par``
+   file.
 
 Löhner’s estimator is a modified second derivative, normalized by the
 average of the gradient over one computational cell. In one dimension on
@@ -971,8 +1065,8 @@ where the sums are carried out over coordinate directions, and where,
 unless otherwise noted, partial derivatives are evaluated at the center
 of the :math:`i_1i_2i_3`-th cell.
 
-The estimator actually used in ’s default refinement criterion is a
-modification of the above, as follows:
+The estimator actually used in |flashx|\ ’s default refinement criterion
+is a modification of the above, as follows:
 
 .. math::
 
@@ -1018,22 +1112,24 @@ for an *average* of the values of :math:`\left|u\right|` over several
 neighboring cells in the :math:`p` and :math:`q` directions.
 
 The constant :math:`\epsilon` is by default given a value of
-:math:`10^{-2}`, and can be overridden through the runtime parameters.
-Blocks are marked for refinement when the value of :math:`E_{i_Xi_Yi_Z}`
-for any of the block’s cells exceeds a threshold given by the runtime
-parameters , where the number matching the number of the runtime
-parameter selecting the refinement variable. Similarly, blocks are
-marked for derefinement when the values of :math:`E_{i_Xi_Yi_Z}` for
-*all* of the block’s cells lie below another threshold given by the
-runtime parameters .
+:math:`10^{-2}`, and can be overridden through the
+``Grid/refine_filter_#`` runtime parameters. Blocks are marked for
+refinement when the value of :math:`E_{i_Xi_Yi_Z}` for any of the
+block’s cells exceeds a threshold given by the runtime parameters
+``Grid/refine_cutoff_#``, where the number ``#`` matching the number of
+the ``Grid/refine_var_#`` runtime parameter selecting the refinement
+variable. Similarly, blocks are marked for derefinement when the values
+of :math:`E_{i_Xi_Yi_Z}` for *all* of the block’s cells lie below
+another threshold given by the runtime parameters
+``Grid/derefine_cutoff_#``.
 
 Although PPM is formally second-order and its leading error terms scale
 as the third derivative, we have found the second derivative criterion
 to be very good at detecting discontinuities and sharp features in the
-flow variable :math:`u`. When Particles (active or tracer) are being
+flow variable :math:`u`. When ``Particles`` (active or tracer) are being
 used in a simulation, their count in a block can also be used as a
-refinement criterion by setting to true and setting to the desired
-count.
+refinement criterion by setting ``Grid/refine_on_particle_count`` to
+true and setting ``Grid/max_particles_per_blk`` to the desired count.
 
 Refinement Processing
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1082,152 +1178,164 @@ coordinates, regions around the coordinate origin or the polar
 :math:`z`-axis may require special consideration for refinement. A
 collection of methods that can refine a (logically) rectangular region
 or a circular region in Cartesian coordinates, or can automatically
-refine by using some variable threshold, are available through the . It
-is intended to be called from the routine. The interface works by
+refine by using some variable threshold, are available through the
+``Grid/Grid_markRefineSpecialized``. It is intended to be called from
+the ``Grid/Grid_markRefineDerefine`` routine. The interface works by
 allowing the calling routine to pick one of the routines in the suite
 through an integer argument. The calling routine is also expected to
-populate the data structure before making the call. A copy of the file
-should be placed in the directory, and the interface file should be used
-in the header of the function.
+populate the data structure ``specs`` before making the call. A copy of
+the file ``Grid_markRefineDerefine.F90`` should be placed in the
+``Simulation`` directory, and the interface file ``Grid_interface.F90``
+should be used in the header of the function.
 
 .. _`Sec:usage`:
 
 GridMain Usage
 --------------
 
-The Grid unit has the largest API of all units, since it is the
+The ``Grid`` unit has the largest API of all units, since it is the
 custodian of the bulk of the simulation data, and is responsible for
-most of the code housekeeping. The routine, like all other routines,
-collects the runtime parameters needed by the unit and stores values in
-the data module. If using UG, the also creates the computational domain
-and the housekeeping data structures and initializes them. If using AMR,
-the computational domain is created by the routine, which also makes a
-call to mesh package’s own initialization routine. The physical
-variables are all owned by the Grid unit, and it initializes them by
-calling the routine which applies the specified initial conditions to
-the domain. If using an adaptive grid, the initialization routine also
-goes through a few refinement iterations to bring the grid to desired
-initial resolution, and then applies the function to bring all
-simulation variables to thermodynamic equilibrium. Even though the
-mesh-based variables are under Grid’s control, all the physics units can
-operate on and modify them.
+most of the code housekeeping. The ``Grid/Grid_init`` routine, like all
+other ``Unit_init`` routines, collects the runtime parameters needed by
+the unit and stores values in the data module. If using UG, the
+``Grid/Grid_init`` also creates the computational domain and the
+housekeeping data structures and initializes them. If using AMR, the
+computational domain is created by the ``Grid/Grid_initDomain`` routine,
+which also makes a call to mesh package’s own initialization routine.
+The physical variables are all owned by the ``Grid`` unit, and it
+initializes them by calling the ``Simulation/Simulation_initBlock``
+routine which applies the specified initial conditions to the domain. If
+using an adaptive grid, the initialization routine also goes through a
+few refinement iterations to bring the grid to desired initial
+resolution, and then applies the ``physics/Eos/Eos`` function to bring
+all simulation variables to thermodynamic equilibrium. Even though the
+mesh-based variables are under ``Grid``\ ’s control, all the physics
+units can operate on and modify them.
 
-A suite of accessor/mutator functions allows the calling unit to fetch
-or send data by the block. One option is to get a pointer , which gives
-unrestricted access to the whole block and the client unit can modify
-the data as needed. The more conservative but slower option is to get
-some portion of the block data, make a local copy, operate on and modify
-the local copy and then send the data back through the “put” functions.
-The Grid interface allows the client units to fetch the whole block (),
-a partial or full plane from a block (), a partial or full row (), or a
-single point (). Corresponding “put” functions allow the data to be sent
-back to the Grid unit after the calling routine has operated on it.
-Various functions can also be used to fetch some derived quantities such
-as the cell volume or face area of individual cells or groups of cells.
-There are several other accessor functions available to query the
-housekeeping information from the grid. For example returns a list of
-blocks that meet the specified criterion such as being “LEAF” blocks in
-, or residing on the physical boundary.
+A suite of ``get/put`` accessor/mutator functions allows the calling
+unit to fetch or send data by the block. One option is to get a pointer
+``Grid/Grid_getBlkPtr``, which gives unrestricted access to the whole
+block and the client unit can modify the data as needed. The more
+conservative but slower option is to get some portion of the block data,
+make a local copy, operate on and modify the local copy and then send
+the data back through the “put” functions. The ``Grid`` interface allows
+the client units to fetch the whole block (``Grid/Grid_getBlkData``), a
+partial or full plane from a block (``Grid/Grid_getPlaneData``), a
+partial or full row (``Grid/Grid_getRowData``), or a single point
+(``Grid/Grid_getPointData``). Corresponding “put” functions allow the
+data to be sent back to the ``Grid`` unit after the calling routine has
+operated on it. Various ``getData`` functions can also be used to fetch
+some derived quantities such as the cell volume or face area of
+individual cells or groups of cells. There are several other accessor
+functions available to query the housekeeping information from the grid.
+For example ``Grid/Grid_getListOfBlocks`` returns a list of blocks that
+meet the specified criterion such as being “LEAF” blocks in
+``PARAMESH``, or residing on the physical boundary.
 
-In addition to the functions to access the data, the Grid unit also
+In addition to the functions to access the data, the ``Grid`` unit also
 provides a collection of routines that drive some housekeeping functions
 of the grid without explicitly fetching any data. A good example of such
-routines is . Here no data transaction takes place between Grid and the
-calling unit. The calling unit simply instructs the Grid unit that it is
-ready for the guard cells to be updated, and doesn’t concern itself with
-the details. The routine makes sure that all the blocks get the right
-data in their guardcells from their neighbors, whether they are at the
-same, lower or higher resolution, and if instructed by the calling
-routine, also ensures that is applied to them.
+routines is ``Grid/Grid_fillGuardCells``. Here no data transaction takes
+place between ``Grid`` and the calling unit. The calling unit simply
+instructs the ``Grid`` unit that it is ready for the guard cells to be
+updated, and doesn’t concern itself with the details. The
+``Grid/Grid_fillGuardCells`` routine makes sure that all the blocks get
+the right data in their guardcells from their neighbors, whether they
+are at the same, lower or higher resolution, and if instructed by the
+calling routine, also ensures that ``EOS`` is applied to them.
 
-In large-scale, highly parallel Flash-X simulations with AMR, the
-processing of calls may take up a significant part of available resource
-like CPU time, communication bandwidth, and buffer space. It can
-therefore be important to optimize these calls in particular. From ,
-provides ways to
+In large-scale, highly parallel |flashx| simulations with AMR, the
+processing of ``Grid_fillGuardCells`` calls may take up a significant
+part of available resource like CPU time, communication bandwidth, and
+buffer space. It can therefore be important to optimize these calls in
+particular. From |flashx|, ``Grid/Grid_fillGuardCells`` provides ways to
 
--  operate on only a subset of the variables in (and , , and ), by
-   masking out other variables;
+-  operate on only a subset of the variables in ``unk`` (and
+   ``facevarx``, ``facevary``, and ``facevarz``), by masking out other
+   variables;
 
--  fill only some the layers of guard cells that surround the interior
-   of a block (while possibly excepting a “sweep” direction);
+-  fill only some the ``nguard`` layers of guard cells that surround the
+   interior of a block (while possibly excepting a “sweep” direction);
 
 -  combine guard cell filling with EOS calls (which often follow guard
    cell exchanges in the normal flow of execution of a simulation in
    order to ensure thermodynamical consistency in all cells, and which
-   may also be very expensive), by letting make the calls on cells where
-   necessary;
+   may also be very expensive), by letting ``Grid_fillGuardCells`` make
+   the calls on cells where necessary;
 
 -  automatically determine masks and whether to call EOS, based on the
    set of variables that the calling code actually needs updated. by
    masking out other variables.
 
-These options are controlled by arguments, see for documentation. When
-these optional arguments are absent or when a Grid implementation does
-not support them, Flash-X falls back to safe default behavior which may,
-however, be needlessly expensive.
+These options are controlled by ``OPTIONAL`` arguments, see
+``Grid/Grid_fillGuardCells`` for documentation. When these optional
+arguments are absent or when a ``Grid`` implementation does not support
+them, |flashx| falls back to safe default behavior which may, however, be
+needlessly expensive.
 
-Another routine that may change the global state of the grid is . This
-function is called when the client unit wishes to update the grid’s
-resolution. again, the calling unit does not need to know any of the
-details of the refinement process.
+Another routine that may change the global state of the grid is
+``Grid/Grid_updateRefinement``. This function is called when the client
+unit wishes to update the grid’s resolution. again, the calling unit
+does not need to know any of the details of the refinement process.
 
 .. container:: flashtip
 
-   As mentioned in , Flash-X allows every unit to identify scalar
-   variables for checkpointing. In the Grid unit, the function that
-   takes care of consolidating user specified checkpoint variable is .
-   Users can select their own variables to checkpoint by including an
-   implementation of this function specific to their requirements in
-   their Simulation setup directory.
+   As mentioned in , |flashx| allows every unit to identify scalar
+   variables for checkpointing. In the ``Grid`` unit, the function that
+   takes care of consolidating user specified checkpoint variable is
+   ``Grid/Grid_sendOutputData``. Users can select their own variables to
+   checkpoint by including an implementation of this function specific
+   to their requirements in their Simulation setup directory.
 
 .. _`Sec:GridParticles`:
 
-GridParticles
--------------
+``GridParticles``
+-----------------
 
-Flash-X is primarily an Eulerian code, however, there is support for
-tracing the flow using Lagrangian particles. In we have generalized the
-interfaces in the Lagrangian framework of the Grid unit in such a way
-that it can also be used for miscellaneous non-Eulerian data such as
-tracing the path of a ray through the domain, or tracking the motion of
-solid bodies immersed in the fluid. Flash-X also uses active particles
-with mass in cosmological simulations, and charged particles in a hybrid
-PIC solver. Each particle has an associated data structure, which
-contains fields such as its physical position and velocity, and relevant
-physical attributes such as mass or field values in active particles.
-Depending upon the time advance method, there may be other fields to
-store intermediate values. Also, depending upon the requirements of the
-simulation, other physical variables such as temperature   may be added
-to the data structure. The GridParticles subunit of the Grid unit has
-two sub-subunits of its own. The GridParticlesMove sub-subunit moves the
-data structures associated with individual particles when the particles
-move between blocks; the actual movement of the particles through time
-advancement is the responsibility of the Particles unit. Particles move
-from one block to another when their time advance places them outside
-their current block. In AMR, the particles can also change their block
-through the process of refinement and derefinement. The GridParticlesMap
+|flashx| is primarily an Eulerian code, however, there is support for
+tracing the flow using Lagrangian particles. In |flashx| we have
+generalized the interfaces in the Lagrangian framework of the Grid unit
+in such a way that it can also be used for miscellaneous non-Eulerian
+data such as tracing the path of a ray through the domain, or tracking
+the motion of solid bodies immersed in the fluid. |flashx| also uses
+active particles with mass in cosmological simulations, and charged
+particles in a hybrid PIC solver. Each particle has an associated data
+structure, which contains fields such as its physical position and
+velocity, and relevant physical attributes such as mass or field values
+in active particles. Depending upon the time advance method, there may
+be other fields to store intermediate values. Also, depending upon the
+requirements of the simulation, other physical variables such as
+temperature *etc.*  may be added to the data structure. The
+``GridParticles`` subunit of the ``Grid`` unit has two sub-subunits of
+its own. The ``GridParticlesMove`` sub-subunit moves the data structures
+associated with individual particles when the particles move between
+blocks; the actual movement of the particles through time advancement is
+the responsibility of the ``Particles`` unit. Particles move from one
+block to another when their time advance places them outside their
+current block. In AMR, the particles can also change their block through
+the process of refinement and derefinement. The ``GridParticlesMap``
 sub-subunit provides mapping between particles data and the mesh
 variables. The mesh variables are either cell-centered or face-centered,
 whereas a particle’s position could be anywhere in the cell. The
-GridParticlesMap sub-subunit calculates the particle’s properties at its
-position from the corresponding mesh variable values in the appropriate
-cell . When using active particles, this sub-subunit also maps the mass
-of the particles onto the specified mesh variable in appropriate cells.
-The next sections describe the algorithms for moving and mapping
-particles data.
+``GridParticlesMap`` sub-subunit calculates the particle’s properties at
+its position from the corresponding mesh variable values in the
+appropriate cell . When using active particles, this sub-subunit also
+maps the mass of the particles onto the specified mesh variable in
+appropriate cells. The next sections describe the algorithms for moving
+and mapping particles data.
 
 .. _`Sec:GridParticlesMove`:
 
 GridParticlesMove
 ~~~~~~~~~~~~~~~~~
 
-has implementations of three different parallel algorithms for moving
-the particles data when they are displaced from their current block. had
-an additional algorithm, which made use of the oct-tree structure.
-However, because in all performance experiments it performed
-significantly worse than the other two algorithms, it is not supported
-currently in . The simplest algorithm, is applicable only to the uniform
+|flashx| has implementations of three different parallel algorithms for
+moving the particles data when they are displaced from their current
+block. |flashx| had an additional algorithm, ``Perfect Tree Level`` which
+made use of the oct-tree structure. However, because in all performance
+experiments it performed significantly worse than the other two
+algorithms, it is not supported currently in |flashx|. The simplest
+algorithm, ``Directional algorithm`` is applicable only to the uniform
 grid when it is configured with one block per processor. This algorithm
 uses directional movement of data, and is easy because the directional
 neighbors are trivially known. The movement of particles data is much
@@ -1237,11 +1345,12 @@ may have more than one neighbor along one or more of its faces. The
 distribution of blocks based on space-filling curve is an added
 complication since the neighboring blocks along a face may reside at a
 non-neighboring processor The remaining two algorithmss included in
-implement subunit for the adaptive mesh; and , of which only the
-algorithm is able to move the data when the mesh refines. Thus even when
-a user opts for the implementation for moving particles with time
-evolution, some part of the implementation must necessarily be included
-to successfully move the data upon refinement.
+|flashx| implement ``GridParticlesMove`` subunit for the adaptive mesh;
+``Point to Point`` and ``Sieve``, of which only the ``Sieve`` algorithm
+is able to move the data when the mesh refines. Thus even when a user
+opts for the ``PointToPoint`` implementation for moving particles with
+time evolution, some part of the ``Sieve`` implementation must
+necessarily be included to successfully move the data upon refinement.
 
 .. _`Sec: ug_algorithm`:
 
@@ -1307,10 +1416,10 @@ destinations using synchronous mode of communition.
 GridSolvers
 -----------
 
-The unit groups together subunits that are used to solve particular
-types of differential equations. Currently, there are two types of
-solvers: a parallel Fast Fourier Transform package () and various
-solvers for the Poisson equation ().
+The ``GridSolvers`` unit groups together subunits that are used to solve
+particular types of differential equations. Currently, there are two
+types of solvers: a parallel Fast Fourier Transform package () and
+various solvers for the Poisson equation ().
 
 .. _`Sec:GridSolversPfftUnitTests`:
 
@@ -1351,8 +1460,8 @@ specified tolerance.
 Poisson equation
 ~~~~~~~~~~~~~~~~
 
-The subunit contains several different algorithms for solving the
-general Poisson equation for a potential :math:`\phi({\bf
+The ``GridSolvers`` subunit contains several different algorithms for
+solving the general Poisson equation for a potential :math:`\phi({\bf
 x})` given a source :math:`\rho({\bf x})`
 
 .. math::
@@ -1478,7 +1587,7 @@ the form
    \int \sum_{\ell m}R_{\ell m}(x_<)I_{\ell m}^*(x_>)\rho({\bf x}')\,d{\bf x}',
 
 where the summation sign is a shorthand notation for the double sum over
-all the allowed :math:`\ell` and :math:`m` values. In Flash-X both the
+all the allowed :math:`\ell` and :math:`m` values. In |flashx| both the
 source and the potential are assumed to be cell-averaged quantities
 discretized on a block-structured mesh with varying cell size. The
 integration must hence be replaced by a summation over all leaf cells
@@ -1661,7 +1770,7 @@ and
 in which :math:`x,y,z` are the cartesian location coordinates of the
 cell face and :math:`r^2=x^2+y^2+z^2`. For geometries depending on polar
 angles one must first calculate the corresponding cartesian coordinates
-for each cell before applying the recursions. In Flash-X, the order of
+for each cell before applying the recursions. In |flashx|, the order of
 the two cosine and sine components for each solid harmonic vector is
 such that :math:`\ell` precedes :math:`m`. This allows buildup of the
 vectors with maximum number of unit strides. The same applies of course
@@ -1685,7 +1794,7 @@ symmetry operations intended (generators of the symmetry group
 :math:`x,y,z` cartesian basis. The resulting complications in
 calculating symmetry adapted moments outweighs the computational gain
 that can be obtained from it. Options for 3D symmetry are thus no longer
-available in the improved Flash-X multipole solver. The ’octant’
+available in the improved |flashx| multipole solver. The ’octant’
 symmetry option from the old multipole solver, using only the monopole
 :math:`\ell=0` term, was too restrictive in its applicability (exact
 only for up to angular momenta :math:`\ell =3` due to cancellation of
@@ -1747,7 +1856,7 @@ and imposing conditions
    D_I = {1\over r}\sqrt[L+1]{L!} & \approx & {1\over r}{L\over e}\sqrt[2L+2]{{2\pi e^2\over L}},\end{aligned}
 
 where the approximate forms are obtained by using Stirling’s factorial
-approximation formula for large :math:`L`. In Flash-X only the
+approximation formula for large :math:`L`. In |flashx| only the
 approximate forms are computed for :math:`D_R` and :math:`D_I` to avoid
 having to deal with factorials of large numbers.
 
@@ -1842,7 +1951,7 @@ underlying geometrical grid, the size of each radial bin in the outer
 radial zones has to be specified by the user. There is at the moment no
 automatic derivation of the optimum (accuracy vs memory cost) bin size
 for the outer zones. There are two types of radial bin sizes defined for
-the Flash-X multipole solver: i) exponentially and/or ii) logarthmically
+the |flashx| multipole solver: i) exponentially and/or ii) logarthmically
 growing:
 
 .. math::
@@ -1946,20 +2055,22 @@ Multigrid Poisson solver
 Using the Poisson solvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The subunit solves the Poisson equation
+The ``GridSolvers`` subunit solves the Poisson equation
 (`[Eqn:general Poisson] <#Eqn:general Poisson>`__). Two different
-elliptic solvers are supplied with Flash-X: a multipole solver, suitable
+elliptic solvers are supplied with |flashx|: a multipole solver, suitable
 for approximately spherical source distributions, and a multigrid
 solver, which can be used with general source distributions. The
 multipole solver accepts only isolated boundary conditions, whereas the
 multigrid solver supports Dirichlet, given-value, Neumann, periodic, and
 isolated boundary conditions. Boundary conditions for the Poisson solver
-are specified using an argument to the routine which can be set from
-different runtime parameters depending on the physical context in which
-the Poisson equation is being solved. The routine is the primary entry
-point to the Poisson solver module and has the following interface
+are specified using an argument to the ``Grid/Grid_solvePoisson``
+routine which can be set from different runtime parameters depending on
+the physical context in which the Poisson equation is being solved. The
+``Grid_solvePoisson`` routine is the primary entry point to the Poisson
+solver module and has the following interface
 
-   *bcTypes(6)* ,
+   ``call Grid_solvePoisson (``\ *iSoln*\ ``,``\ *iSrc*\ ``,``
+   *bcTypes(6)*\ ``,``\ *bcValues(2,6)*\ ``,``\ *poisfact*\ ``)`` ,
 
 where *iSoln* and *iSrc* are the integer-valued indices of the solution
 and source (density) variables, respectively. *bcTypes(6)* is an integer
@@ -1985,53 +2096,61 @@ Not all boundary types are supported by all solvers. In this release,
 boundaries are treated as Dirichlet boundaries with the boundary values
 subtracted from the outermost interior cells of the source; for this
 case the solution variable should contain the boundary values in its
-first layer of boundary cells on input to . It should be noted that if
-is used, the values must be set for all levels. Finally, *poisfact* is
-real-valued and indicates the value of :math:`\alpha` multiplying the
-source function in (`[Eqn:general Poisson] <#Eqn:general Poisson>`__).
+first layer of boundary cells on input to ``Grid_solvePoisson``. It
+should be noted that if ``PARAMESH`` is used, the values must be set for
+all levels. Finally, *poisfact* is real-valued and indicates the value
+of :math:`\alpha` multiplying the source function in
+(`[Eqn:general Poisson] <#Eqn:general Poisson>`__).
 
-When solutions found using the Poisson solvers are to be differenced (,
-in computing the gravitational acceleration), it is strongly recommended
-that for AMR meshes, quadratic (or better) spatial interpolation at
-fine-coarse boundaries is chosen. (For PARAMESH, this is automatically
-the case by default, and is handled correctly for Cartesian as well as
-the supported curvilinear geometries. But note that the default
-interpolation implementation may be changed at configuration time with
-the ’…’ setup option; and with the default implementation, the
-interpolation order may be lowered with the runtime parameter.) If the
-order of the gridinterpolation of the mesh is not of at least the same
-order as the differencing scheme used in places like , unphysical forces
-will be produced at refinement boundaries. Also, using constant or
-linear grid interpolation may cause the multigrid solver to fail to
-converge.
+When solutions found using the Poisson solvers are to be differenced
+(*e.g.*, in computing the gravitational acceleration), it is strongly
+recommended that for AMR meshes, quadratic (or better) spatial
+interpolation at fine-coarse boundaries is chosen. (For PARAMESH, this
+is automatically the case by default, and is handled correctly for
+Cartesian as well as the supported curvilinear geometries. But note that
+the default interpolation implementation may be changed at configuration
+time with the ’\ ``-gridinterpolation=``\ …’ setup option; and with the
+default implementation, the interpolation order may be lowered with the
+``Grid/interpol_order`` runtime parameter.) If the order of the
+gridinterpolation of the mesh is not of at least the same order as the
+differencing scheme used in places like
+``physics/Gravity/Gravity_accelOneRow``, unphysical forces will be
+produced at refinement boundaries. Also, using constant or linear grid
+interpolation may cause the multigrid solver to fail to converge.
 
 .. _`Sec:GridSolversMultipoleUsing`:
 
 Multipole (original version)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The sub-module takes two runtime parameters, listed in . Note that
-storage and CPU costs scale roughly as the square of , so it is best to
-use this module only for nearly spherical matter distributions.
+The ``poisson/multipole`` sub-module takes two runtime parameters,
+listed in . Note that storage and CPU costs scale roughly as the square
+of ``mpole_lmax``, so it is best to use this module only for nearly
+spherical matter distributions.
 
 .. container:: center
 
    .. container::
       :name: Tab:multipole parameters
 
-      .. table::  Runtime parameters used with .
+      .. table::  Runtime parameters used with ``poisson/multipole``.
 
-         +----------+---------+---------+------------------------------------+
-         | Variable | Type    | Default | Description                        |
-         +==========+=========+=========+====================================+
-         |          | integer | 10      | Maximum multipole moment           |
-         +----------+---------+---------+------------------------------------+
-         |          | logical |         | Use symmetry to solve a single     |
-         |          |         |         | quadrant in 2D axisymmetric        |
-         |          |         |         | cylindrical (:math:`r,z`)          |
-         |          |         |         | coordinates, instead of a half     |
-         |          |         |         | domain.                            |
-         +----------+---------+---------+------------------------------------+
+         +----------------+---------+-------------+---------------------+
+         | Variable       | Type    | Default     | Description         |
+         +================+=========+=============+=====================+
+         | ``mpole_lmax`` | integer | 10          | Maximum multipole   |
+         |                |         |             | moment              |
+         +----------------+---------+-------------+---------------------+
+         | ``quadrant``   | logical | ``.false.`` | Use symmetry to     |
+         |                |         |             | solve a single      |
+         |                |         |             | quadrant in 2D      |
+         |                |         |             | axisymmetric        |
+         |                |         |             | cylindrical         |
+         |                |         |             | (:math:`r,z`)       |
+         |                |         |             | coordinates,        |
+         |                |         |             | instead of a half   |
+         |                |         |             | domain.             |
+         +----------------+---------+-------------+---------------------+
 
 .. _`Sec:GridSolversMultipoleImprovedUsing`:
 
@@ -2039,8 +2158,8 @@ Multipole (improved version)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To include the new multipole solver in a simulation, the best option is
-to use the shortcut at setup command line, effectively replacing the
-following setup options :
+to use the shortcut ``+newMpole`` at setup command line, effectively
+replacing the following setup options :
 
 .. container:: codeseg
 
@@ -2065,114 +2184,121 @@ The improved multipole solver takes several runtime parameters, whose
 functions are explained in detail below, together with comments about
 expected time and memory scaling.
 
--  : The maximum angular moment :math:`L` to be used for the multipole
-   Poisson solver. Depending on the domain geometry, the memory and time
-   scaling factors due to this variable alone are: i) 3D cartesian, 3D
-   cylindrical :math:`\rightarrow (L+1)(L+1)`, ii) 3D cartesian
-   axisymmetric, 2D cylindrical, 2D spherical :math:`\rightarrow (L+1)`,
-   iii) 1D spherical :math:`\rightarrow 1`. Assuming no memory
-   limitations, the multipole solver is numerically stable for very
-   large :math:`L` values. Runs up to :math:`L=100` for 3D cartesian
-   domains have been performed. For 2D geometries, :math:`L=1000` was
-   the maximum tested.
+-  ``Grid/mpole_Lmax``: The maximum angular moment :math:`L` to be used
+   for the multipole Poisson solver. Depending on the domain geometry,
+   the memory and time scaling factors due to this variable alone are:
+   i) 3D cartesian, 3D cylindrical :math:`\rightarrow (L+1)(L+1)`, ii)
+   3D cartesian axisymmetric, 2D cylindrical, 2D spherical
+   :math:`\rightarrow (L+1)`, iii) 1D spherical :math:`\rightarrow 1`.
+   Assuming no memory limitations, the multipole solver is numerically
+   stable for very large :math:`L` values. Runs up to :math:`L=100` for
+   3D cartesian domains have been performed. For 2D geometries,
+   :math:`L=1000` was the maximum tested.
 
--  : In 2D coordinates, this runtime parameter enables the user to
-   specify a plane of symmetry along the radial part of the domain
-   coordinates. In effect, this allows a reduction of the computational
-   domain size by one half. The code internally computes the multipole
-   moments as if the other symmetric part is present, i.e. no memory or
-   execution time savings can be achieved by this runtime parameter.
+-  ``Grid/mpole_2DSymmetryPlane``: In 2D coordinates, this runtime
+   parameter enables the user to specify a plane of symmetry along the
+   radial part of the domain coordinates. In effect, this allows a
+   reduction of the computational domain size by one half. The code
+   internally computes the multipole moments as if the other symmetric
+   part is present, i.e. no memory or execution time savings can be
+   achieved by this runtime parameter.
 
--  : Forces rotational invariance around the main (:math:`z`) axis in 3D
-   cartesian domains. The assumed rotational invariance in the
-   :math:`(x,y)` plane effectively cancels all :math:`m\neq 0` multipole
-   moments and one can restrict the calculation to the :math:`m=0`
-   multipole moments only. The time and memory savings compared to a
-   asymmetric 3D cartesian run is thus about a factor of :math:`(L+1)`.
-   For 3D cylindrical domains, rotational invariance in the
-   :math:`(x,y)` plane is equivalent of setting up the corresponding 2D
-   cylindrical domain, hence this runtime parameter is not honored for
-   3D cylindrical domains, and the user is informed about the 3D to 2D
-   cylindrical domain reduction possibility.
+-  ``Grid/mpole_3DAxisymmetry``: Forces rotational invariance around the
+   main (:math:`z`) axis in 3D cartesian domains. The assumed rotational
+   invariance in the :math:`(x,y)` plane effectively cancels all
+   :math:`m\neq 0` multipole moments and one can restrict the
+   calculation to the :math:`m=0` multipole moments only. The time and
+   memory savings compared to a asymmetric 3D cartesian run is thus
+   about a factor of :math:`(L+1)`. For 3D cylindrical domains,
+   rotational invariance in the :math:`(x,y)` plane is equivalent of
+   setting up the corresponding 2D cylindrical domain, hence this
+   runtime parameter is not honored for 3D cylindrical domains, and the
+   user is informed about the 3D to 2D cylindrical domain reduction
+   possibility.
 
--  : This parameter is meant mainly for debugging purposes. It prints
-   the entire moment array for each radial bin for each time step. This
-   option should be used with care and for small problems only. The
-   output is printed to a text file named
+-  ``Grid/mpole_DumpMoments``: This parameter is meant mainly for
+   debugging purposes. It prints the entire moment array for each radial
+   bin for each time step. This option should be used with care and for
+   small problems only. The output is printed to a text file named
    ’\ :math:`<`\ basenm\ :math:`>`\ \_dumpMoments.txt’, where
    :math:`<basenm>` is the base name given for the output files.
 
--  : This parameter enables showing all detailed radial bin information
-   at each time step. This option is especially useful for optimizing
-   the radial bin sizes. The output is written to the text file
+-  ``Grid/mpole_PrintRadialInfo``: This parameter enables showing all
+   detailed radial bin information at each time step. This option is
+   especially useful for optimizing the radial bin sizes. The output is
+   written to the text file
    ’\ :math:`<`\ basenm\ :math:`>`\ \_printRadialInfo.txt’.
 
--  : Controls switching on/off the radial inner zone. If it is set
-   .true., the inner zone will not be recognized and all inner zone
-   radii will be treated statistically. This parameter is meant only for
-   performing some error analysis. For production runs it should always
-   be at its default value of false. Otherwise errors will be introduced
-   in calculating the moments near the expansion center.
+-  ``Grid/mpole_IgnoreInnerZone``: Controls switching on/off the radial
+   inner zone. If it is set .true., the inner zone will not be
+   recognized and all inner zone radii will be treated statistically.
+   This parameter is meant only for performing some error analysis. For
+   production runs it should always be at its default value of false.
+   Otherwise errors will be introduced in calculating the moments near
+   the expansion center.
 
--  : The size defining the discrete inner zone. The size is given in
-   terms of the inner zone smallest (atomic) radius, which is determined
-   at each time step by analyzing the domain grid structure around the
-   multipolar origin (expansion center). Only very rarely will this
-   value ever have to be changed. The default setting is very
-   conservative and only under unusual circumstances (ex: highly
-   nonuniform grid around the expansion center) this might be necessary.
-   This value needs to be an integer, as it is used by the code to
-   define dimensions of certain arrays. Note, that by giving this
-   runtime parameter a large integer value (> 1000 for domain refinement
-   levels up to 5) one can enforce the code to use only non-statistical
-   radial bins.
+-  ``Grid/mpole_InnerZoneSize``: The size defining the discrete inner
+   zone. The size is given in terms of the inner zone smallest (atomic)
+   radius, which is determined at each time step by analyzing the domain
+   grid structure around the multipolar origin (expansion center). Only
+   very rarely will this value ever have to be changed. The default
+   setting is very conservative and only under unusual circumstances
+   (ex: highly nonuniform grid around the expansion center) this might
+   be necessary. This value needs to be an integer, as it is used by the
+   code to define dimensions of certain arrays. Note, that by giving
+   this runtime parameter a large integer value (> 1000 for domain
+   refinement levels up to 5) one can enforce the code to use only
+   non-statistical radial bins.
 
--  : Defines the inner zone radial bin size for the inner zone in terms
-   of the inner zone smallest (atomic) radius. Two inner zone radii will
-   be considered different, if they are more than this resolution value
-   apart. A very tiny number (for example :math:`10^{-8}`) will result
-   in a complete separation of all inner zone radii into separate radial
-   bins. The default value of :math:`0.1` should never be surpassed, and
-   any attempt to do so will stop the program with the appropriate
-   information to the user. Likewise with a meaningless resolution value
-   of 0.
+-  ``Grid/mpole_InnerZoneResolution``: Defines the inner zone radial bin
+   size for the inner zone in terms of the inner zone smallest (atomic)
+   radius. Two inner zone radii will be considered different, if they
+   are more than this resolution value apart. A very tiny number (for
+   example :math:`10^{-8}`) will result in a complete separation of all
+   inner zone radii into separate radial bins. The default value of
+   :math:`0.1` should never be surpassed, and any attempt to do so will
+   stop the program with the appropriate information to the user.
+   Likewise with a meaningless resolution value of 0.
 
--  : The maximum number of outer radial zones to be used. In contrast to
-   the inner radial zone, the outer radial zones are much more important
-   for the user. Their layout defines the performance of the multipole
-   solver both in cpu time spent and accuracy of the potential obtained
-   at each cell. The default value of 1 outer radial zone at maximum
-   refinement level leads to high accuracy, but at the same time can
-   consume quite a bit of memory, especially for full 3D runs. In these
-   cases the user can specify several outer radial zones each having
-   their own radial bin size determination rule.
+-  ``Grid/mpole_MaxRadialZones``: The maximum number of outer radial
+   zones to be used. In contrast to the inner radial zone, the outer
+   radial zones are much more important for the user. Their layout
+   defines the performance of the multipole solver both in cpu time
+   spent and accuracy of the potential obtained at each cell. The
+   default value of 1 outer radial zone at maximum refinement level
+   leads to high accuracy, but at the same time can consume quite a bit
+   of memory, especially for full 3D runs. In these cases the user can
+   specify several outer radial zones each having their own radial bin
+   size determination rule.
 
--  : The fraction of the maximum domain radius defining the n-th outer
-   zone maximum radial value. The total number of fractions given must
-   match the maximum number of outer radial zones specified and the
-   fractions must be in increasing order and less than unity as we move
-   from the 1st outer zone upwards. The last outer zone must always have
-   a fraction of exactly 1. If not, the code will enforce it.
+-  ``Grid/mpole_ZoneRadiusFraction_n``: The fraction of the maximum
+   domain radius defining the n-th outer zone maximum radial value. The
+   total number of fractions given must match the maximum number of
+   outer radial zones specified and the fractions must be in increasing
+   order and less than unity as we move from the 1st outer zone upwards.
+   The last outer zone must always have a fraction of exactly 1. If not,
+   the code will enforce it.
 
--  : String value containing the outer radial zone type for the n-th
-   outer zone. If set to ’exponential’, the radial equation
-   :math:`r(Q) = s \cdot \Delta r \cdot Q^t`, defining the upper bound
-   radius of the Q-th radial bin in the n-th outer zone, is used. If set
-   to ’logarithmic’, the radial equation
+-  ``Grid/mpole_ZoneType_n``: String value containing the outer radial
+   zone type for the n-th outer zone. If set to ’exponential’, the
+   radial equation :math:`r(Q) = s \cdot \Delta r \cdot Q^t`, defining
+   the upper bound radius of the Q-th radial bin in the n-th outer zone,
+   is used. If set to ’logarithmic’, the radial equation
    :math:`r(Q) = s \cdot \Delta r \cdot (e^{Qt}-1)/(e^t-1)` is used. In
    these equations :math:`Q` is a local radial bin counting index for
    each outer zone and :math:`s,t` are parameters defining size and
    growth of the outer zone radial bins (see below).
 
--  : The scalar value :math:`s` in the n-th outer radial zone equation
-   :math:`r(Q) = s \cdot \Delta r \cdot Q^t` or
-   :math:`r(Q) = s \cdot \Delta r \cdot (e^{Qt}-1)/(e^t-1)`. The scalar
-   is needed to be able to increase (or decrease) the size of the first
-   radial bin with respect to the default smallest outer zone radius
-   :math:`\Delta r`.
+-  ``Grid/mpole_ZoneScalar_n``: The scalar value :math:`s` in the n-th
+   outer radial zone equation :math:`r(Q) = s \cdot \Delta r \cdot Q^t`
+   or :math:`r(Q) = s \cdot \Delta r \cdot (e^{Qt}-1)/(e^t-1)`. The
+   scalar is needed to be able to increase (or decrease) the size of the
+   first radial bin with respect to the default smallest outer zone
+   radius :math:`\Delta r`.
 
--  : The exponent value :math:`t` in the n-th outer radial zone
-   equations :math:`r(Q) = s \cdot \Delta r \cdot Q^t` or
+-  ``Grid/mpole_ZoneExponent_n``: The exponent value :math:`t` in the
+   n-th outer radial zone equations
+   :math:`r(Q) = s \cdot \Delta r \cdot Q^t` or
    :math:`r(Q) = s \cdot \Delta r \cdot (e^{Qt}-1)/(e^t-1)`. The
    exponent controls the growth (shrinkage) in size of each radial bin
    with increasing bin index. For the first equation, growing will occur
@@ -2187,35 +2313,64 @@ expected time and memory scaling.
 
    .. container:: center
 
-      ========= ======= ============= ======================================
-      Parameter Type    Default       Options
-      ========= ======= ============= ======================================
-      \         integer 0             :math:`>0`
-      \         logical false         true
-      \         logical false         true
-      \         logical false         true
-      \         logical false         true
-      \         logical false         true
-      \         integer 16            :math:`>0`
-      \         real    0.1           less than :math:`0.1` and :math:`>0.0`
-      \         integer 1             :math:`>1`
-      \         real    1.0           less than :math:`1.0` and :math:`>0.0`
-      \         string  ”exponential” ”logarithmic”
-      \         real    1.0           :math:`>0.0`
-      \         real    1.0           :math:`>0.0` (exponential)
-      \         real    -             any :math:`\neq 0` (logarithmic)
-      ========= ======= ============= ======================================
+      +--------------------+---------+---------------+--------------------+
+      | Parameter          | Type    | Default       | Options            |
+      +====================+=========+===============+====================+
+      | `                  | integer | 0             | :math:`>0`         |
+      | `Grid/mpole_Lmax`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpole       | logical | false         | true               |
+      | _2DSymmetryPlane`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpo         | logical | false         | true               |
+      | le_3DAxisymmetry`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/m           | logical | false         | true               |
+      | pole_DumpMoments`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpole       | logical | false         | true               |
+      | _PrintRadialInfo`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpole       | logical | false         | true               |
+      | _IgnoreInnerZone`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpo         | integer | 16            | :math:`>0`         |
+      | le_InnerZoneSize`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpole_Inn   | real    | 0.1           | less than          |
+      | erZoneResolution`` |         |               | :math:`0.1` and    |
+      |                    |         |               | :math:`>0.0`       |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpol        | integer | 1             | :math:`>1`         |
+      | e_MaxRadialZones`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpole_Zone  | real    | 1.0           | less than          |
+      | RadiusFraction_n`` |         |               | :math:`1.0` and    |
+      |                    |         |               | :math:`>0.0`       |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/            | string  | ”exponential” | ”logarithmic”      |
+      | mpole_ZoneType_n`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mp          | real    | 1.0           | :math:`>0.0`       |
+      | ole_ZoneScalar_n`` |         |               |                    |
+      +--------------------+---------+---------------+--------------------+
+      | ``Grid/mpol        | real    | 1.0           | :math:`>0.0`       |
+      | e_ZoneExponent_n`` |         |               | (exponential)      |
+      +--------------------+---------+---------------+--------------------+
+      |                    | real    | -             | any :math:`\neq 0` |
+      |                    |         |               | (logarithmic)      |
+      +--------------------+---------+---------------+--------------------+
 
 .. _`Sec:GridSolversMultigridUsing`:
 
 Multigrid
 ^^^^^^^^^
 
-The module is appropriate for general source distributions. It solves
-Poisson’s equation for 1, 2, and 3 dimensional problems with Cartesian
-geometries. It only supports the AMReX Grid in the current version (See
-AMReX documentation for more detail). It may be included by or by
-including:
+The ``Grid/GridSolvers/Multigrid`` module is appropriate for general
+source distributions. It solves Poisson’s equation for 1, 2, and 3
+dimensional problems with Cartesian geometries. It only supports the
+|amrex| Grid in the current version (See |amrex| documentation for more
+detail). It may be included by ``setup`` or ``Config`` by including:
 
 .. container:: codeseg
 
@@ -2231,19 +2386,20 @@ HYPRE
 ~~~~~
 
 | As a part of implicit time advancement we end up with a system of
-  equations that needs to be solved at every time step. In the HYPRE
-  linear algebra package is used to solve these systems of equations.
-  Therefore it is necessary to install Hypre if this capability of
-  Flash-X is to be used.
-| is the API function which solves the system of equations. This API is
-  provided by both the split and unsplit solvers. The unsplit solver
-  uses HYPRE to solve the system of equations and split solver does a
-  direct inverse using Thomas algorithm. Note that the split solver
-  relies heavily on PFFT infrastructure for data exchange and a
-  significant portion of work in split involves PFFT routines. In the
-  unsplit solver the data exchange is implicitly done within HYPRE and
-  is hidden.
-| The steps in unsplit are as follows:
+  equations that needs to be solved at every time step. In |flashx| the
+  HYPRE linear algebra package is used to solve these systems of
+  equations. Therefore it is necessary to install Hypre if this
+  capability of |flashx| is to be used.
+| ``Grid/Grid_advanceDiffusion`` is the API function which solves the
+  system of equations. This API is provided by both the split and
+  unsplit solvers. The unsplit solver uses HYPRE to solve the system of
+  equations and split solver does a direct inverse using Thomas
+  algorithm. Note that the split solver relies heavily on PFFT
+  infrastructure for data exchange and a significant portion of work in
+  split ``Grid_advanceDiffusion`` involves PFFT routines. In the unsplit
+  solver the data exchange is implicitly done within HYPRE and is
+  hidden.
+| The steps in unsplit ``Grid_advanceDiffusion`` are as follows:
 
 -  Setup HYPRE grid object
 
@@ -2259,7 +2415,7 @@ HYPRE
 
 -  Solve system AX = B
 
--  | Update solution (in )
+-  | Update solution (in |flashx|)
 
 Mapping UG grid to HYPRE matrix is trivial, however mapping PARAMESH
 grid to a HYPRE matrix can be quite complicated. The process is
@@ -2274,20 +2430,23 @@ simplified using the grid interfaces provided by HYPRE.
 | The choice of an interface is tightly coupled to the underlying grid
   on which the problem is being solved. We have chosen the SSTRUCT
   interface as it is the most compatible with the block structured AMR
-  mesh in . Two terms commonly used in HYPRE terminology are part and
-  box. We define these terms in equivalent terminology. A HYPRE box
-  object maps directly to a leaf block in . The block is then defined by
-  it’s extents. In this information can be computed easily using a
-  combination of and .All leaf blocks at a given refinement level form a
-  HYPRE part. So number of parts in a typical grid would be give by,
+  mesh in |flashx|. Two terms commonly used in HYPRE terminology are part
+  and box. We define these terms in equivalent |flashx| terminology. A
+  HYPRE box object maps directly to a leaf block in |flashx|. The block
+  is then defined by it’s extents. In |flashx| this information can be
+  computed easily using a combination of ``Grid_getBlkCornerID`` and
+  ``Grid_getBlkIndexLimits``.All leaf blocks at a given refinement level
+  form a HYPRE part. So number of parts in a typical |flashx| grid would
+  be give by,
+| ``nparts = leaf_block(lrefine_max) - leaf_block(lrefine_min) + 1``
 | So, if a grid is fully refined or UG, nparts = 1. However, there could
   still be more then one box object.
 | Setting up the HYPRE grid object is one of the most important step of
   the solution process. We use the SSTRUCT interface provided in HYPRE
   to setup the grid object. Since the HYPRE Grid object is mapped
-  directly with grid, whenever the grid changes the HYPRE grid object
-  needs to be updated. Consequentlywith AMR the HYPRE grid setup might
-  happen multiple times.
+  directly with |flashx| grid, whenever the |flashx| grid changes the
+  HYPRE grid object needs to be updated. Consequentlywith AMR the HYPRE
+  grid setup might happen multiple times.
 | Setting up a HYPRE grid object is a two step process,
 
 -  Creating stenciled relationships.
@@ -2315,13 +2474,13 @@ simplified using the grid interfaces provided by HYPRE.
   therefore it cannot rely upon the guardcell fill process. A two step
   process is used to handle this situation,
 
--  Since HYPRE has access to X(at n, , initial guess), the RHS vector B
-   can be computed as MX where M is a modified Matrix.
+-  Since HYPRE has access to X(at n, *i.e.*, initial guess), the RHS
+   vector B can be computed as MX where M is a modified Matrix.
 
 -  | Similarly the value of Factor B can be shared across the
      fine-coarse boundary by using
-     ,the fluxes need to be set in a intuitive to way to achieve the
-     desired effect.
+     ``Grid_conserveFluxes``,the fluxes need to be set in a intuitive to
+     way to achieve the desired effect.
 
 | With the computation of Vector B (RHS), the system can be solved using
   HYPRE and UNK can be updated.
@@ -2331,15 +2490,16 @@ simplified using the grid interfaces provided by HYPRE.
 HYPRE Solvers
 ^^^^^^^^^^^^^
 
-In we use the HYPRE PARCSR storage format as this exposes the maximum
-number of iterative solvers.
+In |flashx| we use the HYPRE PARCSR storage format as this exposes the
+maximum number of iterative solvers.
 
 .. container:: center
 
    .. container::
       :name: Tab:HYPRE solver types
 
-      .. table::  Solvers, Preconditioners combinations used with .
+      .. table::  Solvers, Preconditioners combinations used with
+      ``Grid/GridSolvers/HYPRE``.
 
          ======== ==============
          Solver   Preconditioner
@@ -2361,13 +2521,14 @@ number of iterative solvers.
   to be slow. THe released code has an option to use the SPLIT solver,
   but this solver has not been extensively tested and was used only for
   internal debugging purposes and the usage of the HYPRE SPLIT solver in
-  is purely experimental.
+  |flashx| is purely experimental.
 | **Customizing solvers:** HYPRE exposes a lot more parameters to tweak
   the solvers and preconditioners mentioned above. We have only used
   those which are applicable to general diffusion problems. Although in
   general these settings might be good enough it is by no means complete
   and might not be applicable to all class of problems. Use of
-  additional HYPRE parameters might require direct manipulation of code.
+  additional HYPRE parameters might require direct manipulation of
+  |flashx| code.
 | **Symmetric Positive Definite (SPD) Matrix:** PCG has been noticed to
   have convergence issues which might be related to (not necessarily),
 
@@ -2383,70 +2544,80 @@ number of iterative solvers.
    .. container::
       :name: Tab:HYPRE solver  parameters
 
-      .. table::  Runtime parameters used with .
+      .. table::  Runtime parameters used with
+      ``Grid/GridSolvers/HYPRE``.
 
-         +----------+---------+----------------------+----------------------+
-         | Variable | Type    | Default              | Description          |
-         +==========+=========+======================+======================+
-         |          | string  |                      | Algebraic Multigrid  |
-         |          |         |                      | as Preconditioner    |
-         +----------+---------+----------------------+----------------------+
-         |          | integer | 10000                | Maximum number of    |
-         |          |         |                      | iterations           |
-         +----------+---------+----------------------+----------------------+
-         |          | real    | :ma                  | Maximum ratio of the |
-         |          |         | th:`1\times 10^{-8}` | norm of the residual |
-         |          |         |                      | to that of the       |
-         |          |         |                      | initial residue      |
-         +----------+---------+----------------------+----------------------+
-         |          | string  |                      | Type of linear       |
-         |          |         |                      | solver,              |
-         |          |         |                      | Preconditioned       |
-         |          |         |                      | Conjugate gradient   |
-         +----------+---------+----------------------+----------------------+
-         |          | boolean | FALSE                | enables/disables     |
-         |          |         |                      | some basic solver    |
-         |          |         |                      | information (for e.g |
-         |          |         |                      | number of            |
-         |          |         |                      | iterations)          |
-         +----------+---------+----------------------+----------------------+
-         |          | integer | 1                    | Verbosity level of   |
-         |          |         |                      | solver diagnostics   |
-         |          |         |                      | (refer HYPRE         |
-         |          |         |                      | manual).             |
-         +----------+---------+----------------------+----------------------+
-         |          | real    | :mat                 | Used to floor the    |
-         |          |         | h:`1\times 10^{-12}` | end solution.        |
-         +----------+---------+----------------------+----------------------+
-         |          | boolean | TRUE                 | whether to apply     |
-         |          |         |                      | gr_hypreFloor to     |
-         |          |         |                      | floor results from   |
-         |          |         |                      | HYPRE.               |
-         +----------+---------+----------------------+----------------------+
+         +------------------+---------+------------------+------------------+
+         | Variable         | Type    | Default          | Description      |
+         +==================+=========+==================+==================+
+         | ``               | string  | ``"hypre_amg"``  | Algebraic        |
+         | gr_hyprePCType`` |         |                  | Multigrid as     |
+         |                  |         |                  | Preconditioner   |
+         +------------------+---------+------------------+------------------+
+         | ``g              | integer | 10000            | Maximum number   |
+         | r_hypreMaxIter`` |         |                  | of iterations    |
+         +------------------+---------+------------------+------------------+
+         | ``               | real    | :math:`          | Maximum ratio of |
+         | gr_hypreRelTol`` |         | 1\times 10^{-8}` | the norm of the  |
+         |                  |         |                  | residual to that |
+         |                  |         |                  | of the initial   |
+         |                  |         |                  | residue          |
+         +------------------+---------+------------------+------------------+
+         | ``gr_h           | string  | ``"hypre_pcg"``  | Type of linear   |
+         | ypreSolverType`` |         |                  | solver,          |
+         |                  |         |                  | Preconditioned   |
+         |                  |         |                  | Conjugate        |
+         |                  |         |                  | gradient         |
+         +------------------+---------+------------------+------------------+
+         | ``gr_hypre       | boolean | FALSE            | enables/disables |
+         | PrintSolveInfo`` |         |                  | some basic       |
+         |                  |         |                  | solver           |
+         |                  |         |                  | information (for |
+         |                  |         |                  | e.g number of    |
+         |                  |         |                  | iterations)      |
+         +------------------+---------+------------------+------------------+
+         | ``gr_            | integer | 1                | Verbosity level  |
+         | hypreInfoLevel`` |         |                  | of solver        |
+         |                  |         |                  | diagnostics      |
+         |                  |         |                  | (refer HYPRE     |
+         |                  |         |                  | manual).         |
+         +------------------+---------+------------------+------------------+
+         | `                | real    | :math:`1         | Used to floor    |
+         | `gr_hypreFloor`` |         | \times 10^{-12}` | the end          |
+         |                  |         |                  | solution.        |
+         +------------------+---------+------------------+------------------+
+         | ``gr             | boolean | TRUE             | whether to apply |
+         | _hypreUseFloor`` |         |                  | gr_hypreFloor to |
+         |                  |         |                  | floor results    |
+         |                  |         |                  | from HYPRE.      |
+         +------------------+---------+------------------+------------------+
 
 .. _`Sec:Grid geometry`:
 
 Grid Geometry
 -------------
 
-Flash-X can use various kinds of coordinates () for modeling physical
-problems. The available geometries represent different (orthogonal)
-curvilinear coordinate systems.
+|flashx| can use various kinds of coordinates (“**geometries**”) for
+modeling physical problems. The available geometries represent different
+(orthogonal) curvilinear coordinate systems.
 
 The geometry for a particular problem is set at runtime (after an
-appropriate invocation of ) through the runtime parameter, which can
-take a value of or . Together with the dimensionality of the problem,
-this serves to completely define the nature of the problem’s coordinate
-axes (). Note that not all Grid implementations support all
-geometry/dimension combinations. Physics units may also be limited in
-the geometries supported, some may only work for Cartesian coordinates.
+appropriate invocation of ``setup``) through the ``geometry`` runtime
+parameter, which can take a value of
+``"cartesian", "spherical", "cylindrical",`` or ``"polar"``. Together
+with the dimensionality of the problem, this serves to completely define
+the nature of the problem’s coordinate axes (). Note that not all
+``Grid`` implementations support all geometry/dimension combinations.
+Physics units may also be limited in the geometries supported, some may
+only work for Cartesian coordinates.
 
-The core code of a Grid implementation is not concerned with the mapping
-of cell indices to physical coordinates; this is not required for
-under-the-hood Grid operations such as keeping track of which blocks are
-neighbors of which other blocks, which cells need to be filled with data
-from other blocks, and so on. Thus the physical domain can be logically
-modeled as a rectangular mesh of cells, even in curvilinear coordinates.
+The core code of a ``Grid`` implementation is not concerned with the
+mapping of cell indices to physical coordinates; this is not required
+for under-the-hood ``Grid`` operations such as keeping track of which
+blocks are neighbors of which other blocks, which cells need to be
+filled with data from other blocks, and so on. Thus the physical domain
+can be logically modeled as a rectangular mesh of cells, even in
+curvilinear coordinates.
 
 There are, however, some areas where geometry needs to be taken into
 consideration. The correct implementation of a given geometry requires
@@ -2454,10 +2625,10 @@ that gradients and divergences have the appropriate area factors and
 that the volume of a cell is computed properly for that geometry.
 Initialization of the grid as well as AMR operations (such as
 restriction, prolongation, and flux-averaging) must respect the geometry
-also. Furthermore, the hydrodynamic methods in Flash-X are finite-volume
+also. Furthermore, the hydrodynamic methods in |flashx| are finite-volume
 methods, so the interpolation must also be conservative in the given
-geometry. The default mesh refinement criteria of also currently take
-geometry into account, see above.
+geometry. The default mesh refinement criteria of |flashx| also currently
+take geometry into account, see above.
 
 .. container:: center
 
@@ -2466,8 +2637,9 @@ geometry into account, see above.
 
       .. table:: Different geometry types. For each
       geometry/dimensionality combination, the “support” column lists
-      the Grid implementations that support it: pm4 stands for and 4dev,
-      pm2 for , UG for Uniform Grid implementations, respectively.
+      the ``Grid`` implementations that support it: pm4 stands for
+      ``PARAMESH`` 4.0 and ``PARAMESH`` 4dev, pm2 for ``PARAMESH`` 2, UG
+      for Uniform Grid implementations, respectively.
 
          +---------+---------+---------+---------+---------+---------+---------+
          | name    | dim     | support | axisy   | :       | :       | :       |
@@ -2523,27 +2695,27 @@ geometry into account, see above.
 
 A **convention:** in this section, Small letters :math:`x`, :math:`y`,
 and :math:`z` are used with their usual meaning in designating
-coordinate directions for specific coordinate systems: , :math:`x` and
-:math:`y` refer to directions in Cartesian coordinates, and :math:`z`
-may refer to a (linear) direction in either Cartesian or cylindrical
-coordinates.
+coordinate directions for specific coordinate systems: *i.e.*, :math:`x`
+and :math:`y` refer to directions in Cartesian coordinates, and
+:math:`z` may refer to a (linear) direction in either Cartesian or
+cylindrical coordinates.
 
 On the other hand, capital symbols :math:`X`, :math:`Y`, and :math:`Z`
 are used to refer to the (up to) three directions of any coordinate
-system, , the directions corresponding to the , , and dimensions in ,
-respectively. Only in the Cartesian case do these correspond directly to
-their small-letter counterparts. For other geometries, the
-correspondence is given in .
+system, *i.e.*, the directions corresponding to the ``IAXIS``,
+``JAXIS``, and ``KAXIS`` dimensions in |flashx|, respectively. Only in
+the Cartesian case do these correspond directly to their small-letter
+counterparts. For other geometries, the correspondence is given in .
 
 Understanding 1D, 2D, and Curvilinear Coordinates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the context of Flash-X, curvilinear coordinates are most useful with
+In the context of |flashx|, curvilinear coordinates are most useful with
 1-d or 2-d simulations, and this is how they are commonly used. But what
 does it mean to apply curvilinear coordinates in this way? And what does
 it mean to do a 1D or a 2D simulation of threedimensional reality?
 Physical reality has three spatial dimensions (as far as the physical
-problems simulated with Flash-X are concerned). In Cartesian
+problems simulated with |flashx| are concerned). In Cartesian
 coordinates, it is relatively straightforward to understand what a 2-d
 (or 1-d) simulation means: “Just leave out one (or two) coordinates.”
 This is less obvious for other coordinate systems, therefore some
@@ -2587,7 +2759,7 @@ omitting both :math:`\phi` and :math:`\theta` in spherical coordinates
 implies an assumption of complete spherical symmetry. When :math:`\phi`
 is omitted, a 2-d cell actually represents the 3-d object that is
 generated by rotating the 2-d area around a :math:`z`-axis. Similarly,
-when only :math:`r` is included, 1-d cells (, :math:`r` intervals)
+when only :math:`r` is included, 1-d cells (*i.e.*, :math:`r` intervals)
 represent hollow spheres or cylinders. (If the coordinate interval
 begins at :math:`r_l=0.0`, the sphere or cylinder is massive instead of
 hollow.)
@@ -2621,8 +2793,8 @@ remaining cases can be thought of analogously.
 
 In 2D Cartesian, the “volume” of a cell should be
 :math:`\Delta V = \Delta x\,\Delta y`. We would like to preserve the
-form of equations that relate extensive quantities to their densities, ,
-:math:`\Delta m = \rho \Delta V` for mass and
+form of equations that relate extensive quantities to their densities,
+*e.g.*, :math:`\Delta m = \rho \Delta V` for mass and
 :math:`\Delta E_{\mathrm tot} = \rho e_{\mathrm tot}\Delta V` for total
 energy in a cell. We also like to retain the usual definitions for
 intensive quantities such as density :math:`\rho`, including their
@@ -2630,11 +2802,11 @@ physical values and units, so that material density :math:`\rho` is
 expressed in :math:`g/cm^3` (more generally :math:`M/L^3`), no matter
 whether 1D, 2D, or 3D. We cannot satisfy both desiderata without
 modifying the interpretation of “mass”, “energy”, and similar extensive
-quantities in the system of equations modeled by Flash-X.
+quantities in the system of equations modeled by |flashx|.
 
 Specifically, in a 2D Cartesian simulation, we have to interpret “mass”
 as really representing a linear mass density, measured in :math:`M/L`.
-Similarly, an “energy” is really a linear energy density,
+Similarly, an “energy” is really a linear energy density, *etc.*
 
 In a 1D Cartesian simulation, we have to interpret “mass” as really
 representing a surface mass density, measured in :math:`M/L^2`, and an
@@ -2647,33 +2819,35 @@ contained in a threedimensional cell of volume
 :math:`\Delta z` is set to be exactly 1 length unit. Always with the
 understanding that “nothing happens” in the :math:`z` direction.)
 
-Note that this interpretation of “mass”,“energy”, must be taken into
-account not just when examining the physics in individual cells, but
-equally applies for quantities integrated over larger regions, including
-the “total mass” or “total energy” reported by Flash-X in files — they
-are to be interpreted as (linear or surface) densities of the nominal
-quantities (or, alternatively, as integrals over 1 length unit in the
-missing Cartesian directions).
+Note that this interpretation of “mass”,“energy”, *etc.* must be taken
+into account not just when examining the physics in individual cells,
+but equally applies for quantities integrated over larger regions,
+including the “total mass” or “total energy” *etc.* reported by |flashx|
+in ``flash.dat`` files — they are to be interpreted as (linear or
+surface) densities of the nominal quantities (or, alternatively, as
+integrals over 1 length unit in the missing Cartesian directions).
 
 Choosing a Geometry
 ~~~~~~~~~~~~~~~~~~~
 
-The user chooses a geometry by setting the runtime parameter in . The
-default is (unless overridden in a simulation’s file). Depending on the
-Grid implementation used and the way it is configured, the geometry may
-also have to be compiled into the program executable and thus may have
-to be specified at configuration time; the flag should be used for this
-purpose, see .
+The user chooses a geometry by setting the ``Grid/geometry`` runtime
+parameter in ``flash.par``. The default is ``"cartesian"`` (unless
+overridden in a simulation’s ``Config`` file). Depending on the ``Grid``
+implementation used and the way it is configured, the geometry may also
+have to be compiled into the program executable and thus may have to be
+specified at configuration time; the ``setup`` flag ``-geometry`` should
+be used for this purpose, see .
 
-The runtime parameter is most useful in cases where the geometry does
-not have to be specified at compile-time, in particular for the Uniform
-Grid. The runtime parameter will, however, always be considered at
-run-time during Grid initialization. If the runtime parameter is
-inconsistent with a geometry specified at setup time, Flash-X will then
-either override the geometry specified at setup time (with a warning) if
-that is possible, or it will abort.
+The ``Grid/geometry`` runtime parameter is most useful in cases where
+the geometry does not have to be specified at compile-time, in
+particular for the Uniform Grid. The runtime parameter will, however,
+always be considered at run-time during ``Grid`` initialization. If the
+``Grid/geometry`` runtime parameter is inconsistent with a geometry
+specified at setup time, |flashx| will then either override the geometry
+specified at setup time (with a warning) if that is possible, or it will
+abort.
 
-This runtime parameter is used by the Grid unit and also by
+This runtime parameter is used by the ``Grid`` unit and also by
 hydrodynamics solvers, which add the necessary geometrical factors to
 the divergence terms. Next we describe how user code can use the runtime
 parameter’s value.
@@ -2681,12 +2855,14 @@ parameter’s value.
 Getting Geometry Information in Program Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Grid unit provides an accessor property that returns the geometry as
-an integer, which can be compared to the symbols {} defined in to
-determine which of the supported geometries we are using. A unit writer
-can therefore determine flow-control based on the geometry type (see ).
-Furthermore, this provides a mechanism for a unit to determine at
-runtime whether it supports the current geometry, and if not, to abort.
+The ``Grid`` unit provides an accessor ``Grid/Grid_getGeometry``
+property that returns the geometry as an integer, which can be compared
+to the symbols {``CARTESIAN, SPHERICAL, CYLINDRICAL, POLAR``} defined in
+``"constants.h"`` to determine which of the supported geometries we are
+using. A unit writer can therefore determine flow-control based on the
+geometry type (see ). Furthermore, this provides a mechanism for a unit
+to determine at runtime whether it supports the current geometry, and if
+not, to abort.
 
 .. container:: shrink
 
@@ -2718,16 +2894,21 @@ runtime whether it supports the current geometry, and if not, to abort.
 
       end select
 
-Coordinate information for the mesh can be determined via the routine.
-This routine can provide the coordinates of cells at the left edge,
-right edge, or center. The width of cells can be determined via the
-routine. Angle values and differences are given in radians. Coordinate
-information for a block of cells as a whole is available through and .
+Coordinate information for the mesh can be determined via the
+``Grid/Grid_getCellCoords`` routine. This routine can provide the
+coordinates of cells at the left edge, right edge, or center. The width
+of cells can be determined via the ``Grid/Grid_getDeltas`` routine.
+Angle values and differences are given in radians. Coordinate
+information for a block of cells as a whole is available through
+``Grid/Grid_getBlkCenterCoords`` and ``Grid/Grid_getBlkPhysicalSize``.
 
-The volume of a single cell can be obtained via the or the routine. Use
-the , , or routines with argument To retrieve cell volumes for more than
-one cell of a block. To retrieve cell face areas, use the same
-interfaces with the appropriate argument.
+The volume of a single cell can be obtained via the
+``Grid/Grid_getSingleCellVol`` or the ``Grid/Grid_getPointData``
+routine. Use the ``Grid/Grid_getBlkData``, ``Grid/Grid_getPlaneData``,
+or ``Grid/Grid_getRowData`` routines with argument
+``dataType=CELL_VOLUME`` To retrieve cell volumes for more than one cell
+of a block. To retrieve cell face areas, use the same ``Grid_get*Data``
+interfaces with the appropriate ``dataType`` argument.
 
 Note the following difference between the two groups of routines
 mentioned in the previous two paragraphs: the routines for volumes and
@@ -2740,25 +2921,25 @@ angles to (arc) lengths.
 Available Geometries
 ~~~~~~~~~~~~~~~~~~~~
 
-Currently, all of Flash-X’s physics support one-, two-, and (with a few
+Currently, all of |flashx|’s physics support one-, two-, and (with a few
 exceptions explicitly stated in the appropriate chapters)
-three-dimensional Cartesian grids. Some units, including the Flash-X
-Grid unit and PPM hydrodynamics unit (), support additional geometries,
-such as two-dimensional cylindrical (:math:`r,z`) grids,
+three-dimensional Cartesian grids. Some units, including the |flashx|
+``Grid`` unit and PPM hydrodynamics unit (), support additional
+geometries, such as two-dimensional cylindrical (:math:`r,z`) grids,
 one/two-dimensional spherical (:math:`r`)/(:math:`r, \theta`) grids, and
 two-dimensional polar (:math:`r, \phi`) grids. Some specific
 considerations for each geometry follow.
 
 The following tables use the convention that :math:`r_l` and :math:`r_r`
 stand for the values of the :math:`r` coordinate at the “left” and
-“right” end of the cell’s :math:`r`-coordinate range, respectively (,
-:math:`r_l < r_r` is always true), and :math:`\Delta r = r_r-r_l`; and
-similar for the other coordinates.
+“right” end of the cell’s :math:`r`-coordinate range, respectively
+(*i.e.*, :math:`r_l < r_r` is always true), and
+:math:`\Delta r = r_r-r_l`; and similar for the other coordinates.
 
 Cartesian geometry
 ^^^^^^^^^^^^^^^^^^
 
-Flash-X uses Cartesian (plane-parallel) geometry by default. This is
+|flashx| uses Cartesian (plane-parallel) geometry by default. This is
 equivalent to specifying
 
 .. container:: codeseg
@@ -2781,8 +2962,8 @@ in the runtime parameter file.
 Cylindrical geometry
 ^^^^^^^^^^^^^^^^^^^^
 
-To run Flash-X with cylindrical coordinates, the parameter must be set
-thus:
+To run |flashx| with cylindrical coordinates, the ``geometry`` parameter
+must be set thus:
 
 .. container:: codeseg
 
@@ -2800,11 +2981,11 @@ thus:
    === ========================================================
 
 As in other non-Cartesian geometries, if the minimum radius is chosen to
-be zero (), the left-hand boundary type should be reflecting (or ). Of
-all supported non-Cartesian geometries, the cylindrical is in 2-d most
-similar to a 2-d coordinate system: it uses two linear coordinate axes
-(:math:`r` and :math:`z`) that form a rectangular grid physically as
-well as logically.
+be zero (``xmin = 0.``), the left-hand boundary type should be
+reflecting (or ``axisymmetric``). Of all supported non-Cartesian
+geometries, the cylindrical is in 2-d most similar to a 2-d coordinate
+system: it uses two linear coordinate axes (:math:`r` and :math:`z`)
+that form a rectangular grid physically as well as logically.
 
 As an illustrative example of the kinds of considerations necessary in
 curved coordinates, shows a jump in refinement along the cylindrical
@@ -2877,8 +3058,8 @@ in the runtime parameter file.
    |     |       \Delta \phi`                                            |
    +-----+---------------------------------------------------------------+
 
-If the minimum radius is chosen to be zero (), the left-hand boundary
-type should be reflecting.
+If the minimum radius is chosen to be zero (``xmin = 0.``), the
+left-hand boundary type should be reflecting.
 
 Polar geometry
 ^^^^^^^^^^^^^^
@@ -2907,7 +3088,8 @@ in the runtime parameter file.
    +-----+---------------------------------------------------------------+
 
 As in other non-Cartesian geometries, if the minimum radius is chosen to
-be zero (), the left-hand boundary type should be reflecting.
+be zero (``xmin = 0.``), the left-hand boundary type should be
+reflecting.
 
 .. _`Sec:Non-Cart Prol/Rest`:
 
@@ -2927,17 +3109,21 @@ used when filling guard cells at jumps in refinement.
 Prolongation
 ^^^^^^^^^^^^
 
-When using a supported non-Cartesian geometry, Flash-X has to use
+When using a supported non-Cartesian geometry, |flashx| has to use
 geometrically correct prolongation routines. These are located in:
 
--  (for )
+-  ``source/Grid/GridMain/paramesh/|paramesh|2/monotonic`` (for
+   ``PARAMESH`` 2)
 
--  (for )
+-  ``source/Grid/GridMain/paramesh/interpolation/|paramesh|4/prolong``
+   (for ``PARAMESH`` 4)
 
-These paths will be be automatically added by the script when the option
-is in effect (which is the case by default, unless was specified). The
-“monotonic” interpolation scheme used in both cases is taking geometry
-into consideration and is appropriate for all supported geometries.
+These paths will be be automatically added by the ``setup`` script when
+the ``-gridinterpolation=monotonic`` option is in effect (which is the
+case by default, unless ``-gridinterpolation=native`` was specified).
+The “monotonic” interpolation scheme used in both cases is taking
+geometry into consideration and is appropriate for all supported
+geometries.
 
 Restriction
 ^^^^^^^^^^^
@@ -2949,10 +3135,10 @@ look like
 
 .. math::
 
-   \avgsub{f}{i,j} = \frac{V_{ic,jc} \avgsub{f}{ic,jc} +
-                           V_{ic+1,jc} \avgsub{f}{ic+1,jc} +
-                           V_{ic,jc+1} \avgsub{f}{ic,jc+1} +
-                           V_{ic+1,jc+1} \avgsub{f}{ic+1,jc+1}}
+   \left<f\right>_{i,j} = \frac{V_{ic,jc} \left<f\right>_{ic,jc} +
+                           V_{ic+1,jc} \left<f\right>_{ic+1,jc} +
+                           V_{ic,jc+1} \left<f\right>_{ic,jc+1} +
+                           V_{ic+1,jc+1} \left<f\right>_{ic+1,jc+1}}
                           {V_{i,j}}~,
 
 where :math:`V_{i,j}` is the volume of the cell with indices,
@@ -2961,27 +3147,28 @@ where :math:`V_{i,j}` is the volume of the cell with indices,
 Unit Test
 ---------
 
-The Grid unit test has implementations to test Uniform Grid and . The
-Uniform Grid version of the test has two parts; the latter portion is
-also tested in . The test initializes the grid with a sinusoid function
-:math:`\sin(x)\times\cos(y)\times\cos(z)`, distributed over a number of
-processors. Knowing the configuration of processors, it is possible to
-determine the part of the sinusoid on each processor. Since guardcells
-are filled either from the interior points of the neighboring processor,
-or from boundary conditions, it is also possible to predict the values
-expected in guard cells on each processor. The first part of the UG unit
-test makes sure that the actual received values of guard cell match with
-the predicted ones. This process is carried out for both cell-centered
-and face-centered variables.
+The ``Grid`` unit test has implementations to test Uniform Grid and
+``PARAMESH``. The Uniform Grid version of the test has two parts; the
+latter portion is also tested in ``PARAMESH``. The test initializes the
+grid with a sinusoid function :math:`\sin(x)\times\cos(y)\times\cos(z)`,
+distributed over a number of processors. Knowing the configuration of
+processors, it is possible to determine the part of the sinusoid on each
+processor. Since guardcells are filled either from the interior points
+of the neighboring processor, or from boundary conditions, it is also
+possible to predict the values expected in guard cells on each
+processor. The first part of the UG unit test makes sure that the actual
+received values of guard cell match with the predicted ones. This
+process is carried out for both cell-centered and face-centered
+variables.
 
-The second part of the UG test, and the only part of the  test,
-exercises the get and put data functions. Since the Grid unit has direct
-access to all of its own data structures, it can compare the values
-fetched using the getData functions against the directly accessible
-values and report an error if they do not match. The testing of the Grid
-unit is not exhaustive, and given the complex nature of the unit, it is
-difficult to devise tests that would do so. However, the more frequently
-used functions are exercised in this test.
+The second part of the UG test, and the only part of the
+``PARAMESH`` test, exercises the get and put data functions. Since the
+``Grid`` unit has direct access to all of its own data structures, it
+can compare the values fetched using the getData functions against the
+directly accessible values and report an error if they do not match. The
+testing of the ``Grid`` unit is not exhaustive, and given the complex
+nature of the unit, it is difficult to devise tests that would do so.
+However, the more frequently used functions are exercised in this test.
 
 .. [1]
    Note that the term processor, as used here and elsewhere in the
@@ -2991,14 +3178,15 @@ used functions are exercised in this test.
    testing; this is a matter for the operating environment to regulate.
 
 .. [2]
-   The function also can remove certain blocks of this initial mesh, if
-   this is requested by a non-default implementation.
+   The ``gr_createDomain`` function also can remove certain blocks of
+   this initial mesh, if this is requested by a non-default
+   ``Simulation/Simulation_defineDomain`` implementation.
 
 .. [3]
    Particles and Physics units may make additional use of interpolation
    as part of their function, and the algorithms may or may not be
    different. This subsection only discusses interpolation automatically
-   performed by the Grid unit on the fluid variables in a way that
+   performed by the ``Grid`` unit on the fluid variables in a way that
    should be transparent to other units.
 
 .. |image| image:: Grid_single_block.png
