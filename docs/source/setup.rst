@@ -1,1564 +1,24 @@
 .. include:: defs.h
 
-.. _`Chp:The |flashx| configuration script`:
+.. _`Chp:The |flashx| configuration `:
 
-The |flashx| configuration script (``setup``)
+The |flashx| configuration )
 ============================================
 
-The ``setup`` tool is the most important component of the . It
-implements the inheritance and composability of the |flashx| software
-system. It traverses the |flashx| source tree starting from the directory
-hosting the specific application definition. This starting directory is
-essentially the selected implementation of the “Simulation” unit. While
-traversing the source three the setup tool does the following:
-
--  arbitrate on map from a key to its definition, in particular if
-   alternative definitions exist
-
--  arbitrate on which implementation of a function to use
-
--  link selected files (include source code and the key definitions) to
-   the ``object/`` directory
-
--  invoke macroprocessor to translate keys and generate source file
-
--  alter index order if desired
-
--  find the target ``Makefile.h``
-
--  generate the ``Makefile`` that will build the |flashx| executable.
-
--  generate the files needed to add runtime parameters to a given
-   simulation.
-
--  generate the files needed to parse the runtime parameter file.
-
-More description of how ``setup`` and the |flashx| architecture interact
-may be found in . Here we describe its usage.
-
-The ``setup`` script determines site-dependent configuration information
-by looking for a directory ``sites/<hostname>`` where ``<hostname>`` is
-the hostname of the machine on which |flashx| is running. [1]_ Failing
-this, it looks in ``sites/Prototypes/`` for a directory with the same
-name as the output of the ``uname`` command. The site and operating
-system type can be overridden with the ``-site`` and ``-ostype``
-command-line options to the ``setup`` command. Only one of these options
-can be used at one time. The directory for each site and operating
-system type contains a makefile fragment ``Makefile.h`` that sets
-command names, compiler flags, library paths, and any replacement or
-additional source files needed to compile |flashx| for that specific
-machine and machine type.
-
-The ``setup`` script starts with the ``Config`` file of the specified
-application in the Simulation unit, finds its ``REQUIRED`` units and
-then works its way through their ``Config`` files. This process
-continues until all the dependencies are met and a self-consistent set
-of units has been found. At the end of this automatic generation, the
-``Units`` file is created and placed in the ``object/`` directory, where
-it can be edited if necessary. ``setup`` also creates the master
-makefile (``object/Makefile``) and several FORTRAN include files that
-are needed by the code in order to parse the runtime parameters. After
-running ``setup``, the user can create the |flashx| executable by running
-``make`` in the ``object`` directory. Note that the |flashx| build system
-assumes that the command ``make`` invokes GNU Make and is unlikely to
-work properly with other implementations of the ``make`` command. On
-some systems it may be necessary to invoke GNU Make under the name
-``gmake``.
-
-.. container:: flashtip
-
-   -  All the setup options can be shortened to unambiguous prefixes,
-      *e.g.* instead of ``./setup -auto <problem-name>`` one can just
-      say ``./setup -a <problem-name>`` since there is only one
-      ``setup`` option starting with ``a``.
-
-   -  The same abbreviation holds for the problem name as well.
-      ``./setup -a IsentropicVortex`` can be abbreviated to
-      ``./setup -a Isen`` assuming that ``IsentropicVortex`` is the only
-      problem name which starts with ``Isen``.
-
-   -  Unit names are usually specified by their paths relative to the
-      source directory. However, ``setup`` also allows unit names to be
-      prefixed with an extra “source/”, allowing you to use the
-      TAB-completion features of your shell like this
-
-      .. container:: codeseg
-
-         ./setup -a Isen -unit=sou<TAB>rce/IO/IOM<TAB>ain/hd<TAB>f5
-
-   -  If you use a set of options repeatedly, you can define a shortcut
-      for them. |flashx| comes with a number of predefined shortcuts that
-      significantly simplify the setup line, particularly when trying to
-      match the Grid with a specific I/O implementation. For more
-      details on creating shortcuts see . For detailed examples of I/O
-      shortcuts please see in the I/O chapter.
-
-Setup Arguments
----------------
-
-The setup script accepts a large number of command line arguments which
-affect the simulation in various ways. These arguments are divided into
-three categories:
-
-#. *Setup Options* (example: ``-auto``) begin with a dash and are built
-   into the setup script itself. Many of the most commonly used
-   arguments are setup options.
-
-#. *Setup Variables* (example: ``species=air,h2o``) are defined by
-   individual units. When writing a ``Config`` file for any unit, you
-   can define a setup variable. explains how setup variables can be
-   created and used.
-
-#. *Setup Shortcuts* (example: ``+ug``) begin with a plus symbol and are
-   essentially macros which automatically include a set of setup
-   variables and/or setup options. New setup shortcuts can be easily
-   defined, see for more information.
-
-shows a list of some of the basic setup arguments that every |flashx|
-user should know about. A comprehensive list of all setup arguments can
-be found in alongside more detailed descriptions of these options.
-
-.. container:: center
-
-   .. container::
-      :name: Tbl:CommonSetupArgs
-
-      .. table::  List of Commonly Used Setup Arguments
-
-         ================ ===================================================
-         **Argument**     **Description**
-         ================ ===================================================
-         \                this option should almost always be set
-         ``-unit=<unit>`` include a specified unit
-         \                specify a different object directory location
-         ``-debug``       compile for debugging
-         \                enable compiler optimization
-         ``-n[xyb]b=#``   specify block size in each direction
-         \                specify maximum number of blocks per process
-         ``-[123]d``      specify number of dimensions
-         \                specify maximum number of blocks per process
-         ``+cartesian``   use Cartesian geometry
-         \                use cylindrical geometry
-         ``+polar``       use polar geometry
-         \                use spherical geometry
-         ``+noio``        disable IO
-         \                use the uniform grid in a fixed block size mode
-         ``+nofbs``       use the uniform grid in a non-fixed block size mode
-         \                use the PARAMESH2 grid
-         ``+pm40``        use the PARAMESH4.0 grid
-         \                use the PARAMESH4DEV grid
-         ``+uhd``         use the Unsplit Hydro solver
-         \                use the Unsplit Staggered Mesh MHD solver
-         ``+splitHydro``  use a split Hydro solver
-         ================ ===================================================
-
-.. _`Sec:ListSetupArgs`:
-
-Comprehensive List of Setup Arguments
--------------------------------------
-
-+----------------------------------+----------------------------------+
-| ``-verbose=<verbosity>``         |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex]                          | Normally ``setup`` prints        |
-|                                  | summary messages indicating its  |
-|                                  | progress. Use the ``-verbose``   |
-|                                  | to make the messages more or     |
-|                                  | less verbose. The different      |
-|                                  | levels (in order of increasing   |
-|                                  | verbosity) are                   |
-|                                  | ``                               |
-|                                  | ERROR,IMPINFO,WARN,INFO,DEBUG``. |
-|                                  | The default is ``WARN``.         |
-+----------------------------------+----------------------------------+
-| ``-auto``                        |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex]                          | Normally, ``setup`` requires     |
-|                                  | that the user supply a plain     |
-|                                  | text file called ``Units`` (in   |
-|                                  | the ``object`` directory  [4]_)  |
-|                                  | that specifies the units to      |
-|                                  | include. A sample ``Units`` file |
-|                                  | appears in . Each line is either |
-|                                  | a comment (preceded by a hash    |
-|                                  | mark (``#``)) or the name of a   |
-|                                  | an include statement of the form |
-|                                  | ``INCLUDE``\ *unit*. Specific    |
-|                                  | implementations of a unit may be |
-|                                  | selected by specifying the       |
-|                                  | complete path to the             |
-|                                  | implementation in question; If   |
-|                                  | no specific implementation is    |
-|                                  | requested, ``setup`` picks the   |
-|                                  | default listed in the unit’s     |
-|                                  | ``Config`` file.                 |
-+----------------------------------+----------------------------------+
-|                                  | The ``-auto`` option enables     |
-|                                  | ``setup`` to generate a “rough   |
-|                                  | draft” of a ``Units`` file for   |
-|                                  | the user. The ``Config`` file    |
-|                                  | for each problem setup specifies |
-|                                  | its requirements in terms of     |
-|                                  | other units it requires. For     |
-|                                  | example, a problem may require   |
-|                                  | the perfect-gas equation of      |
-|                                  | state                            |
-|                                  | (``physics/Eos/EosMain/Gamma``)  |
-|                                  | and an unspecified hydro solver  |
-|                                  | (``physics/Hydro``). With        |
-|                                  | ``-auto``, ``setup`` creates a   |
-|                                  | ``Units`` file by converting     |
-|                                  | these requirements into unit     |
-|                                  | include statements. Most users   |
-|                                  | configuring a problem for the    |
-|                                  | first time will want to run      |
-|                                  | ``setup`` with ``-auto`` to      |
-|                                  | generate a ``Units`` file and    |
-|                                  | then to edit it directly to      |
-|                                  | specify alternate                |
-|                                  | implementations of certain       |
-|                                  | units. After editing the         |
-|                                  | ``Units`` file, the user must    |
-|                                  | re-run ``setup`` without         |
-|                                  | ``-auto`` in order to            |
-|                                  | incorporate his/her changes into |
-|                                  | the code configuration. The user |
-|                                  | may also use the command-line    |
-|                                  | option ``-with-unit=<path>`` in  |
-|                                  | conjunction with the ``-auto``   |
-|                                  | option, in order to pick a       |
-|                                  | specific implementation of a     |
-|                                  | unit, and thus eliminate the     |
-|                                  | need to hand-edit the ``Units``  |
-|                                  | file.                            |
-+----------------------------------+----------------------------------+
-| ``-[123]d``                      |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex]                          | By default, ``setup`` creates a  |
-|                                  | makefile which produces a        |
-|                                  | |flashx| executable capable of    |
-|                                  | solving two-dimensional problems |
-|                                  | (equivalent to ``-2d``). To      |
-|                                  | generate a makefile with options |
-|                                  | appropriate to three-dimensional |
-|                                  | problems, use ``-3d``. To        |
-|                                  | generate a one-dimensional code, |
-|                                  | use ``-1d``. These options are   |
-|                                  | mutually exclusive and cause     |
-|                                  | ``setup`` to add the appropriate |
-|                                  | compilation option to the        |
-|                                  | makefile it generates.           |
-+----------------------------------+----------------------------------+
-| ``-maxblocks=#``                 |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex]                          | ``setup`` in constructing the    |
-|                                  | makefile compiler options. It    |
-|                                  | determines the amount of memory  |
-|                                  | allocated at runtime to the      |
-|                                  | adaptive mesh refinement (AMR)   |
-|                                  | block data structure. For        |
-|                                  | example, to allocate enough      |
-|                                  | memory on each processor for 500 |
-|                                  | blocks, use ``-maxblocks=500``.  |
-|                                  | If the default block buffer size |
-|                                  | is too large for your system,    |
-|                                  | you may wish to try a smaller    |
-|                                  | number here; the default value   |
-|                                  | depends upon the dimensionality  |
-|                                  | of the simulation and the grid   |
-|                                  | type. Alternatively, you may     |
-|                                  | wish to experiment with larger   |
-|                                  | buffer sizes, if your system has |
-|                                  | enough memory. A common cause of |
-|                                  | aborted simulations occurs when  |
-|                                  | the AMR grid creates greater     |
-|                                  | than ``maxblocks`` during        |
-|                                  | refinement. Resetup the          |
-|                                  | simulation using a larger value  |
-|                                  | of this option.                  |
-+----------------------------------+----------------------------------+
-| ``-nxb=# -nyb=# -nzb=#``         |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex] These options are used   |                                  |
-| by ``setup`` in constructing the |                                  |
-| makefile compiler options. The   |                                  |
-| mesh on which the problem is     |                                  |
-| solved is composed of blocks,    |                                  |
-| and each block contains some     |                                  |
-| number of cells. The ``-nxb``,   |                                  |
-| ``-nyb``, and ``-nzb`` options   |                                  |
-| determine how many cells each    |                                  |
-| block contains (not counting     |                                  |
-| guard cells). The default value  |                                  |
-| for each is 8. These options do  |                                  |
-| not have any effect when running |                                  |
-| in Uniform Grid non-fixed block  |                                  |
-| size mode.                       |                                  |
-+----------------------------------+----------------------------------+
-| ``[-debug|-opt|-test]``          |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex]                          | The default ``Makefile`` built   |
-|                                  | by setup will use the optimized  |
-|                                  | setting (``-opt``) for           |
-|                                  | compilation and linking. Using   |
-|                                  | ``-debug`` will force ``setup``  |
-|                                  | to use the flags relevant for    |
-|                                  | debugging (*e.g.*, including     |
-|                                  | ``-g`` in the compilation line). |
-|                                  | The user may use the option      |
-|                                  | ``-test`` to experiment with     |
-|                                  | different combinations of        |
-|                                  | compiler and linker options.     |
-|                                  | Exactly which compiler and       |
-|                                  | linker options are associated    |
-|                                  | with each of these flags is      |
-|                                  | specified in                     |
-|                                  | ``sites/<hostname>/Makefile*``   |
-|                                  | where ``<hostname>`` is the      |
-|                                  | hostname of the machine on which |
-|                                  | |flashx| is running.              |
-|                                  |                                  |
-|                                  | For example, to tell an Intel    |
-|                                  | Fortran compiler to use real     |
-|                                  | numbers of size 64 when the      |
-|                                  | ``-test`` option is specified,   |
-|                                  | the user might add the following |
-|                                  | line to his/her ``Makefile.h``:  |
-|                                  |                                  |
-|                                  | .. container:: codeseg           |
-|                                  |                                  |
-|                                  |    FFLAGS_TEST = -real_size 64   |
-+----------------------------------+----------------------------------+
-| ``-objdir=<dir>``                |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex] Overrides the default    |                                  |
-| ``object`` directory with        |                                  |
-| ``<dir>``. Using this option     |                                  |
-| allows you to have different     |                                  |
-| simulations configured           |                                  |
-| simultaneously in the |flashx|    |                                  |
-| distribution directory.          |                                  |
-+----------------------------------+----------------------------------+
-| ``-with-unit=<unit>``,           |                                  |
-| ``-unit=<unit>``                 |                                  |
-+----------------------------------+----------------------------------+
-| \*[1ex] ``<unit>`` in setting up |                                  |
-| the problem.                     |                                  |
-+----------------------------------+----------------------------------+
-
-.. container:: fcodeseg
-
-   #Units file for Sod generated by setup
-
-   INCLUDE Driver/DriverMain/Split INCLUDE Grid/GridBoundaryConditions
-   INCLUDE Grid/GridMain/paramesh/interpolation/|paramesh|4/prolong
-   INCLUDE Grid/GridMain/paramesh/interpolation/prolong INCLUDE
-   Grid/GridMain/paramesh/paramesh4/|paramesh|4.0/PM4_package/headers
-   INCLUDE
-   Grid/GridMain/paramesh/paramesh4/|paramesh|4.0/PM4_package/mpi_source
-   INCLUDE
-   Grid/GridMain/paramesh/paramesh4/|paramesh|4.0/PM4_package/source
-   INCLUDE
-   Grid/GridMain/paramesh/paramesh4/|paramesh|4.0/PM4_package/utilities/multigrid
-   INCLUDE Grid/localAPI INCLUDE IO/IOMain/hdf5/serial/PM INCLUDE
-   IO/localAPI INCLUDE PhysicalConstants/PhysicalConstantsMain INCLUDE
-   RuntimeParameters/RuntimeParametersMain INCLUDE
-   Simulation/SimulationMain/Sod INCLUDE
-   flashUtilities/contiguousConversion INCLUDE flashUtilities/general
-   INCLUDE flashUtilities/interpolation/oneDim INCLUDE
-   flashUtilities/nameValueLL INCLUDE monitors/Logfile/LogfileMain
-   INCLUDE monitors/Timers/TimersMain/MPINative INCLUDE
-   physics/Eos/EosMain/Gamma INCLUDE
-   physics/Hydro/HydroMain/split/PPM/PPMKernel
-
-+---------------------------------+-----------------------------------+
-| ``-curvilinear``                |                                   |
-+---------------------------------+-----------------------------------+
-| \*[1ex]                         | Enable code in ``PARAMESH`` 4     |
-|                                 | that implements geometrically     |
-|                                 | correct data restriction for      |
-|                                 | curvilinear coordinates. This     |
-|                                 | setting is automatically enabled  |
-|                                 | if a non-``cartesian`` geometry   |
-|                                 | is chosen with the ``-geometry``  |
-|                                 | flag; so specifying               |
-|                                 | ``-curvilinear`` only has an      |
-|                                 | effect in the Cartesian case.     |
-+---------------------------------+-----------------------------------+
-| ``-defines=<def>[,<def>]…``     |                                   |
-+---------------------------------+-----------------------------------+
-| \*[1ex]                         | ``<def>`` is of the form          |
-|                                 | ``SYMBOL`` or ``SYMBOL=value``.   |
-|                                 | This causes the specified         |
-|                                 | pre-processor symbols to be       |
-|                                 | defined when the code is being    |
-|                                 | compiled. This is mainly useful   |
-|                                 | for debugging the code. For       |
-|                                 | *e.g.*, ``-defines=DEBUG_ALL``    |
-|                                 | turns on all debugging messages.  |
-|                                 | Each unit may have its own        |
-|                                 | ``DEBUG_UNIT`` flag which you can |
-|                                 | selectively turn on.              |
-+---------------------------------+-----------------------------------+
-| ``[-fbs|-nofbs]``               |                                   |
-+---------------------------------+-----------------------------------+
-| \*[1ex]                         | Causes the code to be compiled in |
-|                                 | fixed-block or non-fixed-block    |
-|                                 | size mode. Fixed-block mode is    |
-|                                 | the default. In non-fixed block   |
-|                                 | size mode, all storage space is   |
-|                                 | allocated at runtime. This mode   |
-|                                 | is available only with Uniform    |
-|                                 | Grid.                             |
-+---------------------------------+-----------------------------------+
-| ``-geometry=<geometry>``        |                                   |
-+---------------------------------+-----------------------------------+
-| \*[1ex]                         | Choose one of the supported       |
-|                                 | geometries                        |
-|                                 | ``car                             |
-|                                 | tesian, cylindrical, spherical,`` |
-|                                 | or ``polar``. Some ``Grid``       |
-|                                 | implementations require the       |
-|                                 | geometry to be known at           |
-|                                 | compile-time while others don’t.  |
-|                                 | This setup option can be used in  |
-|                                 | either case; it is a good idea to |
-|                                 | specify the geometry here if it   |
-|                                 | is known at ``setup``-time.       |
-|                                 | Choosing a non-Cartesian geometry |
-|                                 | here automatically sets the       |
-|                                 | ``-gridinterpolation=monotonic``  |
-|                                 | option below.                     |
-+---------------------------------+-----------------------------------+
-| ``-gridinterpolation=<scheme>`` |                                   |
-+---------------------------------+-----------------------------------+
-| \*[1ex]                         | Select a scheme for ``Grid``      |
-|                                 | interpolation. Two schemes are    |
-|                                 | currently supported:              |
-|                                 |                                   |
-|                                 | -  **monotonic** This scheme      |
-|                                 |    attempts to ensure that        |
-|                                 |    monotonicity is preserved in   |
-|                                 |    interpolation, so that         |
-|                                 |    interpolation does not         |
-|                                 |    introduce small-scale          |
-|                                 |    non-monotonicity in the data.  |
-|                                 |    The ``monotonic`` scheme is    |
-|                                 |    required for curvilinear       |
-|                                 |    coordinates and is             |
-|                                 |    automatically enabled if a     |
-|                                 |    non-``cartesian`` geometry is  |
-|                                 |    chosen with the ``-geometry``  |
-|                                 |    flag. For AMR ``Grid``         |
-|                                 |    implementations, This flag     |
-|                                 |    will automatically add         |
-|                                 |    additional directories so that |
-|                                 |    appropriate data interpolation |
-|                                 |    methods are compiled it. The   |
-|                                 |    ``monotonic`` scheme is the    |
-|                                 |    default (by way of the         |
-|                                 |    ``+default`` shortcut), unlike |
-|                                 |    in |flashx|.                    |
-|                                 |                                   |
-|                                 | -  **native** Enable the          |
-|                                 |    interpolation that is native   |
-|                                 |    to the AMR ``Grid``            |
-|                                 |    implementation (``PARAMESH`` 2 |
-|                                 |    or ``PARAMESH`` 4) by default. |
-|                                 |    This option is only            |
-|                                 |    appropriate for Cartesian      |
-|                                 |    geometries.                    |
-+---------------------------------+-----------------------------------+
-
-.. container::
-   :name: setupclf:particlemethods
-
-   +----------------------------------+----------------------------------+
-   | ``-makefile=<extension>``        |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | ``setup`` normally uses the      |
-   |                                  | ``Makefile.h`` from the          |
-   |                                  | directory determined by the      |
-   |                                  | hostname of the machine and the  |
-   |                                  | ``-site`` and ``-os`` options.   |
-   |                                  | If you have multiple compilers   |
-   |                                  | on your machine you can create   |
-   |                                  | ``Makefile.h.<extension>`` for   |
-   |                                  | different compilers. *e.g.*, you |
-   |                                  | can have a ``Makefile.h`` and    |
-   |                                  | ``Makefile.h.intel`` and         |
-   |                                  | ``Makefile.h.lahey`` for the     |
-   |                                  | three different compilers.       |
-   |                                  | ``setup`` will still use the     |
-   |                                  | ``Makefile.h`` file by default,  |
-   |                                  | but supplying                    |
-   |                                  | ``-makefile=intel`` on the       |
-   |                                  | command-line causes ``setup`` to |
-   |                                  | use ``Makefile.h.intel``         |
-   |                                  | instead.                         |
-   +----------------------------------+----------------------------------+
-   | ``-index-reorder``               |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex] Instructs ``setup`` that |                                  |
-   | indexing of unk and related      |                                  |
-   | arrays should be changed. This   |                                  |
-   | may be needed in |flashx| for     |                                  |
-   | compatibility with alternative   |                                  |
-   | grids. This is supported by both |                                  |
-   | the Uniform Grid as well as      |                                  |
-   | PARAMESH.                        |                                  |
-   +----------------------------------+----------------------------------+
-   | ``-makehide``                    |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | Ordinarily, the commands being   |
-   |                                  | executed during compilation of   |
-   |                                  | the |flashx| executable are sent  |
-   |                                  | to standard out. It may be that  |
-   |                                  | you find this distracting, or    |
-   |                                  | that your terminal is not able   |
-   |                                  | to handle these long lines of    |
-   |                                  | display. Using the option        |
-   |                                  | ``-makehide`` causes ``setup``   |
-   |                                  | to generate a ``Makefile`` so    |
-   |                                  | that GNU ``make`` only displays  |
-   |                                  | the names of the files being     |
-   |                                  | compiled and not the exact       |
-   |                                  | compiler call and flags. This    |
-   |                                  | information remains available in |
-   |                                  | ``setup_flags`` in the           |
-   |                                  | ``object/`` directory.           |
-   +----------------------------------+----------------------------------+
-   | ``-noclobber``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | ``setup`` normally removes all   |
-   |                                  | code in the ``object`` directory |
-   |                                  | before linking in files for a    |
-   |                                  | simulation. The ensuing ``make`` |
-   |                                  | must therefore compile all       |
-   |                                  | source files anew each time      |
-   |                                  | ``setup`` is run. The            |
-   |                                  | ``-noclobber`` option prevents   |
-   |                                  | ``setup`` from removing compiled |
-   |                                  | code which has not changed from  |
-   |                                  | the previous ``setup`` in the    |
-   |                                  | same directory. This can speed   |
-   |                                  | up the ``make`` process          |
-   |                                  | significantly.                   |
-   +----------------------------------+----------------------------------+
-   | ``-os=<os>``                     |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | If ``setup`` is unable to find a |
-   |                                  | correct ``sites/`` directory it  |
-   |                                  | picks the ``Makefile`` based on  |
-   |                                  | the operating system. This       |
-   |                                  | option instructs ``setup`` to    |
-   |                                  | use the default ``Makefile``     |
-   |                                  | corresponding to the specified   |
-   |                                  | operating system.                |
-   +----------------------------------+----------------------------------+
-   | ``-parfile=<filename>``          |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This causes ``setup`` to copy    |
-   |                                  | the specified runtime-parameters |
-   |                                  | file in the simulation directory |
-   |                                  | to the ``object`` directory with |
-   |                                  | the new name ``flash.par`` .     |
-   +----------------------------------+----------------------------------+
-   | ``-appe                          |                                  |
-   | nd-parfiles=[location1/]<filenam |                                  |
-   | e1>[,[location2/]<filename2>]…`` |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This option takes a              |
-   |                                  | comma-separated list of names of |
-   |                                  | parameter files and combines     |
-   |                                  | them into one ``flash.par`` file |
-   |                                  | in the ``object`` directory.     |
-   |                                  | File names without an absolute   |
-   |                                  | path are taken to be relative to |
-   |                                  | the simulation directory, as for |
-   |                                  | the ``-parfile`` option.         |
-   |                                  |                                  |
-   |                                  | To use such a combined           |
-   |                                  | ``flash.par`` in case of runtime |
-   |                                  | parameters occurring more than   |
-   |                                  | once, note that when |flashx|     |
-   |                                  | reads a parameter file, the last |
-   |                                  | instance of a runtime parameter  |
-   |                                  | supersedes previous ones.        |
-   |                                  |                                  |
-   |                                  | If both ``-append-parfiles`` and |
-   |                                  | ``-parfile`` are used, the files |
-   |                                  | from the list are appended to    |
-   |                                  | the single parfile given by the  |
-   |                                  | latter in the order listed. If   |
-   |                                  | used with ``-parfile``,          |
-   |                                  | ``-append-parfiles`` can append  |
-   |                                  | one or more parfiles to the one  |
-   |                                  | given by ``-parfile``. If you    |
-   |                                  | only use ``-append-parfiles``    |
-   |                                  | and not ``-parfile`` and give it |
-   |                                  | fewer than two paths, an error   |
-   |                                  | will result. If more than one    |
-   |                                  | ``-append-parfiles`` option      |
-   |                                  | appears, the lists are           |
-   |                                  | concatenated in the order given. |
-   +----------------------------------+----------------------------------+
-   | ``-particlemet                   |                                  |
-   | hods=TYPE=<particle type>[,INIT= |                                  |
-   | <init method>]``\ ``[,MAP=<map m |                                  |
-   | ethod>][,ADV=<advance method>]`` |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This option instructs ``setup``  |
-   |                                  | to adjust the particle methods   |
-   |                                  | for a particular particle type.  |
-   |                                  | It can only be used when a       |
-   |                                  | particle type has already been   |
-   |                                  | registered with a                |
-   |                                  | ``PARTICLETYPE`` line in a       |
-   |                                  | ``Config`` file (see ). A        |
-   |                                  | possible scenario for using this |
-   |                                  | option involves the user wanting |
-   |                                  | to use a different passive       |
-   |                                  | particle initialization method   |
-   |                                  | without modifying the            |
-   |                                  | ``PARTICLETYPE`` line in the     |
-   |                                  | simulation ``Config`` file. In   |
-   |                                  | this case, an additional         |
-   |                                  | ``-particlemeth                  |
-   |                                  | ods=TYPE=passive,INIT=cellmass`` |
-   |                                  | adjusts the initialization       |
-   |                                  | method associated with passive   |
-   |                                  | particles in the ``setup``       |
-   |                                  | generated                        |
-   |                                  | ``Particles_specifyMethods()``   |
-   |                                  | subroutine. Since the            |
-   |                                  | specification of a method for    |
-   |                                  | mapping and initialization       |
-   |                                  | requires inclusions of           |
-   |                                  | appropriate implementations of   |
-   |                                  | ``ParticlesMapping`` and         |
-   |                                  | ``ParticlesInitialization``      |
-   |                                  | subunits, and the specification  |
-   |                                  | of a method for time advancement |
-   |                                  | requires inclusion of an         |
-   |                                  | appropriate implementation under |
-   |                                  | ``ParticlesMain``, it is the     |
-   |                                  | user’s responsibility to adjust  |
-   |                                  | the included units               |
-   |                                  | appropriately. For example a     |
-   |                                  | user may want want to override   |
-   |                                  | ``Config`` file defined particle |
-   |                                  | type ``passive`` using lattice   |
-   |                                  | initialization ``CellMassBins``  |
-   |                                  | density based distribution       |
-   |                                  | method using the ``setup``       |
-   |                                  | command line. Here the user must |
-   |                                  | first specify                    |
-   |                                  | ``-without-unit=Particles/P      |
-   |                                  | articlesInitialization/Lattice`` |
-   |                                  | to exclude the lattice           |
-   |                                  | initialization, followed by      |
-   |                                  | ``-with-u                        |
-   |                                  | nit=Particles/ParticlesInitializ |
-   |                                  | ation/WithDensity/CellMassBins`` |
-   |                                  | specification to include the     |
-   |                                  | appropriate implementation. In   |
-   |                                  | general, using command line      |
-   |                                  | overrides of                     |
-   |                                  | ``-particlemethods`` are not     |
-   |                                  | recommended, as this option      |
-   |                                  | increases the chance of creating |
-   |                                  | an inconsistent simulation       |
-   |                                  | setup. More information on       |
-   |                                  | multiple particle types can be   |
-   |                                  | found in , especially .          |
-   +----------------------------------+----------------------------------+
-   | ``-portable``                    |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This option causes setup to      |
-   |                                  | create a portable ``object``     |
-   |                                  | directory by copying instead of  |
-   |                                  | linking to the source files. The |
-   |                                  | resulting ``object`` directory   |
-   |                                  | can be tarred and sent to        |
-   |                                  | another machine for actual       |
-   |                                  | compilation.                     |
-   +----------------------------------+----------------------------------+
-   | ``-site=<site>``                 |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | ``setup`` searches the           |
-   |                                  | ``sites/`` directory for a       |
-   |                                  | directory whose name is the      |
-   |                                  | hostname of the machine on which |
-   |                                  | setup is being run. This option  |
-   |                                  | tells ``setup`` to use the       |
-   |                                  | ``Makefile`` of the specified    |
-   |                                  | site. This option is useful if   |
-   |                                  | ``setup`` is unable to find the  |
-   |                                  | right hostname (which can happen |
-   |                                  | on multiprocessor or laptop      |
-   |                                  | machines). Also useful when      |
-   |                                  | combined with the ``-portable``  |
-   |                                  | option.                          |
-   +----------------------------------+----------------------------------+
-   | ``-unitsfile=<filename>``        |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This causes ``setup`` to copy    |
-   |                                  | the specified file to the        |
-   |                                  | ``object`` directory as          |
-   |                                  | ``Units`` before setting up the  |
-   |                                  | problem. This option can be used |
-   |                                  | when ``-auto`` is not used, to   |
-   |                                  | specify an alternate ``Units``   |
-   |                                  | file.                            |
-   +----------------------------------+----------------------------------+
-   | ``-                              |                                  |
-   | with-library=<libname>[,args]``, |                                  |
-   | ``-library=<libname>[,args]``    |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This option instructs ``setup``  |
-   |                                  | to link in the specified library |
-   |                                  | when building the final          |
-   |                                  | executable. A *library* is a     |
-   |                                  | piece of code which is           |
-   |                                  | independent of |flashx|. Internal |
-   |                                  | libraries are those libraries    |
-   |                                  | whose code is included with      |
-   |                                  | |flashx|. The ``setup`` script    |
-   |                                  | supports external as well as     |
-   |                                  | internal libraries. Information  |
-   |                                  | about external libraries is      |
-   |                                  | usually found in the site        |
-   |                                  | specific Makefile. The           |
-   |                                  | additional ``args`` if any are   |
-   |                                  | library-specific and may be used |
-   |                                  | to select among multiple         |
-   |                                  | implementations.                 |
-   +----------------------------------+----------------------------------+
-   | ``-tau=<makefile>``              |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This option causes the inclusion |
-   |                                  | of an additional Makefile        |
-   |                                  | necessary for the operation of   |
-   |                                  | Tau, which may be used by the    |
-   |                                  | user to profile the code. More   |
-   |                                  | information on Tau can be found  |
-   |                                  | at http://acts.nersc.gov/tau/    |
-   +----------------------------------+----------------------------------+
-   | ``-without-library=<libname>``   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | Negates a previously specified   |
-   |                                  | ``                               |
-   |                                  | -with-library=<libname>[,args]`` |
-   +----------------------------------+----------------------------------+
-   | ``-without-unit=<unit>``         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This removes all units specified |
-   |                                  | in the command line so far,      |
-   |                                  | which are children of the        |
-   |                                  | specified unit (including the    |
-   |                                  | unit itself). It also negates    |
-   |                                  | any REQUESTS keyword found in a  |
-   |                                  | ``Config`` file for units which  |
-   |                                  | are children of the specified    |
-   |                                  | unit. However it does not negate |
-   |                                  | a REQUIRES keyword found in a    |
-   |                                  | ``Config`` file.                 |
-   +----------------------------------+----------------------------------+
-   | ``+default``                     |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies using    |
-   |                                  | basic default settings and is    |
-   |                                  | equivalent to the following:     |
-   |                                  | ``–with-library=mpi +io +gr      |
-   |                                  | id-gridinterpolation=monotonic`` |
-   +----------------------------------+----------------------------------+
-   | ``+noio``                        |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation without IO and is     |
-   |                                  | equivalent to the following:     |
-   |                                  | ``–without                       |
-   |                                  | -unit=physics/sourceTerms/Energy |
-   |                                  | Deposition/EnergyDepositionMain/ |
-   |                                  | Laser/LaserIO –without-unit=IO`` |
-   +----------------------------------+----------------------------------+
-   | ``+io``                          |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation with basic IO and is  |
-   |                                  | equivalent to the following:     |
-   |                                  | ``–with-unit=IO``                |
-   +----------------------------------+----------------------------------+
-   | ``+serialIO``                    |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using serial IO, it   |
-   |                                  | has the effect of setting the    |
-   |                                  | setup variable                   |
-   +----------------------------------+----------------------------------+
-   | ``+parallelIO``                  |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using serial IO, it   |
-   |                                  | has the effect of setting the    |
-   |                                  | setup variable                   |
-   +----------------------------------+----------------------------------+
-   | ``+hdf5``                        |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using hdf5 for        |
-   |                                  | compatible binary IO output, it  |
-   |                                  | has the effect of setting the    |
-   |                                  | setup variable                   |
-   +----------------------------------+----------------------------------+
-   | ``+hdf5TypeIO``                  |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using hdf5, with      |
-   |                                  | parallel io capability for       |
-   |                                  | compatible binary IO output, and |
-   |                                  | is equivalent to the following:  |
-   |                                  | ``+io                            |
-   |                                  |  +parallelIO +hdf5 typeIO=True`` |
-   +----------------------------------+----------------------------------+
-   | ``+nolog``                       |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation without log           |
-   |                                  | capability it is equivalent to   |
-   |                                  | the following:                   |
-   +----------------------------------+----------------------------------+
-   | ``+grid``                        |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation with the Grid unit,   |
-   |                                  | it is equivalent to the          |
-   |                                  | following:                       |
-   +----------------------------------+----------------------------------+
-   | ``+ug``                          |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using a uniform grid, |
-   |                                  | it is equivalent to the          |
-   |                                  | following:                       |
-   +----------------------------------+----------------------------------+
-   | ``+pm2``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using |paramesh|2 for   |
-   |                                  | the grid, it is equivalent to    |
-   |                                  | the following:                   |
-   +----------------------------------+----------------------------------+
-   | ``+pm40``                        |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using |paramesh|4.0 for |
-   |                                  | the grid, it is equivalent to    |
-   |                                  | the following:                   |
-   +----------------------------------+----------------------------------+
-   | ``+pm4dev_clean``                |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using a version of    |
-   |                                  | |paramesh| 4 that is closer to the |
-   |                                  | version available on             |
-   |                                  | sourceforge. It is equivalent    |
-   |                                  | to:                              |
-   |                                  | ``+grid Grid=P                   |
-   |                                  | M4DEV |paramesh|LibraryMode=True`` |
-   +----------------------------------+----------------------------------+
-   | ``+pm4dev``                      |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using a modified      |
-   |                                  | version of |paramesh| 4 that       |
-   |                                  | includes a more scalable way of  |
-   |                                  | filling the ``surr_blks`` array. |
-   |                                  | It is equivalent to:             |
-   |                                  | ``+pm4d                          |
-   |                                  | ev_clean FlashAvoidOrrery=True`` |
-   +----------------------------------+----------------------------------+
-   | ``+usm``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a MHD    |
-   |                                  | simulation using the unsplit     |
-   |                                  | staggered mesh hydro solver, if  |
-   |                                  | pure hydro mode is used with the |
-   |                                  | USM solver add +pureHydro in the |
-   |                                  | setup line. It is equivalent to: |
-   |                                  | ``–with-unit=physics/H           |
-   |                                  | ydro/HydroMain/unsplit/MHD_Stagg |
-   |                                  | eredMesh –without-unit=physics/H |
-   |                                  | ydro/HydroMain/split/MHD_8Wave`` |
-   +----------------------------------+----------------------------------+
-   | ``+pureHydro``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies using    |
-   |                                  | pure hydro mode, it is           |
-   |                                  | equivalent to:                   |
-   |                                  | ``physicsMode=hydro``            |
-   +----------------------------------+----------------------------------+
-   | ``+splitHydro``                  |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using a split hydro   |
-   |                                  | solver and is equivalent to:     |
-   |                                  | ``–uni                           |
-   |                                  | t=physics/Hydro/HydroMain/split  |
-   |                                  | -without-unit=physics/Hydro/Hydr |
-   |                                  | oMain/unsplit SplitDriver=True`` |
-   +----------------------------------+----------------------------------+
-   | ``+unsplitHydro``                |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using the unsplit     |
-   |                                  | hydro solver and is equivalent   |
-   |                                  | to:                              |
-   |                                  | ``–with-unit=physics/Hydro/H     |
-   |                                  | ydroMain/unsplit/Hydro_Unsplit`` |
-   +----------------------------------+----------------------------------+
-   | ``+uhd``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using the unsplit     |
-   |                                  | hydro solver and is equivalent   |
-   |                                  | to:                              |
-   |                                  | ``–with-unit=physics/Hydro/H     |
-   |                                  | ydroMain/unsplit/Hydro_Unsplit`` |
-   +----------------------------------+----------------------------------+
-   | ``+supportPPMUpwind``            |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using a specific      |
-   |                                  | Hydro method that requires an    |
-   |                                  | increased number of guard cells, |
-   |                                  | this may need to be combined     |
-   |                                  | with ``-nxb=... -nyb=... etc.``  |
-   |                                  | where the specified blocksize is |
-   |                                  | greater than or equal to 12      |
-   |                                  | (==2*GUARDCELLS). It is          |
-   |                                  | equivalent to:                   |
-   |                                  | ``SupportPpmUpwind=True``        |
-   +----------------------------------+----------------------------------+
-   | ``+cube64``                      |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation with a block size of  |
-   |                                  | 64**3, it is equivalent to:      |
-   |                                  | ``-nxb=64 -nyb=64 -nzb=64``      |
-   +----------------------------------+----------------------------------+
-   | ``+cube32``                      |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation with a block size of  |
-   |                                  | 32**3, it is equivalent to:      |
-   |                                  | ``-nxb=32 -nyb=32 -nzb=32``      |
-   +----------------------------------+----------------------------------+
-   | ``+cube16``                      |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation with a block size of  |
-   |                                  | 16**3, it is equivalent to:      |
-   |                                  | ``-nxb=16 -nyb=16 -nzb=16``      |
-   +----------------------------------+----------------------------------+
-   | ``+ptio``                        |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using particles and   |
-   |                                  | IO for uniform grid, it is       |
-   |                                  | equivalent to:                   |
-   +----------------------------------+----------------------------------+
-   | ``+rnf``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut is used for        |
-   |                                  | checking |flashx| with            |
-   |                                  | rectangular block sizes and      |
-   |                                  | non-fixed block size. It is      |
-   |                                  | equivalent to:                   |
-   +----------------------------------+----------------------------------+
-   | ``+nofbs``                       |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using a uniform grid  |
-   |                                  | with a non-fixed block size. It  |
-   |                                  | is equivalent to:                |
-   +----------------------------------+----------------------------------+
-   | ``+curvilinear``                 |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using curvilinear     |
-   |                                  | geometry. It is equivalent to:   |
-   +----------------------------------+----------------------------------+
-   | ``+cartesian``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using cartesian       |
-   |                                  | geometry. It is equivalent to:   |
-   +----------------------------------+----------------------------------+
-   | ``+spherical``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using spherical       |
-   |                                  | geometry. It is equivalent to:   |
-   +----------------------------------+----------------------------------+
-   | ``+polar``                       |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using polar geometry. |
-   |                                  | It is equivalent to:             |
-   +----------------------------------+----------------------------------+
-   | ``+cylindrical``                 |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using cylindrical     |
-   |                                  | geometry. It is equivalent to:   |
-   +----------------------------------+----------------------------------+
-   | ``+ptdens``                      |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using passive         |
-   |                                  | particles initialized by         |
-   |                                  | density. It is equivalent to:    |
-   |                                  | ``-without-unit=Particles/P      |
-   |                                  | articlesInitialization/Lattice`` |
-   |                                  | ``-without-u                     |
-   |                                  | nit=Particles/ParticlesInitializ |
-   |                                  | ation/WithDensity/CellMassBins`` |
-   |                                  | `                                |
-   |                                  | `-unit=Particles/ParticlesMain`` |
-   |                                  | ``-unit=Particles/Parti          |
-   |                                  | clesInitialization/WithDensity`` |
-   |                                  | ``-particlemethods=              |
-   |                                  | TYPE=passive,INIT=With_Density`` |
-   +----------------------------------+----------------------------------+
-   | ``+npg``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using                 |
-   |                                  | NO_PERMANENT_GUARDCELLS mode in  |
-   |                                  | |paramesh|4. It is equivalent to:  |
-   +----------------------------------+----------------------------------+
-   | ``+mpole``                       |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | smilulation using multipole      |
-   |                                  | gravity, it is equivalent to:    |
-   +----------------------------------+----------------------------------+
-   | ``+longrange``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using long range      |
-   |                                  | active particles. It is          |
-   |                                  | equivalent to:                   |
-   +----------------------------------+----------------------------------+
-   | ``+gravPfftNofbs``               |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using FFT based       |
-   |                                  | gravity solve on a uniform grid  |
-   |                                  | with no fixed block size. It is  |
-   |                                  | equivalent to:                   |
-   |                                  | ``                               |
-   |                                  | +ug +nofbs -with-unit=physics/Gr |
-   |                                  | avity/GravityMain/Poisson/Pfft`` |
-   +----------------------------------+----------------------------------+
-   | ``+gravMgrid``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using a multigrid     |
-   |                                  | based gravity solve. It is       |
-   |                                  | equivalent to:                   |
-   |                                  | ``                               |
-   |                                  | +pm40 -with-unit=physics/Gravity |
-   |                                  | /GravityMain/Poisson/Multigrid`` |
-   +----------------------------------+----------------------------------+
-   | ``+gravMpole``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | smilulation using multipole      |
-   |                                  | gravity, it is equivalent to:    |
-   +----------------------------------+----------------------------------+
-   | ``+noDefaultMpole``              |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation \*not\* using the     |
-   |                                  | multipole based gravity solve.   |
-   |                                  | It is equivalent to:             |
-   +----------------------------------+----------------------------------+
-   | ``+noMgrid``                     |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation \*not\* using the     |
-   |                                  | multigrid based gravity solve.   |
-   |                                  | It is equivalent to:             |
-   +----------------------------------+----------------------------------+
-   | ``+newMpole``                    |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies a        |
-   |                                  | simulation using the new         |
-   |                                  | multipole based gravity solve.   |
-   |                                  | It is equivalent to:             |
-   +----------------------------------+----------------------------------+
-   | ``+pic``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This shortcut specifies use of   |
-   |                                  | proper particle units to perform |
-   |                                  | PIC (particle in cell) method.   |
-   |                                  | It is equivalent to:             |
-   |                                  | ``+ug -unit=Grid/G               |
-   |                                  | ridParticles/GridParticlesMove`` |
-   |                                  | ``-without-unit=Grid/Grid        |
-   |                                  | Particles/GridParticlesMove/UG`` |
-   |                                  | ``-wi                            |
-   |                                  | thout-unit=Grid/GridParticles/Gr |
-   |                                  | idParticlesMove/UG/Directional`` |
-   +----------------------------------+----------------------------------+
-   | ``Grid``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable can be used  |
-   |                                  | to specify which gridding        |
-   |                                  | package to use in a simulation:  |
-   |                                  | Name: ``Grid`` Type: ``String``  |
-   |                                  | Values: ``PM4DEV``, ``PM40``,    |
-   |                                  | ``UG``                           |
-   +----------------------------------+----------------------------------+
-   | ``IO``                           |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable can be used  |
-   |                                  | to specify which IO package to   |
-   |                                  | use in a simulation: Name:       |
-   |                                  | ``IO`` Type: ``String`` Values:  |
-   |                                  | ``hdf5, pnetc                    |
-   |                                  | df, MPIHybrid, MPIDump, direct`` |
-   +----------------------------------+----------------------------------+
-   | ``parallelIO``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable can be used  |
-   |                                  | to specify which type of IO      |
-   |                                  | strategy will be used. A         |
-   |                                  | “parallel” strategy will be used |
-   |                                  | if the value is true, a “serial” |
-   |                                  | strategy otherwise. Name:        |
-   |                                  | ``parallelIO`` Type: ``Boolean`` |
-   |                                  | Values: ``True, False``          |
-   +----------------------------------+----------------------------------+
-   | ``fixedBlockSize``               |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable indicates    |
-   |                                  | whether or not a fixed block     |
-   |                                  | size is to be used. This         |
-   |                                  | variable should not be assigned  |
-   |                                  | explicitly on the command line.  |
-   |                                  | It defaults to ``True``, and the |
-   |                                  | setup options ``-nofbs`` and     |
-   |                                  | ``-fbs`` modify the value of     |
-   |                                  | this variable. Name:             |
-   |                                  | ``fixedBlockSize`` Type:         |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``nDim``                         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable gives the    |
-   |                                  | dimensionality of a simulation.  |
-   |                                  | This variable should not be set  |
-   |                                  | explicitly on the command line,  |
-   |                                  | it is automatically set by the   |
-   |                                  | setup options ``-1d``, ``-2d``,  |
-   |                                  | and ``-3d``. Name: ``nDim``      |
-   |                                  | Type: ``integer`` Values:        |
-   |                                  | ``1,2,3``                        |
-   +----------------------------------+----------------------------------+
-   | ``GridIndexOrder``               |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable indicates    |
-   |                                  | whether the ``-index-reorder``   |
-   |                                  | setup option is in effect. This  |
-   |                                  | variable should not be assigned  |
-   |                                  | explicitly on the command line.  |
-   |                                  | Name: ``GridIndexOrder`` Type:   |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``nxb``                          |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable gives the    |
-   |                                  | number of zones in a block in    |
-   |                                  | the X direction. This variable   |
-   |                                  | should not be assigned           |
-   |                                  | explicitly on the command line,  |
-   |                                  | it is automatically set by the   |
-   |                                  | setup option ``-nxb``. Name:     |
-   |                                  | ``nxb`` Type: ``integer``        |
-   +----------------------------------+----------------------------------+
-   | ``nyb``                          |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable gives the    |
-   |                                  | number of zones in a block in    |
-   |                                  | the Y direction. This variable   |
-   |                                  | should not be assigned           |
-   |                                  | explicitly on the command line,  |
-   |                                  | it is automatically set by the   |
-   |                                  | setup option ``-nyb``. Name:     |
-   |                                  | ``nyb`` Type: ``integer``        |
-   +----------------------------------+----------------------------------+
-   | ``nzb``                          |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable gives the    |
-   |                                  | number of zones in a block in    |
-   |                                  | the Z direction. This variable   |
-   |                                  | should not be assigned           |
-   |                                  | explicitly on the command line,  |
-   |                                  | it is automatically set by the   |
-   |                                  | setup option ``-nzb``. Name:     |
-   |                                  | ``nzb`` Type: ``integer``        |
-   +----------------------------------+----------------------------------+
-   | ``maxBlocks``                    |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable gives the    |
-   |                                  | maximum number of blocks per     |
-   |                                  | processor. This variable should  |
-   |                                  | not be assigned explicitly on    |
-   |                                  | the command line, it is          |
-   |                                  | automatically set by the setup   |
-   |                                  | option ``-maxblocks``. Name:     |
-   |                                  | ``maxBlocks`` Type: ``integer``  |
-   +----------------------------------+----------------------------------+
-   | ``|paramesh|LibraryMode``          |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | If true, the setup script will   |
-   |                                  | generate file                    |
-   |                                  | ``amr_runtime_parameters`` from  |
-   |                                  | template                         |
-   |                                  | ``amr_runtime_parameters.tpl``   |
-   |                                  | found in either the object       |
-   |                                  | directory (preferred) or the     |
-   |                                  | setup script (bin) directory.    |
-   |                                  | Selects whether |paramesh|4 should |
-   |                                  | be compiled in LIBRARY mode,     |
-   |                                  | i.e., with the preprocessor      |
-   |                                  | symbol LIBRARY defined. Name:    |
-   |                                  | ``|paramesh|LibraryMode`` Type:    |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``PfftSolver``                   |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | PfftSolver selects a PFFT solver |
-   |                                  | variant when the hybrid (*i.e.*, |
-   |                                  | Multigrid with PFFT) Poisson     |
-   |                                  | solver is used. Name:            |
-   |                                  | ``PfftSolver`` Type: ``String``  |
-   |                                  | Values: ``DirectSolver``         |
-   |                                  | (default), ``HomBcTrigSolver``,  |
-   |                                  | others (unsupported) if          |
-   |                                  | recognized in                    |
-   |                                  | ``source/Grid/GridSolvers/Mult   |
-   |                                  | igrid/PfftTopLevelSolve/Config`` |
-   +----------------------------------+----------------------------------+
-   | ``SplitDriver``                  |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | If True, a ``Split`` ``Driver``  |
-   |                                  | implementation is requested.     |
-   |                                  | Name: ``SplitDriver`` Type:      |
-   |                                  | ``Boolean``                      |
-   +----------------------------------+----------------------------------+
-   | ``Mtmmmt``                       |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | Automatically set ``True`` by    |
-   |                                  | ``+mtmmmt`` shortcut. When true, |
-   |                                  | this option activates the MTMMMT |
-   |                                  | EOS. Name: ``Mtmmmt`` Type:      |
-   |                                  | ``Boolean``                      |
-   +----------------------------------+----------------------------------+
-   | ``mgd_meshgroups``               |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | mgd_meshgroups \* meshCopyCount  |
-   |                                  | sets the MAXIMUM number of       |
-   |                                  | radiation groups that can be     |
-   |                                  | used in a simulation. The ACTUAL |
-   |                                  | number of groups (which must be  |
-   |                                  | less than mgd_meshgroups \*      |
-   |                                  | meshCopyCount) is set by the     |
-   |                                  | rt_mgdNumGroups runtime          |
-   |                                  | parameter. Name:                 |
-   |                                  | ``mgd_meshgroups`` Type:         |
-   |                                  | ``Integer``                      |
-   +----------------------------------+----------------------------------+
-   | ``species``                      |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This setup variable can be used  |
-   |                                  | as an alternative specifying     |
-   |                                  | species using the SPECIES Config |
-   |                                  | file directive by listing the    |
-   |                                  | species in the setup command.    |
-   |                                  | Some units, like the             |
-   |                                  | Multispecies Opacity unit, will  |
-   |                                  | ONLY work when the species setup |
-   |                                  | variable is set. This is because |
-   |                                  | they use the species name to     |
-   |                                  | automatically create runtime     |
-   |                                  | paramters which include the      |
-   |                                  | species names. Name: ``species`` |
-   |                                  | Type: ``String``, comma          |
-   |                                  | seperated list of strings        |
-   |                                  | (*e.g.*, ``species=air,sf6)``    |
-   +----------------------------------+----------------------------------+
-   | ``ed_maxPulses``                 |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | Name: ``ed_maxPulses`` Type:     |
-   |                                  | ``integer`` Remark: Maximum      |
-   |                                  | number of laser pulses (defaults |
-   |                                  | to 5)                            |
-   +----------------------------------+----------------------------------+
-   | ``ed_maxBeams``                  |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | Name: ``ed_maxBeams`` Type:      |
-   |                                  | ``integer`` Remark: Maximum      |
-   |                                  | number of laser beams (defaults  |
-   |                                  | to 6)                            |
-   +----------------------------------+----------------------------------+
-   | ``threadHydroBlockList``         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This is used to turn on block    |
-   |                                  | list OPENMP threading of hydro   |
-   |                                  | routines. Name:                  |
-   |                                  | ``threadHydroBlockList`` Type:   |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``threadMpoleBlockList``         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This is used to turn on block    |
-   |                                  | list OPENMP threading of the     |
-   |                                  | multipole routine. Name:         |
-   |                                  | ``threadMpoleBlockList`` Type:   |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``threadRayTrace``               |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This is used to turn on block    |
-   |                                  | list OPENMP threading of Enery   |
-   |                                  | Deposition source term routines. |
-   |                                  | Name: ``threadRayTrace`` Type:   |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``threadHydroWithinBlock``       |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This is used to turn on within   |
-   |                                  | block OPENMP threading of hydro  |
-   |                                  | routines. Name:                  |
-   |                                  | ``threadHydroWithinBlock`` Type: |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``threadEosWithinBlock``         |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This is used to turn on within   |
-   |                                  | block OPENMP threading of Eos    |
-   |                                  | routines. Name:                  |
-   |                                  | ``threadEosWithinBlock`` Type:   |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-   | ``threadMpoleWithinBlock``       |                                  |
-   +----------------------------------+----------------------------------+
-   | \*[1ex]                          | This is used to turn on within   |
-   |                                  | block OPENMP threading of then   |
-   |                                  | multipole routine. Name:         |
-   |                                  | ``threadMpoleWithinBlock`` Type: |
-   |                                  | ``Boolean`` Values:              |
-   |                                  | ``True, False``                  |
-   +----------------------------------+----------------------------------+
-
-.. _`Sec:SetupShortcuts`:
-
-Using Shortcuts
----------------
-
-Apart from the various setup options the ``setup`` script also allows
-you to use shortcuts for frequently used combinations of options. For
-example, instead of typing in
-
-.. container:: codeseg
-
-   ./setup -a Sod -with-unit=Grid/GridMain/UG
-
-you can just type
-
-.. container:: codeseg
-
-   ./setup -a Sod +ug
-
-The ``+ug`` or any setup option starting with a ‘+’ is considered as a
-shortcut. By default, setup looks at ``bin/setup_shortcuts.txt`` for a
-list of declared shortcuts. You can also specify a ":" delimited list of
-files in the environment variable ``SETUP_SHORTCUTS`` and ``setup`` will
-read all the files specified (and ignore those which don’t exist) for
-shortcut declarations. See for an example file.
-
-.. container:: fcodeseg
-
-   # comment line
-
-   # each line is of the form # shortcut:arg1:arg2:...: # These
-   shortcuts can refer to each other.
-
-   default:–with-library=mpi:-unit=IO/IOMain:-gridinterpolation=monotonic
-
-   # io choices noio:–without-unit=IO/IOMain: io:–with-unit=IO/IOMain:
-
-   # Choice of Grid ug:-unit=Grid/GridMain/UG:
-   pm2:-unit=Grid/GridMain/paramesh/|paramesh|2:
-   pm40:-unit=Grid/GridMain/paramesh/paramesh4/|paramesh|4.0:
-   pm4dev:-unit=Grid/GridMain/paramesh/paramesh4/|paramesh|4dev:
-
-   # frequently used geometries cube64:-nxb=64:-nyb=64:-nzb=64:
-
-The shortcuts are replaced by their expansions in place, so options
-which come after the shortcut override (or conflict with) options
-implied by the shortcut. A shortcut can also refer to other shortcuts as
-long as there are no cyclic references.
-
-The “default" shortcut is special. ``setup`` always prepends
-``+default`` to its command line thus making ``./setup -a Sod``
-equivalent to ``./setup +default -a Sod``. Thus changing the default IO
-to “hdf5/parallel", is as simple as changing the definition of the
-“default" shortcut.
-
-Some of the more commonly used shortcuts are described below:
-
-.. container:: center
-
-   .. container::
-      :name: Tab:setup_shortcuts
-
-      .. table::  Shortcuts for often-used options
-
-         ============ ===================================================
-         Shortcut     Description
-         ============ ===================================================
-         +cartesian   use cartesian geometry
-         +cylindrical use cylindrical geometry
-         +noio        omit IO
-         +nolog       omit logging
-         +pm4dev      use the PARAMESH4DEV grid
-         +polar       use polar geometry
-         +spherical   use spherical geometry
-         +ug          use the uniform grid in a fixed block size mode
-         +nofbs       use the uniform grid in a non-fixed block size mode
-         +usm         use the Unsplit Staggered Mesh MHD solver
-         +8wave       use the 8-wave MHD solver
-         +splitHydro  use a split Hydro solver
-         ============ ===================================================
-
-.. container:: center
-
-   .. container::
-      :name: Tab:setup_shortcuts_hedp
-
-      .. table::  Shortcuts for HEDP options
-
-         ======== =================================================
-         Shortcut Description
-         ======== =================================================
-         +mtmmmt  Use the 3-T, multimaterial, multitype EOS
-         +uhd3t   Use the 3-T version of Unsplit Hydro
-         +usm3t   Use the 3-T version of Unsplit Staggered Mesh MHD
-         +mgd     Use Multigroup Radiation Diffusion and Opacities
-         +laser   Use the Laser Ray Trace package
-         ======== =================================================
-
-.. _`Sec:setupvariables`:
-
-Setup Variables and Preprocessing ``Config`` Files
---------------------------------------------------
-
-``setup`` allows you to assign values to “Setup Variables”. These
-variables can be string-valued, integer-valued, or boolean. A ``setup``
-call like
-
-.. container:: codeseg
-
-   ./setup -a Sod Foo=Bar Baz=True
-
-sets the variable “Foo" to string “Bar" and “Baz" to boolean True [5]_.
-``setup`` can conditionally include and exclude parts of the ``Config``
-file it reads based on the values of these variables. For example, the
-``IO/IOMain/hdf5/Config`` file contains
-
-.. container:: shrink
-
-   .. container:: fcodeseg
-
-      DEFAULT serial
-
-      USESETUPVARS parallelIO
-
-      IF parallelIO DEFAULT parallel ENDIF
-
-The code sets IO to its default value of “serial” and then resets it to
-“parallel" if the setup variable “parallelIO" is True. The
-``USESETUPVARS`` keyword in the ``Config`` file instructs setup that the
-specified variables must be defined; undefined variables will be set to
-the empty string.
-
-Through judicious use of setup variables, the user can ensure that
-specific implementations are included or the simulation is properly
-configured. For example, the setup line ``./setup -a Sod +ug`` expands
-to ``./setup -a Sod -unit=Grid/GridMain/ Grid=UG``. The relevant part of
-the ``Grid/GridMain/Config`` file is given below:
-
-.. container:: shrink
-
-   .. container:: fcodeseg
-
-      # Requires use of the Grid SetupVariable USESETUPVARS Grid
-
-      DEFAULT paramesh
-
-      IF Grid==’UG’ DEFAULT UG ENDIF IF Grid==’PM2’ DEFAULT
-      paramesh/|paramesh|2 ENDIF
-
-The ``Grid/GridMain/Config`` file defaults to choosing ``PARAMESH``. But
-when the setup variable Grid is set to “UG" through the shortcut
-``+ug``, the default implementation is set to “UG". The same technique
-is used to ensure that the right IO unit is automatically included.
-
-See ``bin/Readme.SetupVars`` for an exhaustive list of Setup Variables
-which are used in the various Config files. For example the setup
-variable ``nDim`` can be test to ensure that a simulation is configured
-with the appropriate dimensionality (see for example
-``Simulation/SimulationMain/unitTest/Eos/Config``).
-
-.. _`Sec:Config`:
-
-``Config`` Files
-----------------
-
-Information about unit dependencies, default sub-units, runtime
-parameter definitions, library requirements, and physical variables,
-etc. is contained in plain text files named ``Config`` in the different
-unit directories. These are parsed by ``setup`` when configuring the
-source tree and are used to create the code needed to register unit
-variables, to implement the runtime parameters, to choose specific
-sub-units when only a generic unit has been specified, to prevent
-mutually exclusive units from being included together, and to flag
-problems when dependencies are not resolved by some included unit. Some
-of the Config files contain additional information about unit
-interrelationships. As mentioned earlier, ``setup`` starts from the
-``Config`` file in the Simulation directory of the problem being built.
-
-.. _`Sec:ConfigFileSyntax`:
-
-Configuration file syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Configuration files come in two syntactic flavors: static text and
-python. In static mode, configuration directives are listed as lines in
+The configuration toolchain effectively implements the Flash-X
+software architecture. The encapsulation and inheritance of the code
+is implemented and enforced by this tool. It relies upon Flash-X's
+domain specific configuration language *(DSCL)* that encodes
+meta-information about the components in the accompanying
+*Config* files. A Config file is unique to a unix directory and has
+all the meta-information about files in that directory. It can also
+include information about how to traverse subdirectories of the
+corresponding component. The Config files are parsed by the *setup*
+tool. 
+
+
+Config files come in two syntactic flavors: static text and
+python. In static mode, configuration keywords are listed as lines in
 a plain text file. This mode is the most readable and intuitive of the
 two, but it lacks flexibility. The python mode has been introduced to
 circumvent this inflexibility by allowing the configuration file author
@@ -1603,79 +63,84 @@ following directives will be processed:
 
 .. container:: fcodeseg
 
-   REQUIRES Driver REQUIRES physics/Hydro REQUIRES physics/Eos PARAMETER
-   indexed_parameter_1 REAL 0. PARAMETER indexed_parameter_2 REAL 0.
-   PARAMETER indexed_parameter_3 REAL 0. PARAMETER indexed_parameter_4
-   REAL 0. PARAMETER indexed_parameter_5 REAL 0.
+   REQUIRES Driver
+   REQUIRES physics/Hydro
+   REQUIRES physics/Eos
+   PARAMETER  indexed_parameter_1 REAL 0.
+   PARAMETER indexed_parameter_2 REAL 0.
+   PARAMETER indexed_parameter_3 REAL 0.
+   PARAMETER indexed_parameter_4  REAL 0.
+   PARAMETER indexed_parameter_5 REAL 0.
 
-.. _`Sec:ConfigDirectives`:
+.. _`Sec: DSCL Keywords`:
 
-Configuration directives
+Config file Keywords and syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The syntax of the configuration directives is described here.
 Arbitrarily many spaces and/or tabs may be used, but all keywords must
-be in uppercase. Lines not matching an admissible pattern will raise an
-error when running setup.
+be in uppercase. Lines not matching an ad missible pattern will raise an
+error when running setup. The syntax of DSCL includes two types of
+keywords. The directive keywords define actions to be taken by the
+setup tool, while the non directive keywords encode information about
+the directives. The non directive keywords are associated with
+specific directives keyworks.  
+
 
 -  | ``# comment``
    | A comment. Can appear as a separate line or at the end of a line.
 
--  | ``DEFAULT`` *sub-unit*
-   | Every unit and sub-unit designates one implementation to be the
-     “default”, as defined by the keyword ``DEFAULT`` in its ``Config``
-     file. If no specific implementation of the unit or its sub-units is
+-  | ``DEFAULT`` *sub-component*
+   | Any component can designate one component (which is effectively a
+    subdirectory)  to be the  “default”, with this keyword. If no specific sub-component is
      selected by the application, the designated default implementation
-     gets included. For example, the ``Config`` file for the ``EosMain``
-     specifies Gamma as the default. If no specific implementation is
-     explicitly included (*i.e.*,
-     ``INCLUDE physics/Eos/EosMain/Multigamma``), then this command
-     instructs ``setup`` to include the Gamma implementation, as though
-     ``INCLUDE physics/Eos/EosMain/Gamma`` had been placed in the
-     ``Units`` file.
+     gets included. 
 
--  | ``EXCLUSIVE`` *implementation...*
-   | Specifies a list of implementations that cannot be included
-     together. If no ``EXCLUSIVE`` instruction is given, it is perfectly
-     legal to simultaneously include more than one implementation in the
-     code. Using “``EXCLUSIVE`` \*” means that at most one
-     implementation can be included.
+-  | ``EXCLUSIVE`` *component...*
+   | Specifies a list of components that cannot be included
+     together.
 
--  | ``CONFLICTS`` *unit1[/sub-unit[/implementation...]]* ...
-   | Specifies that the current unit, sub-unit, or specific
-     implementation is not compatible with the list of units, sub-units
-     or other implementations that follows. ``setup`` issues an error if
-     the user attempts a conflicting unit configuration.
+-  | ``CONFLICTS`` *unit1[/sub-unit[/component...]]* ...
+   | Specifies that the current component is not compatible with
+   the list of components that follow. ``setup`` issues an error if
+     the user attempts a conflicting configuration.
 
--  | ``REQUIRES`` *unit[/sub-unit[/implementation...]] [* ``OR``
+-  | ``REQUIRES`` *unit[/sub-unit[/component...]] [* ``OR``
      *unit[/sub-unit...]]...*
-   | Specifies a unit requirement. Unit requirements can be general,
-     without asking for a specific implementation, so that unit
-     dependencies are not tied to particular algorithms. For example,
-     the statement ``REQUIRES physics/Eos`` in a unit’s ``Config`` file
-     indicates to ``setup`` that the physics/Eos unit is needed, but no
-     particular equation of state is specified. As long as an ``Eos``
-     implementation is included, the dependency will be satisfied. More
-     specific dependencies can be indicated by explicitly asking for an
-     implementation. For example, if there are multiple species in a
-     simulation, the ``Multigamma`` equation of state is the only valid
-     option. To ask for it explicitly, use
-     ``REQUIRES physics/Eos/EosMain/Multigamma``. Giving a complete set
-     of unit requirements is helpful, because ``setup`` uses them to
-     generate the units file when invoked with the -auto option.
+   | Specifies a component that is required. The component can be
+   specified with partially specified or full specified path. If
+   partial path is specified then full path is generated by
+   following the "DEFAULT" options of the subcomponents.
 
--  | ``REQUESTS`` *unit[/sub-unit[/implementation...]]*
-   | Requests that a unit be added to the Simulation. All requests are
-     upgraded to a “REQUIRES” if they are not negated by a
-     "-without-unit" option from the command line. If negated, the
-     ``REQUEST`` is ignored. This can be used to turn off profilers and
-     other “optional” units which are included by default.
+-  | ``REQUESTS`` *unit[/sub-unit[/component...]]*
+   | Is similar to REQUIRES except that it is a soft
+ dependency. It can be overridden through either a commandline
+ specification or through dependencies specified in higher priority
+ locations in the source tree.
 
--  | ``SUGGEST`` *unitname unitname ...*
-   | Unlike ``REQUIRES``, this keyword suggests that the current unit be
-     used along with one of the specified units. The setup script will
+-  | ``VARIANTS`` *variantname variantname ...*
+   |Indicates that multiple alternative
+ implemetations of a component are to be included in the setup where
+ each implementation gets its interface and routine/function name
+ appended with the corresponding variant name. For example, one may
+ want to use both CPU and GPU to  compute. A component that has valid
+ implementations for both can specify
+
+  .. container:: codeseg
+
+      VARIANT Inhost Offload Null
+
+Then if the setup options specify inclusion of both implementations,
+ the names of the relevant files and function/subroutine interfaces are
+ modified to have unique names. If, on the other hand, only one of the
+ implementations is to be included, the default is Null and all the
+ names remain unmodified.
+
+ -  | ``SUGGEST`` *component component  ...*
+   | Unlike ``REQUIRES``, this keyword suggests that the current component be
+     used along with one of the specified component. The setup script will
      print details of the suggestions which have been ignored. This is
-     useful in catching inadvertently omitted units before the run
+     useful in catching inadvertently omitted code components before the run
      starts, thus avoiding a waste of computing resources.
 
 -  | ``PARAMETER`` *name type [``CONSTANT``] default* [*range-spec*]
@@ -1740,7 +205,7 @@ error when running setup.
    keyword used to define the name.
 
    Parameter comment lines are special because they are used by
-   ``setup`` to build a formatted list of commented runtime parameters
+   to build a formatted list of commented runtime parameters
    for a particular problem. This information is generated in the file
    ``setup_params`` in the ``object`` directory.
 
@@ -1851,7 +316,7 @@ error when running setup.
    | This keyword has the same meaning for face-centered variables, that
      ``VARIABLE`` does for cell-centered variables. It allocates space
      in the grid data structure that contains face-centered physical
-     variables for “name”. See for more information
+     variables for “name”. 
 
    For *eosmap-spec*, see above under ``VARIABLE``. An *eosmap-spec* for
    ``FACEVAR`` is only used when ``physics/Eos/Eos_wrapped`` is called
@@ -1861,35 +326,9 @@ error when running setup.
 -  | ``FLUX`` *name*
    | Registers flux variable *name* with the framework. When using an
      adaptive mesh, flux conservation is needed at fine-coarse
-     boundaries. ``PARAMESH`` uses a data structure for this purpose,
-     the flux variables provide indices into that data structure. See
-     for more information.
+     boundaries. Each state variable that needs flux conservation is
+     made known to the framework through this keyword.
 
--  | ``SCRATCHCENTERVAR`` *name* *[eosmap-spec]*
-   | This keyword is used in connection with the grid scope scratch
-     space for cell-centered data supported by |flashx|. It allows the
-     user to ask for scratch space with “name”. The scratch variables do
-     not participate in the process of guardcell filling, and their
-     values become invalid after a grid refinement step. While users can
-     define scratch variables to be written to the plotfiles, they are
-     not by default written to checkpoint files. Note this feature
-     wasn’t available in |flashx|2. See for more information.
-
--  | ``SCRATCHFACEVAR`` *name* *[eosmap-spec]*
-   | This keyword is used in connection with the grid scope scratch
-     space for face-centered data, it is identical in every other
-     respect to ``SCRATCHCENTERVAR``.
-
--  | ``SCRATCHVAR`` *name* *[eosmap-spec]*
-   | This keyword is used for specifying instances of general purpose
-     grid scope scratch space. The same space can support cell-centered
-     as well as face-centered data. Like other scratch data structures,
-     the variables in this data structure can also be asked with “name”
-     and do not participate in guardcell filling.
-
-   For *eosmap-spec*, see above under ``VARIABLE``. An *eosmap-spec* for
-   ``SCRATCHVAR`` is only used when ``physics/Eos/Eos_wrapped`` is
-   called with an optional ``gridDataStruct`` argument of ``SCRATCH``.
 
 -  | ``MASS_SCALAR`` *name* *[RENORM: group-name]* *[eosmap-spec]*
    | If a quantity is defined with keyword MASS_SCALAR, space is created
@@ -1927,7 +366,7 @@ error when running setup.
      (see ), *initialization-method* describes the method used to
      distribute the particles at initialization, and
      *time-advance-method* describes the method used to advance the
-     associated particle type in time (see , and in general ). This
+     associated particle type in time. This
      keyword has been introduced to facilitate inclusion of multiple
      particle types in the same simulation. It imposes certain
      requirements on the use of the ``ParticlesMapping`` and
@@ -1955,9 +394,9 @@ error when running setup.
      is possible to use the same methods for different particle types,
      but each particle type name must only appear once. Finally, the
      Simulations ``Config`` file is also expected to request appropriate
-     implementations of mapping and initialization subunits using the
+     components of mapping and initialization subunits using the
      keyword ``REQUESTS``, since the corresponding Config files do not
-     specify a default implementation to include. For example, to
+     specify a default component to include. For example, to
      include ``passive`` particle types with ``Quadratic`` mapping,
      ``Lattice`` initialization,and ``Euler`` for advancing in time the
      following code segment should appear in the ``Config`` file of the
@@ -2003,17 +442,6 @@ error when running setup.
 
       PARTICLEPROP dens REAL PARTICLEMAP TO dens FROM VARIABLE dens
 
-   or, in a more advanced case, particle properties tracing some
-   face-valued function Mag:
-
-   .. container:: codeseg
-
-      PARTICLEPROP Mag_x REAL PARTICLEPROP Mag_y REAL PARTICLEPROP Mag_z
-      REAL PARTICLEMAP TO Mag_x FROM FACEX Mag PARTICLEMAP TO Mag_y FROM
-      FACEY Mag PARTICLEMAP TO Mag_z FROM FACEZ Mag
-
-   Additional information on creating ``Config`` files for particles is
-   obtained in .
 
 -  | ``SPECIES`` *name* [TO *number of ions*]
    | An application that uses multiple species uses this keyword to
@@ -2063,9 +491,9 @@ error when running setup.
      libraries, as well as switch libraries at setup time. To use these
      features, see
 
--  | ``LINKIF`` *filename unitname*
+-  | ``LINKIF`` *filename componentname*
    | Specifies that the file *filename* should be used only when the
-     unit ``unitname`` is included. This keyword allows a unit to have
+     compenent ``componentname`` is included. This keyword allows a unit to have
      multiple implementations of any part of its functionality, even
      down to the kernel level, without the necessity of creating
      children for every alternative. This is especially useful in
@@ -2164,75 +592,378 @@ error when running setup.
    “cond” is any boolean valued Python expression using the setup
    variables specified in the ``USESETUPVARS``.
 
--  | ``NONREP`` *unktype* *name* *localmax* *globalparam* *ioformat*
-   | Declares an array of ``UNK`` variables that will be partitioned
-     across the replicated meshes. Using various preprocessor macros in
-     Simulation.h each copy of the mesh can determine at runtime its own
-     subset of indexes into this global array. This allows an easy form
-     of parallelism where regular "replicated" mesh variables are
-     computed redundantly across processors, but the variables in the
-     "non-replicated" array are computed in parallel.
 
-   -  | *unktype*: must be either ``MASS_SCALAR`` or ``VARIABLE``
+   
+.. _`Sec:The Setup Tool`:
 
-   -  *name*: the name of this variable array. It is suggested that it
-      be all capital letters, and must conform to what the C
-      preprocessor will consider as a valid symbol for use in a
-      ``#define`` statement.
+The Setup Tool
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   -  | *localmax*: a positive integer specifying the maximum number of
-        elements from the global variable array a mesh can hold. This is
-        the actual number of ``UNK`` variables that are allocated on
-        each processor, though not all of them will necessarily be used.
 
-   -  | *globalparam*: the name of a runtime parameter which dictates
-        the size of this global array of variables.
+The setup tool parses and interprets the Config files to assemble an
+application instance in the specified object directory. It has three
+primary actions to perform.
 
-   -  | *ioformat*: a string representing how the elements of the array
-        will be named when written to the output files. The question
-        mark character ``?`` is used as a placeholder for the digits of
-        the array index. As an example, the format string ``x???`` will
-        generate the dataset names ``x001``, ``x002``, ``x003``, etc.
-        This string must be no more than four characters in length.
 
-   The number of meshes is dictated by the runtime parameter
-   ``meshCopyCount``. The following constraint must be satisfied or
-   |flashx| will fail at runtime:
+ #.  Compile a list of source files to be included in the
+     application. This compilation process ends with all the needed
+     files assembled in the object directory. Some may be linked
+     directly from their location in the source tree, while others may
+     have been generated through some additional actions taken by the
+     setup tool described in Figure ... 
 
-   .. math:: globalparam \le meshCopyCount * localmax
+ #.  Compile and initialize a list of runtime parameters needed by the simulation
 
-   The reason for this restriction is that ``localmax`` is the maximum
-   number of array elements a mesh can be responsible for, and
-   ``meshCopyCount`` is the number of meshes, so their product bounds
-   the size of the array.
+ #.  Generate Makefile.Unit for each unit that will be included in the
+     main Makefile used for compiling the source code. Note that the
+     Flash-X build system assumes GNU Make. 
 
-   Example:
 
-   Config file:
+The setup tool traverses the Flash-X source tree starting from the
+directory hosting the specific application definition. This starting
+directory is essentially the selected implementation of the
+“Simulation” unit.  It accumulates  units, subunits and other
+compoments from where source code is to be collected through recursive
+traversal of all encountered dependencies. While traversing the source
+tree the setup tool uses the following inheritance rules to arbitrate
+on versions of the source code functions, versions of key definitions
+and initial values of runtime parameters. 
+
+* All files with valid source extensions (such as .F90, .c, .h) are
+  added to the list and are linked into the object directory 
+
+  * If a file with identical name in already included in the list the
+    existing link in the object directory is removed and replaced with
+    a link to the newly encountered file 
+  
+  * The source files in the Simulation unit are the last ones to be
+    added to  the list, and therefore can override any file from the
+    source tree in the object directory 
+  
+* If a file has a .ini extension it indicates to the setup tool that
+  it contains definitions for the keys. All the keys defined in the
+  file are added to the list of available keys.
+  
+  * If a key already existed in the list, its defintion is replaced by
+    the most recently encountered definition.  
+  * Similar to source files, a definition in the Simulation unit
+    overrides any existing definition of a key.  
+  
+* An -mc appended to the name of a file indicates to the setup tool
+  that the file is augmented with keys and needs to be translated 
+
+  * An augmented file foo.F90-mc may have a *Novariant* directive, in
+    which case the keys are replaced by the corresponding
+    definitions and the emitted code is placed in a file foo.F90 in
+    the object directory. Note that foo.F90 never comes into 
+    existence anywhere in the source tree, so foo.F90 in the object
+    directory is a physical file, not a link.
+  * If the aumented file does not have *Novariant* directive then the
+    setup tool generates its variants. 
+  
+    * It looks for paths specified for the variants in the list of
+      REQUIRES. 
+    * For every variant it temporarily addes the keys defined in the
+      path to list of available keys, which are removed from the list
+      as soon as the translated code is emitted. 
+    * The emitted code is placed in the object directory with the name
+      foo_thisvariant.F90.
+    * It is assumed that the function or subroutine names are defined
+      to be variant dependent in these files. For details on how to do
+      this correctly see .....  
+    * In Makefile.Unit instances of foo.o are replaced with
+      foo_variants.o for all available variants. 
+
+* If any file has the *Reorder* directive it undergoes a code
+  transformation where the order of indices in the arrays is changed
+  as specified. The emitted code is placed in a file with the same
+  name as the original file and the link to the source tree is removed. 
+    
+* Runtime parameters defined in the Config file are added to the list
+  of runtime parameters and initialized with the specified value.
+  
+  * If a runtime parameter already exists in the list its value is
+    replaced with the most recently encountered value  
+  * The Simulation unit is the last one to be processed, therefore
+    initial values specified in its Config file override other values. 
+
+   
+   The ``setup`` script determines site-dependent configuration information
+by looking for a directory ``sites/<hostname>`` where ``<hostname>`` is
+the hostname of the machine on which |flashx| is running. [1]_ Failing
+this, it looks in ``sites/Prototypes/`` for a directory with the same
+name as the output of the ``uname`` command. The site and operating
+system type can be overridden with the ``-site`` and ``-ostype``
+command-line options to the ``setup`` command. Only one of these options
+can be used at one time. The directory for each site and operating
+system type contains a makefile fragment ``Makefile.h`` that sets
+command names, compiler flags, library paths, and any replacement or
+additional source files needed to compile |flashx| for that specific
+machine and machine type.
+
+.. _`Sec:ListSetupArgs`:
+
+   
+Setup Arguments
+---------------
+
+The setup script accepts a large number of command line arguments which
+affect the simulation in various ways. These arguments are divided into
+three categories:
+
+#. *Setup Options* (example: ``-auto``) begin with a dash and are built
+   into the setup script itself. Many of the most commonly used
+   arguments are setup options.
+
+#. *Setup Variables* (example: ``species=air,h2o``) are defined by
+   individual units. When writing a ``Config`` file for any unit, you
+   can define a setup variable. explains how setup variables can be
+   created and used.
+
+#. *Setup Shortcuts* (example: ``+ug``) begin with a plus symbol and are
+   essentially macros which automatically include a set of setup
+   variables and/or setup options. New setup shortcuts can be easily
+   defined, see for more information.
+
+
+  *-verbose=*  instructs the level of verbosity in progress messages
+  printed by the setup tool. Different levels (in order of increasing verbosity) are
+  ERROR, IMPINFO, WARN, INFO, DEBUG}. The default is WARN.
+  
+ *-auto* indicates to the setup tool that it should select *DEFAULT*
+ in every traversed path unless an alternative is explicitly specified
+ either at commandline or in one of the already traversed Config
+ files. In the process a text file containing a list of all traversed
+ paths is created and is placed in the object directory. 
+
+ *-[123]d specifies the dimensionality of the simulation. The default
+ is 2d.
+
+ *-maxblocks=* is relevant only when using PARAMESH. It lets the AMR
+ know how many blocks to allocate for the state variables. Note that
+ if the number of blocks generated on a process exceeds maxblocks the
+ execution will abort.
+
+*-nxb=/ -nyb=  / -nzb= * specify the number of data points (also
+called cells)  along each dimension of the every block in the setup 
+
+*-debug /-opt /-test* are options used to select the level of
+optimization to used by the compilers. The defauls is -opt. The
+Makefile.h in the site directory defines the flags associated with
+each of these options, and the users can customize them as they want.
+
+*-objdir=<dir>* allows the user to specify the path where they wish
+the executable to be built. The default is *object* at the same level
+as the source directory. 
+
+*-with-unit=<path>* is used to specify to the setup tool that the
+source code at the specified path is to be included. The specification
+of the path on commandline can override any dependency in the
+traversal that had a *REQUESTS* associated with it. And it can add
+dependencies that were not included with -auto option.
+
+*-without-unit=<path>* is used to tell the setup tool not to include
+the code in the specified path. This option can also override
+*REQUIRES* encountered during the traversal. 
+
+*-geometry=<geometry>* is used to specify one of the supported
+geometries <cartesian, cylindrical, spherical, polar>, the default is
+cartesian.
+
+*-defines=<def>*/  causes the specified pre-processor symbols to be defined when
+the code is being compiled. This is useful for code segments
+surrounded by preprocessor directives that are to be included only if
+a particular implementation of a unit is selected.
+
+
+*-nofbs* non-fixed-block size mode where nxb, nyb and nzb are not
+fixed at compile time. 
+
+*-gridinterpolation=<scheme>*  is used to select a scheme for Grid interpolation.
+
+*-makefile=<extension>}* is used when a site can work with more than
+one compiler suite. In such situations the site can have several
+Makefile.h's named as Makefile.h.<extension> and the one specified
+with this option will be selected
+
+*-index-reorder*  instructs setup order the indices in state variables
+as specified. This feature is needed because the base data structure
+in PARAMESH expects the variable index to be first while AMReX needs
+it to be last. This feature permits the same code base to work in both
+modes. 
+
+*-parfile=<filename>*  causes setup to copy the specified runtime-parameters file in
+the simulation directory to the object directory and name it
+flash.par. By default every setup distributed has a flash.par which is
+copied into the object directory if this option is not used.
+
+*-append-parfiles=[location1]<filename1>,[location2]<filename2> ...
+takes a comma-separated list of names of parameter
+files and combines them into one flash.par file in the object directory.
+File names without an absolute path are taken to be relative to the simulation
+directory, in a way similat to that  for the -parfile option.
+
+*-portable* this option causes setup copy instead of linking source files.
+
+*-site=<site>* specifies the suddirectory of the "sites" directory
+from where to fetch Makefile.h
+
+*-with-library=<libname>[,args]*  instructs setup to link in the
+specified library when building the final executable. The libraty in
+questoin can be internal or external. If external the user must make
+sure that the appropriate path to the library is provided in their
+site's Makefile.h. An internal library will be built by the setup if
+it hasn't already been done so by an earlier invocation.
+
+
+*-without-library=<libname>* is used to override the need for a
+library specified by one the Config files traversed by the setup
+tool. 
+
+
+
+.. _`Sec:SetupShortcuts`:
+
+Using Shortcuts
+---------------
+
+Apart from the various setup options the ``setup`` script also allows
+you to use shortcuts for frequently used combinations of options. For
+example, instead of typing in
+
+.. container:: codeseg
+
+   ./setup -a Sod -with-unit=Grid/GridMain/UG
+
+you can just type
+
+.. container:: codeseg
+
+   ./setup -a Sod +ug
+
+The ``+ug`` or any setup option starting with a ‘+’ is considered as a
+shortcut. By default, setup looks at ``bin/setup_shortcuts.txt`` for a
+list of declared shortcuts. You can also specify a ":" delimited list of
+files in the environment variable ``SETUP_SHORTCUTS`` and ``setup`` will
+read all the files specified (and ignore those which don’t exist) for
+shortcut declarations. See for an example file.
+
+.. container:: fcodeseg
+
+   # comment line
+
+   # each line is of the form # shortcut:arg1:arg2:...: # These
+   shortcuts can refer to each other.
+
+   default:–with-library=mpi:-unit=IO/IOMain:-gridinterpolation=monotonic
+
+   # io choices noio:–without-unit=IO/IOMain: io:–with-unit=IO/IOMain:
+
+   # Choice of Grid ug:-unit=Grid/GridMain/UG:
+   pm2:-unit=Grid/GridMain/paramesh/|paramesh|2:
+   pm40:-unit=Grid/GridMain/paramesh/paramesh4/|paramesh|4.0:
+   pm4dev:-unit=Grid/GridMain/paramesh/paramesh4/|paramesh|4dev:
+
+   # frequently used geometries cube64:-nxb=64:-nyb=64:-nzb=64:
+
+The shortcuts are replaced by their expansions in place, so options
+which come after the shortcut override (or conflict with) options
+implied by the shortcut. A shortcut can also refer to other shortcuts as
+long as there are no cyclic references.
+
+The “default" shortcut is special. ``setup`` always prepends
+``+default`` to its command line thus making ``./setup -a Sod``
+equivalent to ``./setup +default -a Sod``. Thus changing the default IO
+to “hdf5/parallel", is as simple as changing the definition of the
+“default" shortcut.
+
+Some of the more commonly used shortcuts are described below:
+
+.. container:: center
+
+   .. container::
+      :name: Tab:setup_shortcuts
+
+      .. table::  Shortcuts for often-used options
+
+         ============ ===================================================
+         Shortcut     Description
+         ============ ===================================================
+         +cartesian   use cartesian geometry
+         +cylindrical use cylindrical geometry
+         +noio        omit IO
+         +nolog       omit logging
+         +pm4dev      use the PARAMESH4DEV grid
+         +polar       use polar geometry
+         +spherical   use spherical geometry
+         +ug          use the uniform grid in a fixed block size mode
+         +nofbs       use the uniform grid in a non-fixed block size mode
+         ============ ===================================================
+
+
+.. _`Sec:setupvariables`:
+
+Setup Variables and Preprocessing ``Config`` Files
+--------------------------------------------------
+
+``setup`` allows you to assign values to “Setup Variables”. These
+variables can be string-valued, integer-valued, or boolean. A ``setup``
+call like
+
+.. container:: codeseg
+
+   ./setup -a Sod Foo=Bar Baz=True
+
+sets the variable “Foo" to string “Bar" and “Baz" to boolean True [5]_.
+``setup`` can conditionally include and exclude parts of the ``Config``
+file it reads based on the values of these variables. For example, the
+``IO/IOMain/hdf5/Config`` file contains
+
+.. container:: shrink
 
    .. container:: fcodeseg
 
-      NONREP MASS_SCALAR A 4 numA a??? NONREP MASS_SCALAR B 5 numB b???
+      DEFAULT serial
 
-   flash.par file:
+      USESETUPVARS parallelIO
+
+      IF parallelIO DEFAULT parallel ENDIF
+
+The code sets IO to its default value of “serial” and then resets it to
+“parallel" if the setup variable “parallelIO" is True. The
+``USESETUPVARS`` keyword in the ``Config`` file instructs setup that the
+specified variables must be defined; undefined variables will be set to
+the empty string.
+
+Through judicious use of setup variables, the user can ensure that
+specific implementations are included or the simulation is properly
+configured. For example, the setup line ``./setup -a Sod +ug`` expands
+to ``./setup -a Sod -unit=Grid/GridMain/ Grid=UG``. The relevant part of
+the ``Grid/GridMain/Config`` file is given below:
+
+.. container:: shrink
 
    .. container:: fcodeseg
 
-      meshCopyCount = 3 numA = 11 numB = 15
+      # Requires use of the Grid SetupVariable USESETUPVARS Grid
 
-   In this case two non-replicated mass-scalar arrays are defined, ``A``
-   and ``B``. Their lengths are specified by the runtime parameters
-   ``numA`` and ``numB`` respectively. ``numB`` is set to its maximum
-   value of :math:`5*meshCopyCount=15`, but ``numA`` is one less than
-   its maximum value of :math:`4*meshCopyCount=12` so at runtime one of
-   the meshes will not have all of its ``UNK`` variables in use. The
-   dataset names generated by IO will take the form ``a001 …a011`` and
-   ``b001 …b015``.
+      DEFAULT paramesh
 
-   The preprocessor macros defined in ``Simulation.h`` for these arrays
-   will have the prefixes ``A_`` and ``B_`` respectively. For details
-   about these macros and how they will distribute the array elements
-   across the meshes see .
+      IF Grid==’UG’ DEFAULT UG ENDIF IF Grid==’PM2’ DEFAULT
+      paramesh/|paramesh|2 ENDIF
+
+The ``Grid/GridMain/Config`` file defaults to choosing ``PARAMESH``. But
+when the setup variable Grid is set to “UG" through the shortcut
+``+ug``, the default implementation is set to “UG". The same technique
+is used to ensure that the right IO unit is automatically included.
+
+See ``bin/Readme.SetupVars`` for an exhaustive list of Setup Variables
+which are used in the various Config files. For example the setup
+variable ``nDim`` can be test to ensure that a simulation is configured
+with the appropriate dimensionality (see for example
+``Simulation/SimulationMain/unitTest/Eos/Config``).
+
+
 
 .. _`Sec:SetupMakefile`:
 
@@ -2274,13 +1005,13 @@ your system follow these instructions.
 Files Created During the ``setup`` Process
 ------------------------------------------
 
-When ``setup`` is run it generates many files in the ``object``
-directory. They fall into three major categories:
+The setup tool generates many files in the directory. They fall into
+three major categories:
 
--  Files not required to build the |flashx| executable, but which contain
+-  Files not required to build the Flash-X executable, but which contain
    useful information,
 
--  Generated F90 or C code, and
+-  Generated or C code, and
 
 -  Makefiles required to compile the |flashx| executable.
 
@@ -2427,18 +1158,6 @@ since the setup process determines this requirement automatically.
 
 Setup a hybrid MPI+|openmp| |flashx| application
 ---------------------------------------------
-
-There is the experimental inclusion of |flashx| multithreading with
-|openmp| in the |flashx| beta release. The units which have support for
-multithreading are split hydrodynamics `[Sec:PPM] <#Sec:PPM>`__, unsplit
-hydrodynamics
-`[Sec:unsplit hydro algorithm] <#Sec:unsplit hydro algorithm>`__, Gamma
-law and multigamma EOS `[Sec:Eos Gammas] <#Sec:Eos Gammas>`__, Helmholtz
-EOS `[Sec:Eos Helmholtz] <#Sec:Eos Helmholtz>`__, Multipole Poisson
-solver (improved version (support for 2D cylindrical and 3D cartesian))
-`[Sec:GridSolversMultipoleImproved] <#Sec:GridSolversMultipoleImproved>`__
-and energy deposition
-`[Sec:EnergyDeposition] <#Sec:EnergyDeposition>`__.
 
 The |flashx| multithreading requires a MPI-2 installation built with
 thread support (building with an MPI-1 installation or an MPI-2
