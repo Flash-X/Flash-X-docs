@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logfile Unit &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Timer and Profiler Units" href="Profiler.html" />
+    <link rel="prev" title="Monitor Units" href="monitor.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration script (<code class="docutils literal notranslate"><span class="pre">setup</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="monitor.html">Monitor Units</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Logfile Unit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#meta-data">Meta Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#runtime-parameters-physical-constants-and-multispecies-data">Runtime Parameters, Physical Constants, and Multispecies Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessor-functions-and-timestep-data">Accessor Functions and Timestep Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-data">Performance Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-usage">Example Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Profiler.html">Timer and Profiler Units</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="monitor.html">Monitor Units</a> &raquo;</li>
+      <li>Logfile Unit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Logfile.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="logfile-unit">
+<span id="chp-logfile-unit"></span><h1>Logfile Unit<a class="headerlink" href="#logfile-unit" title="Permalink to this headline"></a></h1>
+<p>Flash-X supplies the <code class="docutils literal notranslate"><span class="pre">Logfile</span></code> unit to manage an output log during a
+Flash-X simulation. The logfile contains various types of useful
+information, warnings, and error messages produced by a Flash-X run.
+Other units can add information to the logfile through the <code class="docutils literal notranslate"><span class="pre">Logfile</span></code>
+unit interface. The <code class="docutils literal notranslate"><span class="pre">Logfile</span></code> routines enable a program to open and
+close a log file, write time or date stamps to the file, and write
+arbitrary messages to the file. The file is kept closed and is only
+opened for appending when information is to be written, thus avoiding
+problems with unflushed buffers. For this reason, <code class="docutils literal notranslate"><span class="pre">Logfile</span></code> routines
+should not be called within time-sensitive loops, as system calls are
+generated. Even when starting from scratch, the logfile is opened in
+append mode to avoid deleting important logfiles. Two kinds of Logfiles
+are supported. The first kind is similar to that in <a href="#id1"><span class="problematic" id="id2">|flashx|2 and early
+releases of |flashx|</span></a>, where the master processor has exclusive access to
+the logfile and writes global information to it. The newer kind gives
+all processors access to their own private logfiles if they need to have
+one. Similar to the traditional logfile, the private logfiles are opened
+in append mode, and they are created the first time a processor writes
+to one. The private logfiles are extremely useful to gather information
+about failures causes by a small fraction of processors; something that
+cannot be done in the traditional logfile.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Logfile</span></code> unit is included by default in all the provided Flash-X
+simulations because it is required by the <code class="docutils literal notranslate"><span class="pre">Driver/DriverMain</span></code>
+<code class="docutils literal notranslate"><span class="pre">Config</span></code>. As with all the other units in Flash-X, the data specific to
+the Logfile unit is stored in the module <code class="docutils literal notranslate"><span class="pre">Logfile_data.F90</span></code>. Logfile
+unit scope data variables begin with the prefix <code class="docutils literal notranslate"><span class="pre">log_variableName</span></code> and
+they are initialized in the routine <code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_init</span></code>.</p>
+<p>By default, the logfile is named <code class="docutils literal notranslate"><span class="pre">flash.log</span></code> and found in the output
+directory. The user may change the name of the logfile by altering the
+runtime parameter <code class="docutils literal notranslate"><span class="pre">Logfile/log_file</span></code> in the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code>.</p>
+<div class="codeseg docutils container">
+<p># names of files basenm = “<a href="#id3"><span class="problematic" id="id4">cellular_</span></a>” log_file = “cellular.log”</p>
+</div>
+<section id="meta-data">
+<h2>Meta Data<a class="headerlink" href="#meta-data" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">logfile</span></code> stores meta data about a given run including the time
+and date of the run, the number of MPI tasks, dimensionality, compiler
+flags and other information about the run. The snippet below is an
+example from a <code class="docutils literal notranslate"><span class="pre">logfile</span></code> showing the basic setup and compilation
+information:</p>
+</section>
+<section id="runtime-parameters-physical-constants-and-multispecies-data">
+<h2>Runtime Parameters, Physical Constants, and Multispecies Data<a class="headerlink" href="#runtime-parameters-physical-constants-and-multispecies-data" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">logfile</span></code> also records which units were included in a simulation,
+the runtime parameters, physical constants, and any species and their
+properties from the <code class="docutils literal notranslate"><span class="pre">Multispecies</span></code> unit. The Flash-X logfile keeps
+track of whether a runtime parameter is a default value or whether its
+value has been redefined in the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code> The <code class="docutils literal notranslate"><span class="pre">[CHANGED]</span></code> symbol
+will occur next to a runtime parameter if its value has been redefined
+in the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code>. Note that the runtime parameters are output in
+alphabetical order within the Fortran datatype – so integer parameters
+are shown first, then real, then string, then Boolean. The snippet below
+shows the this portion of the <code class="docutils literal notranslate"><span class="pre">logfile</span></code>; omitted sections are
+indicated with “…”.</p>
+<div class="codeseg docutils container">
+<p>Flash-X Units used: Driver Driver/DriverMain
+Driver/DriverMain/TimeDep Grid Grid/GridMain Grid/GridMain/paramesh
+Grid/GridMain/paramesh/paramesh4 … Multispecies Particles
+PhysicalConstants PhysicalConstants/PhysicalConstantsMain
+RuntimeParameters RuntimeParameters/RuntimeParametersMain …
+physics/utilities/solvers/LinearAlgebra
+==============================================================================
+RuntimeParameters:</p>
+<p>algebra = 2 [CHANGED] bndpriorityone = 1 bndprioritythree = 3 … cfl
+= 0.800E+00 checkpointfileintervaltime = 0.100E-08 [CHANGED] cvisc =
+0.100E+00 derefine_cutoff_1 = 0.200E+00 derefine_cutoff_2 = 0.200E+00
+… zmax = 0.128E+02 [CHANGED] zmin = 0.000E+00 basenm = cellular_
+[CHANGED] eosmode = dens_ie eosmodeinit = dens_ie geometry =
+cartesian log_file = cellular.log [CHANGED] output_directory =
+pc_unitsbase = CGS plot_grid_var_1 = none plot_grid_var_10 = none
+plot_grid_var_11 = none plot_grid_var_12 = none plot_grid_var_2 =
+none … yr_boundary_type = periodic zl_boundary_type = periodic
+zr_boundary_type = periodic bytepack = F chkguardcells = F
+converttoconsvdformeshcalls = F converttoconsvdinmeshinterp = F …
+useburn = T [CHANGED] useburntable = F</p>
+<p>Known units of measurement:</p>
+<p>Unit CGS Value Base Unit 1 cm 1.0000 cm 2 s 1.0000 s 3 K 1.0000 K 4 g
+1.0000 g 5 esu 1.0000 esu 6 m 100.00 cm 7 km 0.10000E+06 cm 8 pc
+0.30857E+19 cm … Known physical constants:</p>
+<p>Constant Name Constant Value cm s g K esu 1 Newton 0.66726E-07 3.00
+-2.00 -1.00 0.00 0.00 2 speed of light 0.29979E+11 1.00 -1.00 0.00
+0.00 0.00 … 15 Euler 0.57722 0.00 0.00 0.00 0.00 0.00
+==============================================================================</p>
+<p>Multifluid database contents:</p>
+<p>Initially defined values of species: Name Index Total Positive
+Neutral Negative bind Ener Gamma ar36 12 3.60E+01 1.80E+01 -9.99E+02
+-9.99E+02 3.07E+02 -9.99E+02 c12 13 1.20E+01 6.00E+00 -9.99E+02
+-9.99E+02 9.22E+01 -9.99E+02 ca40 14 4.00E+01 2.00E+01 -9.99E+02
+-9.99E+02 3.42E+02 -9.99E+02 … ti44 24 4.40E+01 2.20E+01 -9.99E+02
+-9.99E+02 3.75E+02 -9.99E+02
+==============================================================================</p>
+</div>
+</section>
+<section id="accessor-functions-and-timestep-data">
+<h2>Accessor Functions and Timestep Data<a class="headerlink" href="#accessor-functions-and-timestep-data" title="Permalink to this headline"></a></h2>
+<p>Other units within Flash-X may make calls to write information, or
+stamp, the logfile. For example, the <code class="docutils literal notranslate"><span class="pre">Driver</span></code> unit calls the API
+routine <code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_stamp</span></code> after each timestep. The
+<code class="docutils literal notranslate"><span class="pre">Grid</span></code> unit calls <code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_stamp</span></code> whenever
+refinement occurs in an adaptive grid simulation. If there is an error
+that is caught in the code the API routine <code class="docutils literal notranslate"><span class="pre">Driver/Driver_abortFlash</span></code>
+stamps the <code class="docutils literal notranslate"><span class="pre">logfile</span></code> before aborting the code. Any unit can stamp the
+logfile with one of two routines <code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_stamp</span></code>
+which includes a data and time stamp along with a logfile message, or
+<code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_stampMessage</span></code> which simply writes a string
+to the <code class="docutils literal notranslate"><span class="pre">logfile</span></code>.</p>
+<p>The routine <code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_stamp</span></code> is overloaded so the user
+must use the interface file <code class="docutils literal notranslate"><span class="pre">Logfile_interface.F90</span></code> in the calling
+routine. The next snippit shows logfile output during the evolution loop
+of a Flash-X run.</p>
+<div class="codeseg docutils container">
+<p>[ 04-19-2006 16:40.43 ] [Simulation_init]: initializing Sod problem
+[GRID amr_refine_derefine] initiating refinement [GRID
+amr_refine_derefine] min blks 0 max blks 1 tot blks 1 [GRID
+amr_refine_derefine] min leaf blks 0 max leaf blks 1 tot leaf blks 1
+[GRID amr_refine_derefine] refinement complete [ 04-19-2006 16:40.43
+] [GRID gr_expandDomain]: create level=2 … [GRID
+amr_refine_derefine] initiating refinement [GRID amr_refine_derefine]
+min blks 250 max blks 251 tot blks 501 [GRID amr_refine_derefine] min
+leaf blks 188 max leaf blks 188 tot leaf blks 376 [GRID
+amr_refine_derefine] refinement complete [ 04-19-2006 16:40.44 ]
+[GRID gr_expandDomain]: create level=7 [ 04-19-2006 16:40.44 ] [GRID
+gr_expandDomain]: create level=7 [ 04-19-2006 16:40.44 ] [GRID
+gr_expandDomain]: create level=7 [ 04-19-2006 16:40.44 ]
+[IO_writeCheckpoint] open: type=checkpoint name=sod_hdf5_chk_0000 [
+04-19-2006 16:40.44 ] [io_writeData]: wrote 501 blocks [ 04-19-2006
+16:40.44 ] [IO_writeCheckpoint] close: type=checkpoint
+name=sod_hdf5_chk_0000 [ 04-19-2006 16:40.44 ] [IO writePlotfile]
+open: type=plotfile name=sod_hdf5_plt_cnt_0000 [ 04-19-2006 16:40.44
+] [io_writeData]: wrote 501 blocks [ 04-19-2006 16:40.44 ]
+[IO_writePlotfile] close: type=plotfile name=sod_hdf5_plt_cnt_0000 [
+04-19-2006 16:40.44 ] [Driver_evolveFlash]: Entering evolution loop [
+04-19-2006 16:40.44 ] step: n=1 t=0.000000E+00 dt=1.000000E-10 … [
+04-19-2006 16:41.06 ] [io_writeData]: wrote 501 blocks [ 04-19-2006
+16:41.06 ] [IO_writePlotfile] close: type=plotfile
+name=sod_hdf5_plt_cnt_0002 [ 04-19-2006 16:41.06 ]
+[Driver_evolveFlash]: Exiting evolution loop
+==============================================================================</p>
+</div>
+</section>
+<section id="performance-data">
+<span id="sec-logfileperformance"></span><h2>Performance Data<a class="headerlink" href="#performance-data" title="Permalink to this headline"></a></h2>
+<p>Finally, the <code class="docutils literal notranslate"><span class="pre">logfile</span></code> records performance data for the simulation.
+The <code class="docutils literal notranslate"><span class="pre">Timers</span></code> unit (see ) is responsible for storing, collecting and
+interpreting the performance data. The <code class="docutils literal notranslate"><span class="pre">Timers</span></code> unit calls the API
+routine <code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_writeSummary</span></code> to format the
+performance data and write it to the logfile. The snippet below shows
+the performance data section of a logfile.</p>
+<div class="codeseg docutils container">
+<p>perf_summary: code performance summary beginning : 04-19-2006
+16:40.43 ending : 04-19-2006 16:41.06 seconds in monitoring period :
+23.188 number of subintervals : 21 number of evolved zones : 16064
+zones per second : 692.758 —————————————————————————— accounting unit
+time sec num calls secs avg time pct ——————————————————————————
+initialization 1.012 1 1.012 4.366 guardcell internal 0.155 17 0.009
+0.669 writeCheckpoint 0.085 1 0.085 0.365 writePlotfile 0.061 1 0.061
+0.264 evolution 22.176 1 22.176 95.633 hydro 18.214 40 0.455 78.549
+guardcell internal 2.603 80 0.033 11.227 sourceTerms 0.000 40 0.000
+0.002 particles 0.000 40 0.000 0.001 Grid_updateRefinement 1.238 20
+0.062 5.340 tree 1.126 10 0.113 4.856 guardcell tree 0.338 10 0.034
+1.459 guardcell internal 0.338 10 0.034 1.458 markRefineDerefine
+0.339 10 0.034 1.460 guardcell internal 0.053 10 0.005 0.230
+amr_refine_derefine 0.003 10 0.000 0.011 updateData 0.002 10 0.000
+0.009 guardcell 0.337 10 0.034 1.453 guardcell internal 0.337 10
+0.034 1.452 eos 0.111 10 0.011 0.481 update particle refinemen 0.000
+10 0.000 0.000 io 2.668 20 0.133 11.507 writeCheckpoint 0.201 2 0.101
+0.868 writePlotfile 0.079 2 0.039 0.340 diagnostics 0.040 20 0.002
+0.173
+==============================================================================
+[ 04-19-2006 16:41.06 ] LOGFILE_END: Flash-X run complete.</p>
+</div>
+</section>
+<section id="example-usage">
+<h2>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline"></a></h2>
+<p>An example program using the Logfile unit might appear as follows:</p>
+<div class="codeseg docutils container">
+<p>program testLogfile</p>
+<p>use Logfile_interface, ONLY: Logfile_init, Logfile_stamp,
+Logfile_open, Logfile_close use Driver_interface, ONLY:
+Driver_initParallel use RuntimeParameters_interface, ONLY:
+RuntimeParameters_init use PhysicalConstants_interface, ONLY:
+PhysicalConstants_init</p>
+<p>implicit none</p>
+<p>integer :: i integer :: log_lun integer :: myPE, numProcs logical ::
+restart, localWrite</p>
+<p>call Driver_initParallel(myPE, numProcs) !will initialize MPI call
+RuntimeParameters_init(myPE, restart) ! Logfile_init needs runtime
+parameters call PhysicalConstants_init(myPE) ! PhysicalConstants
+information adds to logfile call Logfile_init(myPE, numProcs) ! will
+end with Logfile_create(myPE, numProcs)</p>
+<p>call Logfile_stamp (myPE, “beginning log file test…”,
+“[programtestLogfile]”) localWrite=.true. call
+Logfile_open(log_lun,localWrite) !! open the local logfile do i = 1,
+10 write (log_lun,*) ’i = ’, i enddo call Logfile_stamp (myPE,
+“finished logfile test”, “[program testLogfile]”) call
+Logfile_close(myPE, log_lun)</p>
+<p>end program testLogfile</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="monitor.html" class="btn btn-neutral float-left" title="Monitor Units" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Profiler.html" class="btn btn-neutral float-right" title="Timer and Profiler Units" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physical Constants Unit &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Physics Units" href="physics.html" />
+    <link rel="prev" title="Multispecies Unit" href="Multispecies.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration script (<code class="docutils literal notranslate"><span class="pre">setup</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="infrastructure.html">Infrastructure</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Grid.html">Grid Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IO.html">IO Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RuntimeParameters.html">Runtime Parameters Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Multispecies.html">Multispecies Unit</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Physical Constants Unit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#available-constants-and-units">Available Constants and Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#applicable-runtime-parameters">Applicable Runtime Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#routine-descriptions">Routine Descriptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unit-test">Unit Test</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="infrastructure.html">Infrastructure</a> &raquo;</li>
+      <li>Physical Constants Unit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/PhysicalConstants.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="physical-constants-unit">
+<span id="chp-physicalconstants"></span><h1>Physical Constants Unit<a class="headerlink" href="#physical-constants-unit" title="Permalink to this headline"></a></h1>
+<p>The Physical Constants unit provides a set of common constants, such as
+Pi and the gravitational constant, in various systems of measurement
+units. The default system of units is CGS, so named for having a length
+unit in centimeters, a mass unit in grams, and a time unit in seconds.
+In CGS, the charge unit is the esu, and the temperature unit is the
+Kelvin. The constants can also be obtained in the standard MKS system of
+units, where length is in meters, mass in kilograms, and time in
+seconds. For MKS units, charge is in Coloumbs, and temperature in
+Kelvin.</p>
+<div class="flashtip docutils container">
+<p>For ease of usage, the constant PI=3.14159…. is defined in the
+header file <code class="docutils literal notranslate"><span class="pre">constants.h</span></code>. Including this file with #include
+“constants.h” is an alternate way to access the value of <span class="math notranslate nohighlight">\(\pi\)</span>,
+rather than needing to include the <code class="docutils literal notranslate"><span class="pre">PhysicalConstants</span></code> unit.</p>
+</div>
+<p>Any constant can optionally be converted from the standard units into
+any other available units. This facility makes it easy to ensure that
+all parts of the code are using a consistent set of physical constant
+values and unit conversions.</p>
+<p>For example, a program using this unit might obtain the value of
+Newton’s gravitational constant <span class="math notranslate nohighlight">\(G\)</span> in units of
+Mpc<span class="math notranslate nohighlight">\(^3\)</span> Gyr<span class="math notranslate nohighlight">\(^{-2}M_\odot^{-1}\)</span> by calling</p>
+<blockquote>
+<div><div class="codeseg docutils container">
+<p>call PhysicalConstants_get (“Newton”, G, len_unit=”Mpc”,
+time_unit=”Gyr”, mass_unit=”Msun”)</p>
+</div>
+</div></blockquote>
+<p>In this example, the local variable <code class="docutils literal notranslate"><span class="pre">G</span></code> is set equal to the result,
+<span class="math notranslate nohighlight">\(4.4983\times 10^{-15}\)</span> (to five significant figures).</p>
+<p>Physical constants are taken from K. Nahamura <em>et al.</em> (Particle Data
+Group), J. Phys. G <strong>37</strong>, 075021 (2010).</p>
+<section id="available-constants-and-units">
+<span id="sec-physicalconstantsavailable"></span><h2>Available Constants and Units<a class="headerlink" href="#available-constants-and-units" title="Permalink to this headline"></a></h2>
+<p>There are many constants and units available within Flash-X, see and .
+Should the user wish to add additional constants or units to a
+particular setup, the routine
+<code class="docutils literal notranslate"><span class="pre">PhysicalConstants/PhysicalConstants_init</span></code> should be overridden and
+the new constants added within the directory of the setup.</p>
+<div class="center docutils container">
+<div class="docutils container" id="tab-physicalconstants">
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Available Physical Constants</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>String Constant</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Newton</p></td>
+<td><p>Gravitational constant G</p></td>
+</tr>
+<tr class="row-odd"><td><p>speed of light</p></td>
+<td><p>Speed of light</p></td>
+</tr>
+<tr class="row-even"><td><p>Planck</p></td>
+<td><p>Planck’s constant</p></td>
+</tr>
+<tr class="row-odd"><td><p>electron charge</p></td>
+<td><p>charge of an electron</p></td>
+</tr>
+<tr class="row-even"><td><p>electron mass</p></td>
+<td><p>mass of an electron</p></td>
+</tr>
+<tr class="row-odd"><td><p>proton mass</p></td>
+<td><p>Mass of a proton</p></td>
+</tr>
+<tr class="row-even"><td><p>fine-structure</p></td>
+<td><p>fine-structure constant</p></td>
+</tr>
+<tr class="row-odd"><td><p>Avogadro</p></td>
+<td><p>Avogadro’s Mole Fraction</p></td>
+</tr>
+<tr class="row-even"><td><p>Boltzmann</p></td>
+<td><p>Boltzmann’s constant</p></td>
+</tr>
+<tr class="row-odd"><td><p>ideal gas constant</p></td>
+<td><p>ideal gas constant</p></td>
+</tr>
+<tr class="row-even"><td><p>Wien</p></td>
+<td><p>Wien displacement law constant</p></td>
+</tr>
+<tr class="row-odd"><td><p>Stefan-Boltzmann</p></td>
+<td><p>Stefan-Boltzman constant</p></td>
+</tr>
+<tr class="row-even"><td><p>pi</p></td>
+<td><p>Pi</p></td>
+</tr>
+<tr class="row-odd"><td><p>e</p></td>
+<td><p>e</p></td>
+</tr>
+<tr class="row-even"><td><p>Euler</p></td>
+<td><p>Euler-Mascheroni constant</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="center docutils container">
+<div class="docutils container" id="tab-physicalconstantsunits">
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Available Units for Conversion of Physical Constants</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Base unit</strong></p></th>
+<th class="head"><p><strong>String
+Constant</strong></p></th>
+<th class="head"><p><strong>Value in CGS
+units</strong></p></th>
+<th class="head"><ul class="simple">
+<li></li>
+</ul>
+<p><em>Description*</em></p>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>length</p></td>
+<td><p>cm</p></td>
+<td><p>1.0</p></td>
+<td><p>centimeter</p></td>
+</tr>
+<tr class="row-odd"><td><p>time</p></td>
+<td><p>s</p></td>
+<td><p>1.0</p></td>
+<td><p>second</p></td>
+</tr>
+<tr class="row-even"><td><p>temperature</p></td>
+<td><p>K</p></td>
+<td><p>1.0</p></td>
+<td><p>degree Kelvin</p></td>
+</tr>
+<tr class="row-odd"><td><p>mass</p></td>
+<td><p>g</p></td>
+<td><p>1.0</p></td>
+<td><p>gram</p></td>
+</tr>
+<tr class="row-even"><td><p>charge</p></td>
+<td><p>esu</p></td>
+<td><p>1.0</p></td>
+<td><p>ESU charge</p></td>
+</tr>
+<tr class="row-odd"><td><p>length</p></td>
+<td><p>m</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0E2</span></code></p></td>
+<td><p>meter</p></td>
+</tr>
+<tr class="row-even"><td><p>length</p></td>
+<td><p>km</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0E5</span></code></p></td>
+<td><p>kilometer</p></td>
+</tr>
+<tr class="row-odd"><td><p>length</p></td>
+<td><p>pc</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span>
+<span class="pre">856775807E18</span></code></p></td>
+<td><p>parsec</p></td>
+</tr>
+<tr class="row-even"><td><p>length</p></td>
+<td><p>kpc</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span>
+<span class="pre">856775807E21</span></code></p></td>
+<td><p>kiloparsec</p></td>
+</tr>
+<tr class="row-odd"><td><p>length</p></td>
+<td><p>Mpc</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span>
+<span class="pre">856775807E24</span></code></p></td>
+<td><p>megaparsec</p></td>
+</tr>
+<tr class="row-even"><td><p>length</p></td>
+<td><p>Gpc</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span>
+<span class="pre">856775807E27</span></code></p></td>
+<td><p>gigaparsec</p></td>
+</tr>
+<tr class="row-odd"><td><p>length</p></td>
+<td><p>Rsun</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">6.96E10</span></code></p></td>
+<td><p>solar radius</p></td>
+</tr>
+<tr class="row-even"><td><p>length</p></td>
+<td><p>AU</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.49</span>
+<span class="pre">597870662E13</span></code></p></td>
+<td><p>astronomical
+unit</p></td>
+</tr>
+<tr class="row-odd"><td><p>time</p></td>
+<td><p>yr</p></td>
+<td><p>``
+3.15569252E7``</p></td>
+<td><p>year</p></td>
+</tr>
+<tr class="row-even"><td><p>time</p></td>
+<td><p>Myr</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3</span>
+<span class="pre">.15569252E13</span></code></p></td>
+<td><p>megayear</p></td>
+</tr>
+<tr class="row-odd"><td><p>time</p></td>
+<td><p>Gyr</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3</span>
+<span class="pre">.15569252E16</span></code></p></td>
+<td><p>gigayear</p></td>
+</tr>
+<tr class="row-even"><td><p>mass</p></td>
+<td><p>kg</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0E3</span></code></p></td>
+<td><p>kilogram</p></td>
+</tr>
+<tr class="row-odd"><td><p>mass</p></td>
+<td><p>Msun</p></td>
+<td><p>``
+1.9889225E33``</p></td>
+<td><p>solar mass</p></td>
+</tr>
+<tr class="row-even"><td><p>mass</p></td>
+<td><p>amu</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.6</span>
+<span class="pre">60538782E-24</span></code></p></td>
+<td><p>atomic mass
+unit</p></td>
+</tr>
+<tr class="row-odd"><td><p>charge</p></td>
+<td><p>C</p></td>
+<td><p>``
+2.99792458E9``</p></td>
+<td><p>Coulomb</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Cosm
+ology-friendly
+units using
+:ma
+th:<cite>H_0 = 100</cite>
+km/s/Mpc:</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>length</p></td>
+<td><p>LFLY</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span>
+<span class="pre">856775807E24</span></code></p></td>
+<td><p>1 Mpc</p></td>
+</tr>
+<tr class="row-odd"><td><p>time</p></td>
+<td><p>TFLY</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.05759E17</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\
+frac{2}{3H_0}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>mass</p></td>
+<td><p>MFLY</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">9.8847E45</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.23e12</span></code>
+Msun</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="applicable-runtime-parameters">
+<span id="sec-physicalconstantsrp"></span><h2>Applicable Runtime Parameters<a class="headerlink" href="#applicable-runtime-parameters" title="Permalink to this headline"></a></h2>
+<p>There is only one runtime parameter used by the Physical Constants unit:
+<code class="docutils literal notranslate"><span class="pre">PhysicalConstants/pc_unitsBase</span></code> selects the default system of units
+for returned constants. It is a three-character string set to “CGS” or
+“MKS”; the default is CGS.</p>
+</section>
+<section id="routine-descriptions">
+<span id="sec-physicalconstantsroutines"></span><h2>Routine Descriptions<a class="headerlink" href="#routine-descriptions" title="Permalink to this headline"></a></h2>
+<p>The following routines are supplied by this unit.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PhysicalConstants/PhysicalConstants_get</span></code> Request a physical
+constant given by a string, and returns its real value. This routine
+takes optional arguments for converting units from the default. If
+the constant name or any of the optional unit names aren’t
+recognized, a value of 0 is returned.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PhysicalConstants/PhysicalConstants_init</span></code> Initializes the Physical
+Constants Unit by loading all constants. This routine is called by
+<code class="docutils literal notranslate"><span class="pre">Driver/Driver_initFlash</span></code> and must be called before the first
+invocation of <code class="docutils literal notranslate"><span class="pre">PhysicalConstants_get</span></code>. In general, the user does
+not need to invoke this call.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PhysicalConstants/PhysicalConstants_list</span></code> Lists the available
+physical constants in a snappy table.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PhysicalConstants/PhysicalConstants_listUnits</span></code> Lists all the units
+available for optional conversion.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PhysicalConstants/PhysicalConstants_unitTest</span></code> Lists all physical
+constants and units, and tests the unit conversion routines.</p></li>
+</ul>
+<div class="flashtip docutils container">
+<p>The header file <code class="docutils literal notranslate"><span class="pre">PhysicalConstants.h</span></code> must be included in the
+calling routine due to the optional arguments of
+<code class="docutils literal notranslate"><span class="pre">PhysicalConstants_get</span></code>.</p>
+</div>
+</section>
+<section id="unit-test">
+<span id="sec-physconstunittest"></span><h2>Unit Test<a class="headerlink" href="#unit-test" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">PhysicalConstants</span></code> unit test
+<code class="docutils literal notranslate"><span class="pre">PhysicalConstants/PhysicalConstants_unitTest</span></code> is a simple exercise of
+the functionality in the unit. It does not require time stepping or the
+grid. “Correct” usage is indicated, as is erroneous usage.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Multispecies.html" class="btn btn-neutral float-left" title="Multispecies Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="physics.html" class="btn btn-neutral float-right" title="Physics Units" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
