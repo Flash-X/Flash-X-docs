@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grid Unit &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="IO Unit" href="IO.html" />
+    <link rel="prev" title="Infrastructure" href="infrastructure.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration )</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="infrastructure.html">Infrastructure</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Grid Unit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gridmain-data-structures"><em>GridMain</em> Data Structures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computational-domain">Computational Domain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#boundary-conditions">Boundary Conditions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#boundary-condition-types">Boundary Condition Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#boundary-conditions-at-obstacles">Boundary Conditions at Obstacles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#implementing-boundary-conditions">Implementing Boundary Conditions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#uniform-grid">Uniform Grid</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#fixedblocksize-mode">FIXEDBLOCKSIZE Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nonfixedblocksize-mode">NONFIXEDBLOCKSIZE mode</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#adaptive-mesh-refinement-amr-grid">Adaptive Mesh Refinement (AMR) Grid</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#grid-interpolation-and-averaging">Grid Interpolation (and Averaging)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#refinement">Refinement</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#gridmain-usage">GridMain Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gridparticles">GridParticles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#gridparticlesmove">GridParticlesMove</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#gridsolvers">GridSolvers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#poisson-equation">Poisson equation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hypre">HYPRE</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-geometry">Grid Geometry</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#understanding-1d-2d-and-curvilinear-coordinates">Understanding 1D, 2D, and Curvilinear Coordinates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#choosing-a-geometry">Choosing a Geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getting-geometry-information-in-program-code">Getting Geometry Information in Program Code</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#available-geometries">Available Geometries</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="IO.html">IO Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RuntimeParameters.html">Runtime Parameters Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Multispecies.html">Multispecies Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PhysicalConstants.html">Physical Constants Unit</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="infrastructure.html">Infrastructure</a> &raquo;</li>
+      <li>Grid Unit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Grid.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="grid-unit">
+<span id="chp-grid-unit"></span><h1>Grid Unit<a class="headerlink" href="#grid-unit" title="Permalink to this headline"></a></h1>
+<section id="overview">
+<span id="sec-gridintroduction"></span><h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<p>The <em>Grid</em> unit has four subunits: <em>GridMain</em> is responsible for
+maintaining the Eulerian grid used to discretize the spatial dimensions
+of a simulation; <em>GridParticles</em> manages the data movement of
+Lagrangian quantities represented by particles; <em>GridBoundaryConditions</em>
+handles the application of boundary conditions at the physical
+boundaries of the domain; and <em>GridSolvers</em> includes implementations
+of solvers that need to know the details of the mesh and may be used
+by multiple physics solvers. In the
+Eulerian grid, discretization is achieved by dividing the computational
+domain into one or more sub-domains or blocks and using these blocks as
+the primary computational entity visible to the physics units. A block
+contains a number of computational cells (<em>nxb</em> in the
+<span class="math notranslate nohighlight">\(x\)</span>-direction, <em>nyb</em> in the <span class="math notranslate nohighlight">\(y\)</span>-direction, and <em>nzb</em> in
+the <span class="math notranslate nohighlight">\(z\)</span>-direction). A perimeter of guardcells of width <em>nguard</em>
+cells in each coordinate direction, surrounds each block of local data,
+providing it with data from the neighboring blocks or with boundary
+conditions, as shown in . Since the majority of physics solvers used in
+Flash-X are explicit, a block with its surrounding guard cells becomes a
+self-contained computational domain. Thus the physics units see and
+operate on only one block at a time, and this abstraction is reflected
+in their design.</p>
+<p>Therefore any mesh package that can present a self contained block as a
+computational domain to a client unit can be used with Flash-X. However,
+such interchangeability of grid packages also requires a careful design
+of the Grid API to make the underlying management of the discretized
+grid completely transparent to outside units. The data structures for
+physical variables, the spatial coordinates, and the management of the
+grid are kept private to the Grid unit, and client units can access
+them only through accessor functions. This strict protocol for data
+management along with the use of blocks as computational entities
+enables Flash-X to abstract the grid from physics solvers and
+facilitates the ability of Flash-X to use multiple mesh packages.</p>
+<div class="center docutils container">
+<p><a href="#id4"><span class="problematic" id="id5">|image|</span></a></p>
+</div>
+<p>Any unit in the code can retrieve all or part of a block of data from
+the Grid unit along with the coordinates of corresponding cells; it
+can then use this information for internal computations, and finally
+return the modified data to the Grid unit. The Grid unit also
+manages the parallelization of Flash-X. It consists of a suite of
+subroutines which handle distribution of work to processors and guard
+cell filling. When using an adaptive mesh, the Grid unit is also
+responsible for refinement/derefinement and conservation of flux across
+block boundaries.</p>
+<p>Flash-X can interchangeably use either a <strong>uniform</strong> or <strong>adaptive
+grid</strong> for most problems.  The uniform grid supported in Flash-X
+discretizes the physical domain by placing grid points at regular
+intervals defined by the geometry of the problem. The grid
+configuration remains unchanged throughout the simulation, and exactly
+one block is mapped per processor. An adaptive grid changes the
+discretization over the course of the computation, and several blocks
+can be mapped to each computational processor. Two AMR packages are
+currently supported in Flash-X for providing adaptive grid
+capbility. The block-structured oct-tree based AMR package,
+<em>PARAMESH</em> has been the work horse since the beginning of the code.
+Support for AMReX is a later addition, and mimics the oct-tree
+behavior of Paramesh for Flash-X . Because multiple different grids
+types are supported in Flash-X, the user must match up the correct
+<em>IO</em> alternative implementation with the correct Grid
+alternative implementation. The best way of ensuring the match up is
+to use predefined shortcuts such as “<em>+ugio</em>”, which makes sure that
+the appropriate branch of IO is included when the uniform grid
+is being used. Please see for more information. Also see for
+shortcuts useful for the Grid unit.</p>
+</section>
+<section id="gridmain-data-structures">
+<h2><em>GridMain</em> Data Structures<a class="headerlink" href="#gridmain-data-structures" title="Permalink to this headline"></a></h2>
+<p>The Grid unit is the most extensive infrastructure unit in the
+Flash-X code, and it owns data that most other units wish to fetch and
+modify. Since the data layout in this unit has implications on the
+manageability and performance of the code, we describe it in some detail
+here.</p>
+<p>Flash-X can be run with a grid discretization that assumes cell-centered
+data, face-centered data, or a combination of the two. Physical data
+resides multidimensional F90 arrays; cell-centered variables in <em>unk</em>,
+short for “unknowns”, and face-centered variables in arrays called
+<em>facevarx</em>, <em>facevary</em>, and <em>facevarz</em>, which contain the
+face-centered data along the <em>x</em>, <em>y</em>, and <em>z</em>  dimensions,
+respectively. The cell-centered array unk is dimensioned as
+<em>array(NUNK_VARS,nxb,nyb,nzb,blocks)</em>, where <em>nxb</em>, <em>nyb</em>, <em>nzb</em> are
+the spatial dimensions of a single block, and <em>blocks</em> is the number
+of blocks per processor, which is 1 for UG. The
+face-centered arrays have one extra data point along the dimension
+they are representing, for example <em>facevarx</em> is dimensioned as
+<em>array(NFACE_VARS,nxb+1,nyb,nzb,blocks)</em>.  The spatial dimensions
+nxb, nyb, nzb can either be fixed at setup time, or they
+may be determined at runtime. These two modes are referred to as
+FIXEDBLOCKSIZE and NONFIXEDBLOCKSIZE.</p>
+<p>All values determined at setup time are defined as constants in a file
+<em>Simulation.h</em> generated by the setup tool. This file contains all
+application-specific global constants such as the number and naming of
+physical variables, number and naming of fluxes and species, <em>etc.</em>
+For cell-centered variables, the Grid unit also stores a <strong>variable
+type</strong> that can be retrieved using the
+<em>Simulation/Simulation_getVarnameType</em> routine; see for the syntax and
+meaning of the optional <em>TYPE</em> attribute that can be specified as part
+of a <em>VARIABLE</em> definition read by the setup tool.</p>
+</section>
+<section id="computational-domain">
+<span id="sec-computational-domain"></span><h2>Computational Domain<a class="headerlink" href="#computational-domain" title="Permalink to this headline"></a></h2>
+<p>The size of the computational domain in physical units is specified at
+runtime through the (<em>xmin</em>, <em>xmax</em>) (<em>ymin</em>,
+<em>ymax</em>) (<em>zmin</em>, <em>zmax</em>) runtime parameters. When
+working with curvilinear coordinates (see below in ), the extrema for
+angle coordinates are specified in degrees. Internally all angles are
+represented in radians, so angles are converted to radians at Grid
+initialization. The physical domain is mapped into a computational
+domain at problem initialization through the initialization routines
+of the selected AMR package.</p>
+</section>
+<section id="boundary-conditions">
+<span id="sec-bndrycond"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline"></a></h2>
+<p>Much of the Flash-X code within the Grid unit that deals with
+implementing boundary conditions has been organized into a separate
+subunit, <em>GridBoundaryConditions</em>. Note that the following aspects are
+still handled elsewhere:</p>
+<ul class="simple">
+<li><p>Recognition of bounday condition names as strings (in runtime
+parameters) and constants (in the source code); these are defined in
+<em>RuntimeParameters/RuntimeParameters_mapStrToInt</em> and in
+<em>constants.h</em>, respectively.</p></li>
+<li><p>Handling of user-defined boundary conditions; this should be
+implemented by code under the <em>Simulation</em> directory.</p></li>
+<li><p>Behavior of particles at a domain boundary. This is based on the
+boundary types described below, but their handling is implemented in
+<em>GridParticles</em>.</p></li>
+</ul>
+<p>Although the <em>GridBoundaryConditions</em> subunit is included in a setup
+by default, it can be excluded (if no <em>Config</em> file “<em>REQUIRES</em>” it)
+by specifying <em>-without-unit=Grid/GridBoundaryConditions</em>. This will
+generally only make sense if all domain boundaries are to be treated as
+periodic. (All relevant runtime parameters <em>xl_boundary_type</em>
+<em>etc.</em> need to be set to <em>“periodic”</em> in that case.)</p>
+<section id="boundary-condition-types">
+<h3>Boundary Condition Types<a class="headerlink" href="#boundary-condition-types" title="Permalink to this headline"></a></h3>
+<p>Boundary conditions are determined by the physical problem. Within
+Flash-X, the parallel structure of blocks means that each processor
+works independently. If a block is on a physical boundary, the guard
+cells are filled by calculation since there are no neighboring blocks
+from which to copy values. Boundaries are selected by setting runtime
+parameters such as <em>xl_boundary_type</em> (for the ‘left’
+<em>X</em> –boundary) to one of the supported boundary types  in
+flash.par. Even though the runtime parameters for specifying
+boundary condition types are strings, the Grid unit understands them
+as defined integer constants defined in the file constants.h, which
+contains all global constants for the code. The translation from the
+string specified in “flash.par” to the constant understood by the
+Grid unit is done by the routine RuntimeParameters/RuntimeParameters_mapStrToInt.</p>
+<div class="center docutils container">
+<div class="docutils container" id="tab-boundaries">
+<p>Flash-X. Boundary type <em>ab</em> may be replaced with
+<span class="math notranslate nohighlight">\(a\)</span>={x,y,z} for direction and <span class="math notranslate nohighlight">\(b\)</span>={l,r} for
+left/right edge. All boundary types listed except the last
+(user) have an implementation in GridBoundaryConditions.</p>
+<blockquote>
+<div></div></blockquote>
+</div>
+</div>
+<p>To use any of the hydrostatic-f2* boundary conditions, the setup
+must include Grid/GridBoundaryConditions/Flash2HSE. This must
+usually be explicitly requested, for example with a line</p>
+<div class="codeseg docutils container">
+<p>REQUIRES Grid/GridBoundaryConditions/Flash2HSE</p>
+</div>
+<p>in the simulation directory’s Config file.</p>
+<div class="center docutils container">
+<div class="docutils container" id="tab-recognizedboundaries">
+<p>Flash-X. Boundary type <em>ab</em> may be replaced with a={x,y,z} for
+direction and b={l,r} for left/right edge. These boundary types
+are either reserved for implementation by users and/or future
+Flash-X versions for a specific purpose (as indicate by the
+remarks), or are for special uses within the Grid unit.</p>
+<blockquote>
+<div></div></blockquote>
+</div>
+</div>
+</section>
+<section id="boundary-conditions-at-obstacles">
+<h3>Boundary Conditions at Obstacles<a class="headerlink" href="#boundary-conditions-at-obstacles" title="Permalink to this headline"></a></h3>
+<p>The initial coarse grid of root blocks can be modified by removing
+certain blocks. This is done by providing a non-trivial implementation
+of Simulation/Simulation_defineDomain. Effectively this creates
+additional domain boundaries at the interface between blocks removed and
+regions still included. All boundary conditions other than periodic
+are possible at these additional boundaries, and are handled there in
+the same way as on external domain boundaries. This feature is only
+available with PARAMESH. See the documentation and example in
+Simulation/Simulation_defineDomain for more details and some
+caveats.</p>
+</section>
+<section id="implementing-boundary-conditions">
+<h3>Implementing Boundary Conditions<a class="headerlink" href="#implementing-boundary-conditions" title="Permalink to this headline"></a></h3>
+<p>Users may need to implement boundary conditions beyond those provided
+with Flash-X, and the GridBoundaryConditions subunit provides
+several ways to achieve this. Users can provide an implementation for
+the <em>user</em> boundary type; or can provide or override an implementation
+for one of the other recognized types.</p>
+<p>The simple boundary condition types <em>reflect</em>, <em>outflow</em>, <em>diode</em>
+are implemented in the <em>Grid_bcApplyToRegion .F90</em> file in
+GridBoundaryConditions. A users can add or modify the handling
+of some boundary condition types in a version of this file in the
+simulation directory, which overrides the regular version. There is,
+however, also the interface <em>Grid_bcApplyToRegionSpecialized</em>
+which by default is only provided as a stub and is explicitly intended
+to be implemented by users. A Grid_bcApplyToRegionSpecialized
+implementation gets called before Grid_bcApplyToRegion and can
+decide to either handle a specific combination of boundary condition
+type, direction, grid data structure, <em>etc.</em>, or leave it to
+Grid_bcApplyToRegion. These calls operate on a region of one
+block’s cells at a time. Flash-X will pass additional information beyond
+that needed for handling simple boundary conditions to
+Grid_bcApplyToRegionSpecialized, in particular a block handle
+through which an implementation can retrieve coordinate information and
+access other information associated with a block and its cells.</p>
+<p>The GridBoundaryConditions subunit also provides a simpler kind of
+interface if one includes GridBoundaryConditions/OneRow in the
+setup. When using this style of interface, users can implement guard
+cell filling one row at a time. Flash-X passes to the implementation one
+row of cells at a time, some of which are interior cells while the
+others represent guard cells outside the boundary that are to be
+modified in the call. A row here means a contiguous set of cells along a
+line perpendicular to the boundary surface. There are two versions of
+this interface: Grid_applyBCEdge is given only one fluid
+variable at a time, but can also handle data structures other than
+unk; whereas Grid_applyBCEdgeAllUnkVars handles all
+variables of unk along a row in one call. Cell coordinate
+information is included in the call arguments. Flash-X invokes these
+functions through an implementation of
+Grid_bcApplyToRegionSpecialized in
+GridBoundaryConditions/OneRow which acts as a wrapper.
+GridBoundaryConditions/OneRow also provides a default implementation
+of Grid_applyBCEdge (which implements the simple boundary
+conditions) and Grid_applyBCEdgeAllUnkVars (which calls
+Grid_applyBCEdge) each. Another implementation of
+Grid_applyBCEdgeAllUnkVars can be found in
+GridBoundaryConditions/OneRow/Flash2HSE, this one calls
+Grid_applyBCEdge or, for Flash-X-type hydrostatic boundaries, the
+code for handling them. These can be used as templates for overriding
+implementations under Simulation. It is not recommended to try to
+mix both Grid_bcApplyToRegion*-style and Grid_applyBCEdge*-style
+overriding implementations in a simulation directory, since this could
+become confusing.</p>
+<p>Note that in all of these cases, i.e., whether boundary guard cell
+filling for a boundary type is implemented in
+Grid_bcApplyToRegion, Grid_bcApplyToRegionSpecialized,
+Grid_applyBCEdge, or Grid_applyBCEdgeAllUnkVars, the
+implementation does not fill guard cells in permanent data storage (the
+unk array and similar data structures) directly, but operates on
+buffers. Flash-X fills some parts of the buffers with current values for
+interior cells before the call, and copies updated guardcell data from
+some (other) parts of the buffers back into unk (or similar) storage
+after the handling routine returns.</p>
+<p>The boundary condition handling interfaces described so far can be
+implemented (and will be used!) independent of the Grid
+implementation chosen. At a lower level, the various implementations of
+GridMain have different ways of requesting that boundary guard cells
+be filled. The GridBoundaryConditions subunit collaborates with
+GridMain implementations to provide to user code uniform interfaces
+that are agnostic of lower-level details. However, it is also possible —
+but not recommended — for users to replace a routine that is located
+deeper in the Grid unit.</p>
+</section>
+</section>
+<section id="uniform-grid">
+<span id="sec-grid-ug"></span><h2>Uniform Grid<a class="headerlink" href="#uniform-grid" title="Permalink to this headline"></a></h2>
+<p>The Uniform Grid has the same resolution in all the blocks throughout
+the domain, and each processor has exactly one block. The uniform grid
+can operate in either of two modes: fixed block size (FIXEDBLOCKSIZE)
+mode, and non-fixed block size (NONFIXEDBLOCKSIZE) mode. The default
+fixed block size grid is statically defined at compile time and can
+therefore take advantage of compile-time optimizations. The non-fixed
+block size version uses dynamic memory allocation of grid variables.</p>
+<section id="fixedblocksize-mode">
+<h3>FIXEDBLOCKSIZE Mode<a class="headerlink" href="#fixedblocksize-mode" title="Permalink to this headline"></a></h3>
+<p><em>FIXEDBLOCKSIZE</em> mode, also called static mode, is the default for the
+uniform grid. In this mode, the block size is specified at compile time
+as NXB<span class="math notranslate nohighlight">\(\times\)</span>NYB<span class="math notranslate nohighlight">\(\times\)</span>NZB. These
+variables default to <span class="math notranslate nohighlight">\(8\)</span> if the dimension is defined and <span class="math notranslate nohighlight">\(1\)</span>
+otherwise – <em>e.g.</em> for a two-dimensional simulation, the defaults are
+NXB<span class="math notranslate nohighlight">\(=8\)</span>, NYB<span class="math notranslate nohighlight">\(=8\)</span>, NZb<span class="math notranslate nohighlight">\(=1\)</span>. To change
+the static dimensions, specify the desired values on the command line of
+the setup script; for example</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -auto -3d -nxb=12 -nyb=12 -nzb=4 +ug</p>
+</div>
+<p>The distribution of processors along the three dimensions is given at
+run time as <span class="math notranslate nohighlight">\(iprocs\times jprocs\times kprocs\)</span> with the constraint
+that this product must be equal to the number of processors that the
+simulation is using. The global domain size in terms of number of grid
+points is <span class="math notranslate nohighlight">\({\tt NXB}*iprocs \times {\tt NYB}*jprocs \times
+{\tt NZB}*kprocs\)</span>. For example, if <span class="math notranslate nohighlight">\(iprocs=jprocs=4\)</span> and
+<span class="math notranslate nohighlight">\(kprocs=1\)</span>, the execution command should specify <span class="math notranslate nohighlight">\(np=16\)</span>
+processors.</p>
+<div class="codeseg docutils container">
+<p>mpirun -np 16 flashx</p>
+</div>
+<p>When working in static mode, the simulation is constrained to run on the
+same number of processors when restarting, since any different
+configuration of processors would change the domain size.</p>
+<p>At Grid initialization time, the domain is created and the communication
+machinery is also generated. This initialization includes MPI
+communicators and datatypes for directional guardcell exchanges. If we
+view processors as arranged in a three-dimensional processor grid, then
+a row of processors along each dimension becomes a part of the same
+communicator. We also define MPI datatypes for each of these
+communicators, which describe the layout of the block on the processor
+to MPI. The communicators and datatypes, once generated, persist for the
+entire run of the application. Thus the <em>MPI_SEND/RECV</em> function with
+specific communicator and its corresponding datatype is able to carry
+out all data exchange for guardcell fill in the selected direction in a
+single step.</p>
+<p>Since all blocks exist at the same resolution in the Uniform Grid, there
+is no need for interpolation while filling the guardcells. Simple
+exchange of correct data between processors, and the application of
+boundary conditions where needed is sufficient. The guard cells along
+the face of a block are filled with the layers of the interior cells of
+the block on the neighboring processor if that face is shared with
+another block, or calculated based upon the boundary conditions if the
+face is on the physical domain boundary. Also, because there are no
+jumps in refinement in the Uniform Grid, the flux conservation step
+across processor boundaries is unnecessary. For correct functioning of
+the Uniform Grid in Flash-X, this conservation step should be explicitly
+turned off with a runtime parameter <em>flux_correct</em> which controls
+whether or not to run the flux conservation step in the PPM
+Hydrodynamics implementation. AMR sets it by default to true, while UG
+sets it to false. Users should exercise care if they wish to override
+the defaults via their flash.par file.</p>
+</section>
+<section id="nonfixedblocksize-mode">
+<span id="sec-nonfixedblocksize"></span><h3>NONFIXEDBLOCKSIZE mode<a class="headerlink" href="#nonfixedblocksize-mode" title="Permalink to this headline"></a></h3>
+<p>To run an application in “NONFIXEDBLOCKSIZE” mode the “-nofbs”
+option must be used when invoking the setup tool; For example:</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -3d -auto -nofbs</p>
+</div>
+<p>Note that NONFIXEDBLOCKSIZE mode requires the use of its own IO
+implementation, and a convenient shortcut has been provided to ensure
+that this mode is used as in the example below:</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -3d -auto +nofbs</p>
+</div>
+<p>In this mode, the blocksize in UG is determined at execution from
+runtime parameters iGridSize, jGridSize and
+kGridSize. These parameters specify the global number of grid
+points in the computational domain along each dimension. The blocksize
+then is
+<span class="math notranslate nohighlight">\((iGridSize/iprocs)\times(jGridSize/jprocs)\times(kGridSize/kprocs)\)</span>.</p>
+<p>Unlike FIXEDBLOCKSIZE mode, where memory is allocated at compile
+time, in the NONFIXEDBLOCKSIZE mode allocation is dynamic.
+The example shown below gives two possible ways to define parameters in
+flash.par for a 3d problem of global domain size <span class="math notranslate nohighlight">\(64 \times
+64 \times 64\)</span>, being run on 8 processors.</p>
+<div class="codeseg docutils container">
+<p>iprocs = 2 jprocs = 2 kprocs = 2 iGridSize = 64 jGridSize = 64
+kGridSize = 64</p>
+</div>
+<p>This specification will result in each processor getting a block of size
+<span class="math notranslate nohighlight">\(32 \times 32 \times 32\)</span>. Now consider the following specification
+for the number of processors along each dimension, keeping the global
+domain size the same.</p>
+<div class="codeseg docutils container">
+<p>iprocs = 4 jprocs = 2 kprocs = 1</p>
+</div>
+<p>In this case, each processor will now have blocks of size
+<span class="math notranslate nohighlight">\(16 \times 32 \times 64\)</span>.</p>
+</section>
+</section>
+<section id="adaptive-mesh-refinement-amr-grid">
+<span id="sec-grid-amr"></span><h2>Adaptive Mesh Refinement (AMR) Grid<a class="headerlink" href="#adaptive-mesh-refinement-amr-grid" title="Permalink to this headline"></a></h2>
+<p>Flash-X uses block-structured AMR where the fundamental data
+structure is a block of cells arranged in a logically Cartesian
+fashion. “Logically Cartesian” implies that each cell can be specified
+using a block identifier (processor number and local block number) and
+a coordinate triple <span class="math notranslate nohighlight">\((i,j,k)\)</span>, where <span class="math notranslate nohighlight">\(i=1\ldots{\tt nxb}\)</span>,
+<span class="math notranslate nohighlight">\(j=1\ldots{\tt nyb}\)</span>, and <span class="math notranslate nohighlight">\(k=1\ldots{\tt nzb}\)</span> refer to</p>
+<blockquote>
+<div><p>the <span class="math notranslate nohighlight">\(x\)</span>-, <span class="math notranslate nohighlight">\(y\)</span>-, and <span class="math notranslate nohighlight">\(z\)</span>-directions,
+respectively. It does not require a physically rectangular
+coordinate system; for example a spherical grid can be indexed
+in this same manner.</p>
+</div></blockquote>
+<p>The complete computational grid consists of a collection of blocks with
+different physical cell sizes, which are related to each other in a
+hierarchical fashion resembling an oct-tree. The tree with
+parent-child relationship is native to Paramesh, however, in
+Flash-X, AMReX also mimics the oct-tree organization. Three rules
+govern the establishment of refined child blocks in Flash-X. First, a refined child block
+must be one-half as large as its parent block in each spatial dimension.
+Second, a block’s children must be nested; <em>i.e.</em>, the child blocks must
+fit within their parent block and cannot overlap one another, and the
+complete set of children of a block must fill its volume. Thus, in
+<span class="math notranslate nohighlight">\(d\)</span> dimensions a given block has either zero or <span class="math notranslate nohighlight">\(2^d\)</span>
+children. Third, blocks which share a common border may not differ from
+each other by more than one level of refinement.</p>
+<p>A simple two-dimensional domain is shown in , illustrating the rules
+above. Each block contains
+<span class="math notranslate nohighlight">\({\tt nxb}\times{\tt nyb}\times{\tt nzb}\)</span> interior cells and a set
+of guard cells. The guard cells contain boundary information needed to
+update the interior cells. These can be obtained from physically
+neighboring blocks, externally specified boundary conditions, or both.</p>
+<div class="center docutils container">
+<p><a href="#id6"><span class="problematic" id="id7">|image1|</span></a></p>
+</div>
+<p>The number of guard cells needed depends upon the interpolation schemes
+and the differencing stencils used by the various physics units (usually
+hydrodynamics). The
+blocksize while using the adaptive grid is assumed to be known at
+compile time, though it is not strictly necessary for AMReX. When
+using Paramesh the total number of blocks a
+processor can manage is determined by <em>MAXBLOCKS</em> which can be
+overridden at setup.</p>
+<p>AMR handles the filling of guard cells with information from
+other blocks or, at the boundaries of the physical domain, from an
+external boundary routine. If a block’s neighbor exists and has
+the same level of refinement, corresponding guard cells are filled
+using a direct copy from the neighbor’s interior cells. If the
+neighbor has a different level of refinement, the data from the
+neighbor’s cells must be adjusted by either interpolation (to a finer
+level of resolution) or averaging (to a coarser level) parallel
+communications take place (blocks are never split between processors). The filling
+of guard cells is a global operation that is triggered by calling
+<em>Grid_fillGuardCells</em></p>
+<p>Grid Interpolation is also used when filling the cells of
+newly created finer blocks during refinement. AMR also enforces flux
+conservation at jumps in refinement, as described by Berger and
+Colella (1989). At jumps in refinement, the fluxes of mass, momentum,
+energy (total and internal), and species density in the fine cells
+across boundary cell faces are summed and replace the corresponding
+fluxes in the boundary cells of their neighbors at coarser level of
+resolution. The summing
+allows a geometrical weighting to be implemented for non-Cartesian
+geometries, which ensures that the proper volume-corrected flux is
+computed.</p>
+<div class="center docutils container">
+</div>
+<section id="grid-interpolation-and-averaging">
+<span id="sec-amr-data-struct"></span><h3>Grid Interpolation (and Averaging)<a class="headerlink" href="#grid-interpolation-and-averaging" title="Permalink to this headline"></a></h3>
+<p>The adaptive grid requires data <strong>interpolation</strong> or <strong>averaging</strong> when
+the refinement level (<em>i.e.</em>, mesh resolution) changes in space or in
+time.  <a href="#id8"><span class="problematic" id="id1">[3]_</span></a> If during guardcell filling a block’s neighbor has a coarser
+level of refinement, the neighbor’s cells are used to <strong>interpolate</strong>
+guard cell values to the cells of the finer block. Interpolation is also
+used when filling the blocks of children newly created in the course of
+automatic refinement. Data <strong>averaging</strong> is used to adapt data in the
+opposite direction, <em>i.e.</em>, from fine to coarse.</p>
+<p>In the AMR context, the term <strong>prolongation</strong> is used to refer to data
+interpolation (because it is used when the tree of blocks grows longer).
+Similarly, the term <strong>restriction</strong> is used to refer to fine-to-coarse
+data averaging.</p>
+<p>The algorithm used for restriction is straightforward (equal-weight)
+averaging in Cartesian coordinates, but has to take cell volume factors
+into account for curvilinear coordinates; see .</p>
+<p>Both AMReX and Paramesh support various interpolation schemes, to which
+user-specified interpolation schemes can be added. When using
+Paramesh, Flash-X currently
+allows to choose between two interpolation schemes:</p>
+<ol class="arabic simple">
+<li><p>monotonic</p></li>
+<li><p>native</p></li>
+</ol>
+<p>The choice is made at setup time.</p>
+<section id="interpolation-for-mass-specific-solution-variables">
+<span id="sec-interpmassspecific"></span><h4>Interpolation for mass-specific solution variables<a class="headerlink" href="#interpolation-for-mass-specific-solution-variables" title="Permalink to this headline"></a></h4>
+<p>To accurately preserve the total amount of conserved quantities, the
+interpolation routines have to be applied to solution data in
+<strong>conserved</strong>, <em>i.e.</em>, volume-specific, form. However, many variables
+are usually stored in the*unk array in mass-specific form, <em>e.g.</em>,
+specific internal and total energies, velocities, and mass fractions.</p>
+<p>Flash-X provides three ways to deal with this:</p>
+<ol class="arabic">
+<li><p>Do nothing—<em>i.e.</em>, assume that ignoring the difference between
+mass-specific and conserved form is a reasonable approximation.
+Depending on the smoothness of solutions in regions where refinement,
+derefinement, and jumps in refinement level occur, this assumption
+may be acceptable. This behavior can be forced by setting the
+<em>convertToConsvdInMeshInterp</em> runtime parameter to  .false.</p></li>
+<li><p>Convert mass-specific variables to conserved form <em>in all blocks
+throughout the physical domain</em> before invoking a Grid function
+that may result in some data interpolation or restriction
+(refinement, derefinement, guardcell filling); and convert back after
+these functions return. Conversion is done by cell-by-cell
+multiplication with the density (<em>i.e.</em>, the value of the “dens”
+variable, which should be declared as</p>
+<div class="codeseg docutils container">
+<p>VARIABLE dens TYPE: PER_VOLUME</p>
+</div>
+<p>This behavior is available in Paramesh and is enabled by setting
+the <em>convertToConsvdForMeshCalls</em>    runtime parameter and
+corresponds roughly to Flash-X with
+conserved_var enabled.</p>
+</li>
+<li><p>Convert mass-specific variables to conserved form only where and when
+necessary, from the Grid user’s point of view <em>as part of data
+interpolation</em>. Again, conversion is done by cell-by-cell
+multiplication with the value of density. In the actual
+implementation of this approach, the conversion and back-conversion
+operations are closely bracketing the interpolation (or restriction)
+calls. The implementation avoids spurious back-and-forth conversions
+(<em>i.e.</em>, repeated successive multiplications and divisions of data by
+the density) in blocks that should not be modified by interpolation
+or restriction.</p>
+<p>This behavior is available only for  Paramesh.</p>
+</li>
+</ol>
+</section>
+</section>
+<section id="refinement">
+<span id="sec-refinement"></span><h3>Refinement<a class="headerlink" href="#refinement" title="Permalink to this headline"></a></h3>
+<section id="refinement-criteria">
+<h4>Refinement Criteria<a class="headerlink" href="#refinement-criteria" title="Permalink to this headline"></a></h4>
+<p>The refinement criterion used by Flash-X is adapted from Löhner
+(1987). Löhner’s error estimator was originally developed for finite
+element applications and has the advantage that it uses a mostly local
+calculation. Furthermore, the estimator is dimensionless and can be
+applied with complete generality to any of the field variables of the
+simulation or any combination of them.</p>
+<div class="flashtip docutils container">
+<p>Flash-X does not define any refinement variables by default.
+Therefore simulations using AMR have to make the appropriate runtime
+parameter definitions in flash.par, or in the simulation’s
+Config file. If this is not done, the program generates a warning
+at startup, and no automatic refinement will be performed. The
+mistake of not specifying refinement variables is thus easily
+detected. To define a refinement variable, use refine_var_#
+(where # stands for a number from 1 to 4) in the flash.par
+file.</p>
+</div>
+<p>Löhner’s estimator is a modified second derivative, normalized by the
+average of the gradient over one computational cell. In one dimension on
+a uniform mesh, it is given by</p>
+<div class="math notranslate nohighlight">
+\[E_{i} = { \frac{ \mid u_{i+1} - 2u_{i} + u_{i-1} \mid}
+%          \over
+         { \mid u_{i+1} - u_{i} \mid + \mid u_{i} - u_{i-1} \mid +
+              \epsilon [ \mid u_{i+1} \mid + 2 \mid  u_{i} \mid +
+                          \mid u_{i-1} \mid ] }\ } ,
+%E_{i} = { \mid u_{i+1} - 2u_{i} + u_{i-1} \mid
+%          \over  % warning about Foreign over from amsmath
+%          \mid u_{i+1} - u_{i} \mid + \mid u_{i} - u_{i-1} \mid +
+%              \epsilon [ \mid u_{i+1} \mid + 2 \mid  u_{i} \mid +
+%                          \mid u_{i-1} \mid ] }\ ,\]</div>
+<p>where <span class="math notranslate nohighlight">\(u_i\)</span> is the refinement test variable’s value in the
+<span class="math notranslate nohighlight">\(i\)</span>th cell. The last term in the denominator of this expression
+acts as a filter, preventing refinement of small ripples, where
+<span class="math notranslate nohighlight">\(\epsilon\)</span> should be a small constant.</p>
+<p>When extending this criterion to multidimensions, all cross derivatives
+are computed, and the following generalization of the above expression
+is used</p>
+<div class="math notranslate nohighlight">
+\[E_{i_1i_2i_3} = \left\{
+            {\displaystyle
+%            \sum_{pq}\left({\partial^2 u\over\partial x_p\partial x_q}
+            \sum_{pq}\left({ \frac{\partial^2 u}{\partial x_p\partial x_q}}
+                           \Delta x_p\Delta x_q\right)^2
+            }
+            \over
+            {\displaystyle
+            \sum_{pq}\left[\left(
+                         \left|{\partial u\over\partial x_p}\right|_{i_p+1/2}
+                         + \left|{\partial u\over\partial x_p}\right|_{i_p-1/2}
+                           \right)\Delta x_p
+                           + \epsilon{\partial^2 |u|\over
+                           \partial x_p\partial x_q}
+                           \Delta x_p\Delta x_q
+                     \right]^2
+            }
+          \right\}^{1/2},\]</div>
+<p>where the sums are carried out over coordinate directions, and where,
+unless otherwise noted, partial derivatives are evaluated at the center
+of the <span class="math notranslate nohighlight">\(i_1i_2i_3\)</span>-th cell.</p>
+<p>The estimator actually used in Flash-X’s default refinement criterion
+is a modification of the above, as follows:</p>
+<div class="math notranslate nohighlight">
+\[E_{i} = { \mid u_{i+2} - 2u_{i} + u_{i-2} \mid
+          \over
+          \mid u_{i+2} - u_{i} \mid + \mid u_{i} - u_{i-2} \mid +
+              \epsilon [ \mid u_{i+2} \mid + 2 \mid  u_{i} \mid +
+                          \mid u_{i-2} \mid ] }\ ,\]</div>
+<p>where again <span class="math notranslate nohighlight">\(u_i\)</span> is the refinement test variable’s value in the
+<span class="math notranslate nohighlight">\(i\)</span>th cell. The last term in the denominator of this expression
+acts as a filter, preventing refinement of small ripples, where
+<span class="math notranslate nohighlight">\(\epsilon\)</span> is a small constant.</p>
+<p>When extending this criterion to multidimensions, all cross derivatives
+are computed, and the following generalization of the above expression
+is used</p>
+<div class="math notranslate nohighlight">
+\[E_{i_Xi_Yi_Z} = \left\{
+            {\displaystyle
+            \sum_{pq}\left({\partial^2 u\over\partial x_p\partial x_q}
+                                               \right)^2
+            }
+            \over
+            {\displaystyle
+            \sum_{pq}\left[ \frac{1}{2\,\Delta x_q}\left(
+                         \left|{\partial u\over\partial x_p}\right|_{i_q+1}
+                         + \left|{\partial u\over\partial x_p}\right|_{i_q-1}
+                           \right)
+                           + \epsilon{\bar{\left|u_{pq}\right|}\over
+                           \Delta x_p\Delta x_q}
+                     \right]^2
+            }
+          \right\}^{1/2},\]</div>
+<p>where again the sums are carried out over coordinate directions, where,
+unless otherwise noted, partial derivatives are actually
+finite-difference approximations evaluated at the center of the
+<span class="math notranslate nohighlight">\(i_Xi_Ji_K\)</span>-th cell, and <span class="math notranslate nohighlight">\(\bar{\left|u_{pq}\right|}\)</span> stands
+for an <em>average</em> of the values of <span class="math notranslate nohighlight">\(\left|u\right|\)</span> over several
+neighboring cells in the <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(q\)</span> directions.</p>
+<p>The constant <span class="math notranslate nohighlight">\(\epsilon\)</span> is by default given a value of
+<span class="math notranslate nohighlight">\(10^{-2}\)</span>, and can be overridden through the
+refine_filter_# runtime parameters. Blocks are marked for
+refinement when the value of <span class="math notranslate nohighlight">\(E_{i_Xi_Yi_Z}\)</span> for any of the
+block’s cells exceeds a threshold given by the runtime parameters
+refine_cutoff_#, where the number # matching the number of
+the refine_var_# runtime parameter selecting the refinement
+variable. Similarly, blocks are marked for derefinement when the values
+of <span class="math notranslate nohighlight">\(E_{i_Xi_Yi_Z}\)</span> for <em>all</em> of the block’s cells lie below
+another threshold given by the runtime parameters
+derefine_cutoff_#.</p>
+<p>When Particles (active or tracer) are being
+used in a simulation, their count in a block can also be used as a
+refinement criterion by setting refine_on_particle_count to
+true and setting max_particles_per_blk to the desired count.</p>
+</section>
+<section id="refinement-processing">
+<h4>Refinement Processing<a class="headerlink" href="#refinement-processing" title="Permalink to this headline"></a></h4>
+<p>Each processor decides when to refine or derefine its blocks by
+computing a user-defined error estimator for each block. Refinement
+involves creation of either zero or <span class="math notranslate nohighlight">\(2^d\)</span> refined child blocks,
+while derefinement involves deletion of all of a parent’s child blocks
+(<span class="math notranslate nohighlight">\(2^d\)</span> blocks). As child blocks are created, they are temporarily
+placed at the end of the processor’s block list. After the refinements
+and derefinements are complete, the blocks are redistributed among the
+processors using a work-weighted Morton space-filling curve in a manner
+similar to that described by Warren and Salmon (1987) for a parallel
+treecode. An example of a Morton curve is shown in .</p>
+<div class="center docutils container">
+<figure class="align-default" id="fig-f3">
+<a class="reference internal image-reference" href="_images/Grid_f3.png"><img alt="Morton space-filling curve for adaptive mesh grids." src="_images/Grid_f3.png" style="width: 3in;" /></a>
+<figcaption>
+<p><span class="caption-text">Morton space-filling curve for adaptive mesh grids.</span><a class="headerlink" href="#fig-f3" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<p>During the distribution step, each block is assigned a weight which
+estimates the relative amount of time required to update the block. The
+Morton number of the block is then computed by interleaving the bits of
+its integer coordinates, as described by Warren and Salmon (1987). This
+reordering determines its location along the space-filling curve.
+Finally, the list of all blocks is partitioned among the processors
+using the block weights, equalizing the estimated workload of each
+processor. By default, all leaf-blocks are weighted twice as heavily as
+all other blocks in the simulation.</p>
+</section>
+<section id="specialized-refinement-routines">
+<span id="sec-markreflib"></span><h4>Specialized Refinement Routines<a class="headerlink" href="#specialized-refinement-routines" title="Permalink to this headline"></a></h4>
+<p>Sometimes, it may be desirable to refine a particular region of the grid
+independent of the second derivative of the variables. This criterion
+might be, for example, to better resolve the flow at the boundaries of
+the domain, to refine a region where there is vigorous nuclear burning,
+or to better resolve some smooth initial condition. For curvilinear
+coordinates, regions around the coordinate origin or the polar
+<span class="math notranslate nohighlight">\(z\)</span>-axis may require special consideration for refinement. A
+collection of methods that can refine a (logically) rectangular region
+or a circular region in Cartesian coordinates, or can automatically
+refine by using some variable threshold, are available through the
+<em>Grid_markRefineSpecialized</em>. It is intended to be called from
+the <em>Grid_markRefineDerefine</em> routine. The interface works by
+allowing the calling routine to pick one of the routines in the suite
+through an integer argument. The calling routine is also expected to
+populate the data structure <em>specs</em> before making the call. A copy of
+the file  Grid_markRefineDerefine.F90 should be placed in the
+<em>Simulation</em> directory.</p>
+</section>
+</section>
+</section>
+<section id="gridmain-usage">
+<span id="sec-usage"></span><h2>GridMain Usage<a class="headerlink" href="#gridmain-usage" title="Permalink to this headline"></a></h2>
+<p>The <em>Grid</em>  unit has the largest API of all units, since it is the
+custodian of the bulk of the simulation data, and is responsible for
+most of the code housekeeping.
+The <a href="#id2"><span class="problematic" id="id3">*</span></a>Grid_init routine, like all
+other Unit_init routines, collects the runtime parameters needed by
+the unit and stores values in the data module. If using UG, the
+Grid_init also creates the computational domain and the
+housekeeping data structures and initializes them. If using AMR, the
+computational domain is created by the Grid_initDomain routine,
+which also makes a call to mesh package’s own initialization routine.
+The physical variables are all owned by the Grid unit, and it
+initializes them by calling the Simulation/Simulation_initBlock
+routine which applies the specified initial conditions to the domain. If
+using an adaptive grid, the initialization routine also goes through a
+few refinement iterations to bring the grid to desired initial
+resolution, and then applies the physics/Eos/Eos function to bring
+all simulation variables to thermodynamic equilibrium. Even though the
+mesh-based variables are under Grid’s control, all the physics
+units can operate on and modify them.</p>
+<p>In Flash-X the Grid unit implements
+iterators that hand blocks or tiles to the physics solvers along with
+all the meta information that the physics solvers may need. The  unit also
+provides a collection of routines that invoke some housekeeping functions
+of the grid without explicitly fetching any data. A good example of such
+routines is Grid_fillGuardCells. Here no data transaction takes
+place between Grid and the calling unit. The calling unit simply
+instructs the Grid unit that it is ready for the guard cells to be
+updated, and doesn’t concern itself with the details. The
+Grid_fillGuardCells routine makes sure that all the blocks get
+the right data in their guardcells from their neighbors, whether they
+are at the same, lower or higher resolution, and if instructed by the
+calling routine, also ensures that EOS is applied to them.</p>
+<p>Another routine that may change the global state of the grid is
+Grid_updateRefinement. This function is called when the client
+unit wishes to update the grid’s resolution. again, the calling unit
+does not need to know any of the details of the refinement process.</p>
+<div class="flashtip docutils container">
+<p>As mentioned in , Flash-X allows every unit to identify scalar
+variables for checkpointing. In the Grid unit, the function that
+takes care of consolidating user specified checkpoint variable is
+Grid_sendOutputData. Users can select their own variables to
+checkpoint by including an implementation of this function specific
+to their requirements in their Simulation setup directory.</p>
+</div>
+</section>
+<section id="gridparticles">
+<span id="sec-gridparticles"></span><h2>GridParticles<a class="headerlink" href="#gridparticles" title="Permalink to this headline"></a></h2>
+<p>Flash-X is primarily an Eulerian code, however, there is support for
+tracing the flow using Lagrangian particles. In Flash-X we have
+generalized the interfaces in the Lagrangian framework of the Grid unit
+in such a way that it can also be used for miscellaneous non-Eulerian
+data such as tracing the path of a ray through the domain, or tracking
+the motion of solid bodies immersed in the fluid. Flash-X can also uses
+active particles with mass (though that features is not in the code yet), Each particle has an associated data
+structure, which contains fields such as its physical position and
+velocity, and relevant physical attributes such as mass or field values
+in active particles. Depending upon the time advance method, there may
+be other fields to store intermediate values. Also, depending upon the
+requirements of the simulation, other physical variables such as
+temperature <em>etc.</em>  may be added to the data structure. The
+GridParticles subunit of the Grid unit has two sub-subunits of
+its own. The GridParticlesMove sub-subunit moves the data structures
+associated with individual particles when the particles move between
+blocks; the actual movement of the particles through time advancement is
+the responsibility of the Particles unit. Particles move from one
+block to another when their time advance places them outside their
+current block. In AMR, the particles can also change their block through
+the process of refinement and derefinement. The GridParticlesMap
+sub-subunit provides mapping between particles data and the mesh
+variables. The mesh variables are either cell-centered or face-centered,
+whereas a particle’s position could be anywhere in the cell. The
+GridParticlesMap sub-subunit calculates the particle’s properties at
+its position from the corresponding mesh variable values in the
+appropriate cell . When using active particles, this sub-subunit also
+maps the mass of the particles onto the specified mesh variable in
+appropriate cells. The next sections describe the algorithms for moving
+and mapping particles data.</p>
+<section id="gridparticlesmove">
+<span id="sec-gridparticlesmove"></span><h3>GridParticlesMove<a class="headerlink" href="#gridparticlesmove" title="Permalink to this headline"></a></h3>
+<p>Particles move between blocks under two circumstances. One is when
+time integration moves their physical location out of the current
+block, which is application to both UG and AMR, and the second is
+during refinement of the grid in AMR.</p>
+<section id="directional-move">
+<span id="sec-ug-algorithm"></span><h4>Directional Move<a class="headerlink" href="#directional-move" title="Permalink to this headline"></a></h4>
+<p>The Directional Move algorithm for moving particles in a Uniform Grid
+minimizes the number of communication steps instead of minimizing the
+volume of data moved. Its implementation has the following steps:</p>
+<ol class="arabic simple">
+<li><p>Scan particle positions. Place all particles with their <span class="math notranslate nohighlight">\(x\)</span>
+coordinate value greater than the block bounding box in the Rightmove
+bin, and place those with <span class="math notranslate nohighlight">\(x\)</span> coordinate less than block
+bounding box in Leftmove bin.</p></li>
+<li><p>Exchange contents of Rightbin with the right block neighbor’s Leftbin
+contents, and those of the Leftbin with left neightbor’s Rightbin
+contents.</p></li>
+<li><p>Merge newly arrived particles from step 2 with those which did not
+move outside their original block.</p></li>
+<li><p>Repeat steps 1-3 for the y direction.</p></li>
+<li><p>Repeat step 1-2 for the z direaction.</p></li>
+</ol>
+<p>At the end of these steps, all particles will have reached their
+destination blocks, including those that move to a neighbor on the
+corner. illustrates the steps in getting a particle to its correct
+destination.</p>
+<div class="center docutils container">
+<figure class="align-default" id="fig-ugmoveparticle">
+<a class="reference internal image-reference" href="_images/Grid_ugMoveParticle.png"><img alt="Moving one particle to a neighbor on the corner." src="_images/Grid_ugMoveParticle.png" style="width: 3in;" /></a>
+<figcaption>
+<p><span class="caption-text">Moving one particle to a neighbor on the corner.</span><a class="headerlink" href="#fig-ugmoveparticle" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="amr-algorithm">
+<span id="sec-amr-algorithm"></span><h4>AMR Algorithm<a class="headerlink" href="#amr-algorithm" title="Permalink to this headline"></a></h4>
+<p>When using AMReX one can opt to use its native particles support, in
+which case the handling of particles is largely transparent to
+Flash-X. Alternatively, one can use a point-to-point algorithm which
+exploits the bitmap of the mesh maintained by the Bittree that is
+available on every processor. Thus it is possible to determine the
+processor and block number of the
+destination block for each particle. The PointToPoint implementation
+finds out the destinations for every particles that is getting displaced
+from its block. Particles going to local destination blocks are moved
+first. The remaining particles are sorted based on their destination
+processor number, followed by a couple of global operations that allow
+every processor to determine the number of particles it is expected to
+receive from all of the other processors. A processor then posts
+asynchronous receives for every source processor that had at least one
+particle to send to it. In the next step, the processor cycles through
+the sorted list of particles and sends them to the appropriate
+destinations using synchronous mode of communition.</p>
+</section>
+</section>
+</section>
+<section id="gridsolvers">
+<span id="sec-solvers"></span><h2>GridSolvers<a class="headerlink" href="#gridsolvers" title="Permalink to this headline"></a></h2>
+<p>The GridSolvers unit groups together subunits that are used to solve
+particular types of differential equations.
+.. <span class="target" id="sec-gridsolverspoisson">Sec:GridSolversPoisson</span>:</p>
+<section id="poisson-equation">
+<h3>Poisson equation<a class="headerlink" href="#poisson-equation" title="Permalink to this headline"></a></h3>
+<p>The GridSolvers subunit contains several different algorithms for
+solving the general Poisson equation for a potential <span class="math notranslate nohighlight">\(\phi({\bf
+x})\)</span> given a source <span class="math notranslate nohighlight">\(\rho({\bf x})\)</span></p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:general Poisson}
+\nabla^2\phi({\bf x}) = \alpha\rho({\bf x})\ .\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\alpha\)</span> is a constant that depends upon the application. For
+example, when the gravitational Poisson equation is being solved,
+<span class="math notranslate nohighlight">\(\rho({\bf x})\)</span> is the mass density, <span class="math notranslate nohighlight">\(\phi({\bf x})\)</span> is the
+gravitational potential, and <span class="math notranslate nohighlight">\(\alpha = 4\pi G\)</span>, where <span class="math notranslate nohighlight">\(G\)</span> is
+Newton’s gravitational constant.</p>
+<section id="multipole-poisson-solver">
+<span id="sec-gridsolversmultipoleimproved"></span><h4>Multipole Poisson solver<a class="headerlink" href="#multipole-poisson-solver" title="Permalink to this headline"></a></h4>
+<p>The multipole Poisson solver is based on a multipolar expansion of the
+source (mass for gravity, for example) distribution around a
+conveniently chosen center of expansion. The angular number <span class="math notranslate nohighlight">\(L\)</span>
+entering this expansion is a measure of how detailed the description of
+the source distribution will be on an angular basis. Higher <span class="math notranslate nohighlight">\(L\)</span>
+values mean higher angular resolution with respect to the center of
+expansion. The multipole Poisson solver is thus appropriate for
+spherical or nearly-spherical source distributions with isolated
+boundary conditions. For problems which require high spatial resolution
+throughout the entire domain (like, for example, galaxy collision
+simulations), the multipole Poisson solver is less suited, unless one is
+willing to go to extremely (computationally unfeasible) high <span class="math notranslate nohighlight">\(L\)</span>
+values. For stellar evolution, however, the multipole Poisson solver is
+the method of choice.</p>
+<p>The multipole Poisson solver is located in the directory</p>
+<div class="codeseg docutils container">
+<p>source/Grid/GridSolvers/Multipole_new.</p>
+</div>
+<p>Details about the theory of this implementation of the Poisson solver can be found in Couch et
+al. (2013).</p>
+<p>The multipole Poisson solver is appropriate for spherical or
+nearly-spherical source distributions with isolated boundary conditions.
+It currently works in 1D spherical, 2D spherical, 2D cylindrical, 3D
+Cartesian and 3D cylindrical. Symmetries can be specified for the 2D
+spherical and 2D cylindrical cases (a horizontal symmetry plane along
+the radial axis) and the 3D Cartesian case (assumed axisymmetric
+property). Because of the radial symmetry in the 1D spherical case, only
+the monopole term (<span class="math notranslate nohighlight">\(\ell = 0\)</span>) contributes, while for the 3D
+Cartesian axisymmetric, the 2D cylindrical and 2D spherical cases only
+the <span class="math notranslate nohighlight">\(m = 0\)</span> moments need to be used (the other <span class="math notranslate nohighlight">\(m\neq 0\)</span>
+moments effectively cancel out).</p>
+<p>The multipole algorithm consists of the following steps. First, the
+center of the multipolar expansion <span class="math notranslate nohighlight">\({\bf x}_{\rm cen}\)</span> is
+determined via density-squared weighted integration over position:</p>
+<div class="math notranslate nohighlight">
+\[{\bf x}_{\rm cen} = {\int {\bf x}\rho^2({\bf x})\,d{\bf x} \over
+                    \int \rho^2({\bf x})\,d{\bf x}}.\]</div>
+<p>We will take <span class="math notranslate nohighlight">\({\bf x}_{\rm cen}\)</span> as our origin. In integral form,
+Poisson’s equation (<a class="reference external" href="#Eqn:generalPoisson">[Eqn:general Poisson]</a>)
+becomes</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:PoissonIntegral}
+\phi({\bf x}) = -{\alpha\over 4\pi}\int {\rho({\bf x}')\over
+                |{\bf x} - {\bf x}'|}\,d{\bf x}'.\]</div>
+<p>The inverse radial distance part can be expanded in terms of Legendre
+polynomials</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Inverse distance Legendre}
+{1\over |{\bf x} - {\bf x}'|} = \sum_{\ell=0}^\infty
+{x_&lt;^\ell\over x_&gt;^{\ell+1}}P_\ell (\cos\gamma),\]</div>
+<p>where <span class="math notranslate nohighlight">\(x_&lt;\)</span> (<span class="math notranslate nohighlight">\(x_&gt;\)</span>) indicate the smaller (larger) of the
+magnitudes and <span class="math notranslate nohighlight">\(\gamma\)</span> denotes the angle between <span class="math notranslate nohighlight">\({\bf x}\)</span>
+and <span class="math notranslate nohighlight">\({\bf x}'\)</span>. Note, that this definition includes those cases
+where both magnitudes are equal. The expansion is always convergent if
+<span class="math notranslate nohighlight">\(\cos\gamma &lt;1\)</span>. Expansion of the Legendre polynomials in terms of
+spherical harmonics gives</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Legendre spherical harmonics}
+P_\ell (\cos\gamma) = {4\pi\over 2\ell+1}\sum_{m=-\ell}^{+\ell}
+Y_{\ell m}^*(\theta',\phi') Y_{\ell m}(\theta,\phi),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\theta,\phi\)</span> and <span class="math notranslate nohighlight">\(\theta',\phi'\)</span> are the spherical
+angular components of <span class="math notranslate nohighlight">\({\bf x}\)</span> and <span class="math notranslate nohighlight">\({\bf x}'\)</span> about
+<span class="math notranslate nohighlight">\({\bf x}_{\rm cen}\)</span>. Defining now the regular <span class="math notranslate nohighlight">\(R_{\ell m}\)</span>
+and irregular <span class="math notranslate nohighlight">\(I_{\ell m}\)</span> solid harmonic functions</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+R_{\ell m}(x_&lt;) &amp; = &amp; \sqrt{{4\pi\over {2\ell+1}}}x_&lt;^\ell Y_{\ell m}(\theta,\phi) \\
+I_{\ell m}(x_&gt;) &amp; = &amp; \sqrt{{4\pi\over {2\ell+1}}}{Y_{\ell m}(\theta,\phi)\over x_&gt;^{\ell+1}},\end{aligned}\end{split}\]</div>
+<p>we can rewrite Eq.(<a class="reference external" href="#Eqn:PoissonIntegral">[Eqn:PoissonIntegral]</a>) in
+the form</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Poisson solid harmonics}
+\phi({\bf x}) = -{\alpha\over 4\pi}
+\int \sum_{\ell m}R_{\ell m}(x_&lt;)I_{\ell m}^*(x_&gt;)\rho({\bf x}')\,d{\bf x}',\]</div>
+<p>where the summation sign is a shorthand notation for the double sum over
+all the allowed <span class="math notranslate nohighlight">\(\ell\)</span> and <span class="math notranslate nohighlight">\(m\)</span> values. In Flash-X both the
+source and the potential are assumed to be cell-averaged quantities
+discretized on a block-structured mesh with varying cell size. The
+integration must hence be replaced by a summation over all leaf cells</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Poisson discrete incorrect}
+\phi(q) = -{\alpha\over 4\pi}
+\sum_{q'} \sum_{\ell m}R_{\ell m}(q_&lt;)I_{\ell m}^*(q_&gt;)m(q'),\]</div>
+<p>where <span class="math notranslate nohighlight">\(m\)</span> denotes the cell’s mass. Note, that the symbol <span class="math notranslate nohighlight">\(q\)</span>
+stands for cell index as well as its defining distance position from the
+expansion center in the computational domain. This discrete Poisson
+equation is incorrect. It contains the divergent <span class="math notranslate nohighlight">\(q'=q\)</span> term on
+the rhs. The <span class="math notranslate nohighlight">\(q'=q\)</span> contribution to the potential corresponds to
+the cell self potential <span class="math notranslate nohighlight">\(\phi_{Self}(q)\)</span> and is divergent in our
+case because all the cell’s mass is assumed to be concentrated at the
+cell’s center. The value of this divergent term can easily be calculated
+from
+Eq.(<a class="reference external" href="#Eqn:InversedistanceLegendre">[Eqn:Inverse distance Legendre]</a>)
+by setting <span class="math notranslate nohighlight">\(\cos\gamma = 1\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\phi_{Self}(q) &amp; = &amp;  m(q){L+1\over x_q},\end{aligned}\]</div>
+<p>where <span class="math notranslate nohighlight">\(m\)</span> is the cell’s mass, <span class="math notranslate nohighlight">\(L\)</span> the highest angular number
+considered in the expansion and <span class="math notranslate nohighlight">\(x_q\)</span> the radial distance of the
+cell center from the expansion center. To avoid this divergence problem,
+we evaluate the potentials on each face of the cell and form the average
+of all cell face potentials to get the cell center potential.
+Eq.(<a class="reference external" href="#Eqn:Poissondiscreteincorrect">[Eqn:Poisson discrete incorrect]</a>)
+will thus be replaced by</p>
+<div class="math notranslate nohighlight">
+\[\phi(q) = {1\over n_F} \sum_{F} \phi({\bf x}_F)\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Poisson discrete correct}
+\phi({\bf x}_F) = -{\alpha\over 4\pi}
+\sum_{q'} \sum_{\ell m}R_{\ell m}([q',x_F]_&lt;)I_{\ell m}^*([q',x_F]_&gt;)m(q'),\]</div>
+<p>where <span class="math notranslate nohighlight">\({\bf x}_F\)</span> is the cell face radial distance from the
+expansion center and <span class="math notranslate nohighlight">\([q',x_F]_&lt;\)</span> denotes the larger of the
+magnitudes between the cell center radial distance <span class="math notranslate nohighlight">\(q'\)</span> and the
+cell face radial distance <span class="math notranslate nohighlight">\(x_F\)</span>. Splitting the summation over
+cells in two parts</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Poisson discrete correct 1}
+\phi({\bf x}_F) = -{\alpha\over 4\pi}\left\{
+\sum_{q'\leq x_F} \sum_{\ell m}\left[R_{\ell m}(q')m(q')\right]I_{\ell m}^*({\bf x}_F)
++ \sum_{q'&gt;x_F} \sum_{\ell m}R_{\ell m}({\bf x}_F)\left[I_{\ell m}^*(q')m(q')\right]\right\},\]</div>
+<p>and defining the two moments</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+M^R_{\ell m}({\bf x}_F) &amp; = &amp; \sum_{q'\leq x_F} R_{\ell m}(q')m(q') \label{Eqn:Moment definition 1} \\
+M^I_{\ell m}({\bf x}_F) &amp; = &amp; \sum_{q'&gt;x_F} I_{\ell m}(q')m(q'),\label{Eqn:Moment definition 2}\end{aligned}\end{split}\]</div>
+<p>we obtain</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Poisson discrete correct 2}
+\phi({\bf x}_F) = -{\alpha\over 4\pi}\left[
+\sum_{\ell m}M^R_{\ell m}({\bf x}_F)I_{\ell m}^*({\bf x}_F)
++ \sum_{\ell m}M^{I*}_{\ell m}({\bf x}_F)R_{\ell m}({\bf x}_F)\right]\]</div>
+<p>and using vector notation</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Poisson discrete correct 3}
+\phi({\bf x}_F) = -{\alpha\over 4\pi}\left[
+{\bf M}^R({\bf x}_F)\cdot {\bf I}^*({\bf x}_F) + {\bf M}^{I*}({\bf x}_F)\cdot {\bf R}({\bf x}_F)
+\right].\]</div>
+<p>We now change from complex to real formulation. We state this for the
+regular solid harmonic functions, the same reasoning being applied to
+the irregular solid harmonic functions and all their derived moments.
+The regular solid harmonic functions can be split into a real and
+imaginary part</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Solid harmonics real}
+R_{\ell m} = R_{\ell m}^c + i\,R_{\ell m}^s.\]</div>
+<p>The labels ’c’ and ’s’ are shorthand notations for ’cosine’ and ’sine’,
+reflecting the nature of the azimuthal function of the corresponding
+real spherical harmonics. When inserting
+(<a class="reference external" href="#Eqn:Solidharmonicsreal">[Eqn:Solid harmonics real]</a>) into
+(<a class="reference external" href="#Eqn:Poissondiscretecorrect3">[Eqn:Poisson discrete correct 3]</a>)
+all cosine and sine mixed terms of the scalar products cancel out. Also,
+due to the symmetry relations</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+R_{\ell,-m}^c &amp; = &amp; (-1)^m R_{\ell m}^c \\
+R_{\ell,-m}^s &amp; = &amp; -(-1)^m R_{\ell m}^s\end{aligned}\end{split}\]</div>
+<p>we can restrict ourselves to the following polar angle number ranges</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+c &amp; : &amp; \ell\geq 0\;\;,\;\;\ell\geq m \geq 0 \\
+s &amp; : &amp; \ell\geq 1\;\;,\;\;\ell\geq m \geq 1.\end{aligned}\end{split}\]</div>
+<p>The real formulation of
+(<a class="reference external" href="#Eqn:Poissondiscretecorrect3">[Eqn:Poisson discrete correct 3]</a>)
+becomes then</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\label{Eqn:Poisson discrete correct real}
+\phi({\bf x}_F) = -{\alpha\over 4\pi}\left\{
+\left[\begin{array}{l}
+{\bf M}^{Rc}({\bf x}_F) \\
+{\bf M}^{Rs}({\bf x}_F)
+\end{array}\right]
+\cdot {\bf \Delta}
+\left[\begin{array}{l}
+{\bf I}^c({\bf x}_F) \\
+{\bf I}^s({\bf x}_F)
+\end{array}\right]
++
+\left[\begin{array}{l}
+{\bf M}^{Ic}({\bf x}_F) \\
+{\bf M}^{Is}({\bf x}_F)
+\end{array}\right]
+\cdot {\bf \Delta}
+\left[\begin{array}{l}
+{\bf R}^c({\bf x}_F) \\
+{\bf R}^s({\bf x}_F)
+\end{array}\right]\right\},\end{split}\]</div>
+<p>which, when compared to
+(<a class="reference external" href="#Eqn:Poissondiscretecorrect3">[Eqn:Poisson discrete correct 3]</a>),
+shows, that all vectors now contain a cosine and a sine section. The
+<span class="math notranslate nohighlight">\({\bf \Delta}\)</span> matrix is a diagonal matrix whose elements are
+equal to 2 for <span class="math notranslate nohighlight">\(m\neq 0\)</span> and 1 otherwise, i.e.:</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:Delta matrix}
+{\bf \Delta} = diag(2-\delta_{m0}).\]</div>
+<p>The recursion relations for calculating the solid harmonic vectors are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+R_{00}^c &amp; = &amp; 1 \label{Eqn:Regular Recurrence} \\
+R_{\ell\ell}^c &amp; = &amp; - {xR_{\ell-1,\ell-1}^c-yR_{\ell-1,\ell-1}^s\over 2\ell}\\
+R_{\ell\ell}^s &amp; = &amp; - {yR_{\ell-1,\ell-1}^c+xR_{\ell-1,\ell-1}^s\over 2\ell}\\
+R_{\ell m}^{c/s} &amp; = &amp; {(2\ell - 1)zR_{\ell-1,m}^{c/s}-r^2R_{\ell-2,m}^{c/s}
+                       \over (\ell + m)(\ell - m)},\;\;\;0\leq m &lt;\ell\end{aligned}\end{split}\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+I_{00}^c &amp; = &amp; {1\over r} \\
+I_{\ell\ell}^c &amp; = &amp; - (2\ell-1){xI_{\ell-1,\ell-1}^c-yI_{\ell-1,\ell-1}^s\over r^2} \\
+I_{\ell\ell}^s &amp; = &amp; - (2\ell-1){yI_{\ell-1,\ell-1}^c+xI_{\ell-1,\ell-1}^s\over r^2} \\
+I_{\ell m}^{c/s} &amp; = &amp; {(2\ell - 1)zI_{\ell-1,m}^{c/s}-\left[(\ell-1)^2-m^2\right]
+                       I_{\ell-2,m}^{c/s}\over r^2},\;\;\;0\leq m &lt;\ell
+\label{Eqn:Irregular Recurrence}\end{aligned}\end{split}\]</div>
+<p>in which <span class="math notranslate nohighlight">\(x,y,z\)</span> are the cartesian location coordinates of the
+cell face and <span class="math notranslate nohighlight">\(r^2=x^2+y^2+z^2\)</span>. For geometries depending on polar
+angles one must first calculate the corresponding cartesian coordinates
+for each cell before applying the recursions. In Flash-X, the order of
+the two cosine and sine components for each solid harmonic vector is
+such that <span class="math notranslate nohighlight">\(\ell\)</span> precedes <span class="math notranslate nohighlight">\(m\)</span>. This allows buildup of the
+vectors with maximum number of unit strides. The same applies of course
+for the assembly of the moments. For 2D cylindrical and 2D spherical
+geometries only the <span class="math notranslate nohighlight">\(m=0\)</span> parts of both recursions are needed,
+involving only the cartesian <span class="math notranslate nohighlight">\(z\)</span> coordinate and <span class="math notranslate nohighlight">\(r^2\)</span>.
+Symmetry along the radial axes of these 2D geometries inflicts only the
+sign change <span class="math notranslate nohighlight">\(z\rightarrow -z\)</span>, resulting in the symmetry relations
+<span class="math notranslate nohighlight">\(R_{\ell 0}^c\rightarrow R_{\ell 0}^c\)</span> for even <span class="math notranslate nohighlight">\(\ell\)</span> and
+<span class="math notranslate nohighlight">\(R_{\ell 0}^c\rightarrow -R_{\ell 0}^c\)</span> for odd <span class="math notranslate nohighlight">\(\ell\)</span>, the
+same holding for the irregular solid harmonic vector components. Thus
+symmetry in 2D can effectively be treated by halving the domain size and
+multiplying each even <span class="math notranslate nohighlight">\(\ell\)</span> moments by a factor of 2 while
+setting the odd <span class="math notranslate nohighlight">\(\ell\)</span> moments equal to 0. For 3D cartesian
+geometries introduction of symmetry is far more complicated since all
+<span class="math notranslate nohighlight">\(m\)</span> components need to be taken into account. It is not sufficient
+to simply reduce the domain to the appropriate size and multiply the
+moments by some factor, but rather one would have to specify the exact
+symmetry operations intended (generators of the symmetry group
+<span class="math notranslate nohighlight">\(O_h\)</span> or one of its subgroups) in terms of their effects on the
+<span class="math notranslate nohighlight">\(x,y,z\)</span> cartesian basis. The resulting complications in
+calculating symmetry adapted moments outweighs the computational gain
+that can be obtained from it. Options for 3D symmetry are thus no longer
+available in the improved Flash-X multipole solver. The ’octant’
+symmetry option from the old multipole solver, using only the monopole
+<span class="math notranslate nohighlight">\(\ell=0\)</span> term, was too restrictive in its applicability (exact
+only for up to angular momenta <span class="math notranslate nohighlight">\(\ell =3\)</span> due to cancellation of
+the solid harmonic vector components).</p>
+<p>From the above recursion relations
+(<a class="reference external" href="#Eqn:RegularRecurrence">[Eqn:Regular Recurrence]</a>-<a class="reference external" href="#Eqn:IrregularRecurrence">[Eqn:Irregular Recurrence]</a>),
+the solid harmonic vector components are functions of <span class="math notranslate nohighlight">\(x^iy^jz^k\)</span>
+monomials, where <span class="math notranslate nohighlight">\(i+j+k=\ell\)</span> for the <span class="math notranslate nohighlight">\({\bf R}\)</span> and
+(formally) <span class="math notranslate nohighlight">\(i+j+k=-(\ell+1)\)</span> for the <span class="math notranslate nohighlight">\({\bf I}\)</span>. For large
+astrophysical coordinates and large <span class="math notranslate nohighlight">\(\ell\)</span> values this leads to
+potential computational over- and underflow. To get independent of the
+size of both the coordinates and <span class="math notranslate nohighlight">\(\ell\)</span> we introduce a damping
+factor <span class="math notranslate nohighlight">\(Dx,Dy,Dz\)</span> for the coordinates for each solid harmonic type
+before entering the recursions. <span class="math notranslate nohighlight">\(D\)</span> will be chosen such that for
+the highest specified <span class="math notranslate nohighlight">\(\ell=L\)</span> we will have approximately a value
+close to 1 for both solid harmonic components:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+R^{c/s}_{Lm} &amp; \approx &amp; 1 \label{Eqn:Damping condition 1} \\
+I^{c/s}_{Lm} &amp; \approx &amp; 1.\label{Eqn:Damping condition 2}\end{aligned}\end{split}\]</div>
+<p>This ensures proper handling of size at the solid harmonic function
+evaluation level and one does not have to rely on size cancellations at
+a later stage when evaluating the potential via
+Eq.(<a class="reference external" href="#Eqn:Poissondiscretecorrectreal">[Eqn:Poisson discrete correct real]</a>).
+We next state the evaluation of the damping factor <span class="math notranslate nohighlight">\(D\)</span>. Due to the
+complicated nature of the recursions, the first step is to find solid
+harmonic components which have a simple structure. To do this, consider
+a cell face with <span class="math notranslate nohighlight">\(x,y=0\)</span> and <span class="math notranslate nohighlight">\(z\neq 0\)</span>. Then
+<span class="math notranslate nohighlight">\(r^2=z^2\)</span>, <span class="math notranslate nohighlight">\(|z|=r\)</span> and only the <span class="math notranslate nohighlight">\(m=0\)</span> components are
+different from zero. An explicit form can be stated for the absolute
+values of these components in terms of <span class="math notranslate nohighlight">\(r\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\label{Eqn:Regular solid harmonic xy0}
+|R_{\ell 0}| &amp; = &amp; {r^\ell\over \ell!} \\
+|I_{\ell 0}| &amp; = &amp; {\ell!\over r^{\ell+1}}. \label{Eqn:Irregular solid harmonic xy0}\end{aligned}\end{split}\]</div>
+<p>Since <span class="math notranslate nohighlight">\(r=\sqrt{x^2+y^2+z^2}\)</span>, damping of the coordinates with
+<span class="math notranslate nohighlight">\(D\)</span> results in a damped radial cell face distance <span class="math notranslate nohighlight">\(Dr\)</span>.
+Inserting this result into
+(<a class="reference external" href="#Eqn:Regularsolidharmonicxy0">[Eqn:Regular solid harmonic xy0]</a>)
+and
+(<a class="reference external" href="#Eqn:Irregularsolidharmonicxy0">[Eqn:Irregular solid harmonic xy0]</a>)
+and imposing conditions
+(<a class="reference external" href="#Eqn:Dampingcondition1">[Eqn:Damping condition 1]</a>) and
+(<a class="reference external" href="#Eqn:Dampingcondition2">[Eqn:Damping condition 2]</a>) results in</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\label{Eqn:Damping components}
+D_R = {1\over r}\sqrt[L]{L!} &amp; \approx &amp; {1\over r}{L\over e}\sqrt[2L]{2\pi L}\\
+D_I = {1\over r}\sqrt[L+1]{L!} &amp; \approx &amp; {1\over r}{L\over e}\sqrt[2L+2]{{2\pi e^2\over L}},\end{aligned}\end{split}\]</div>
+<p>where the approximate forms are obtained by using Stirling’s factorial
+approximation formula for large <span class="math notranslate nohighlight">\(L\)</span>. In Flash-X only the
+approximate forms are computed for <span class="math notranslate nohighlight">\(D_R\)</span> and <span class="math notranslate nohighlight">\(D_I\)</span> to avoid
+having to deal with factorials of large numbers.</p>
+<p>From the moment defining equations
+(<a class="reference external" href="#Eqn:Momentdefinition1">[Eqn:Moment definition 1]</a>) and
+(<a class="reference external" href="#Eqn:Momentdefinition2">[Eqn:Moment definition 2]</a>) we see, that
+the moments are sums over subsets of cell center solid harmonic vectors
+multiplied by the corresponding cell mass. From
+Eq.(<a class="reference external" href="#Eqn:Poissondiscretecorrectreal">[Eqn:Poisson discrete correct real]</a>)
+it follows that for highest accuracy, the moments should be calculated
+and stored for each possible cell face. For high refinement levels
+and/or 3D simulations this would result in an unmanageable request for
+computer memory. Several cell face positions have to be bundled into
+radial bins <span class="math notranslate nohighlight">\(Q\)</span> defined by lower and upper radial bounds. Once a
+cell center solid harmonic vector pair <span class="math notranslate nohighlight">\({\bf R}(q)\)</span> and
+<span class="math notranslate nohighlight">\({\bf I}(q)\)</span> for a particular cell has been calculated, its radial
+bin location <span class="math notranslate nohighlight">\(q\rightarrow Q\)</span> is determined and its contribution
+is added to the radial bin moments <span class="math notranslate nohighlight">\({\bf M}^R(Q)\)</span> and
+<span class="math notranslate nohighlight">\({\bf M}^I(Q)\)</span>. The computational definition of the radial bin
+moments is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\label{Eqn:Moment computational definition}
+{\bf M}^R(Q) &amp; = &amp; \sum_{q\leq Q}{\bf R}(q)m(q) \\
+{\bf M}^I(Q) &amp; = &amp; \sum_{q\geq Q}{\bf I}(q)m(q),\end{aligned}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(q\leq Q\)</span> means including all cells belonging to <span class="math notranslate nohighlight">\(Q\)</span>
+and all radial bins with lower radial boundaries than <span class="math notranslate nohighlight">\(Q\)</span>. The two
+basic operations of the multipole solver are thus: i) assembly of the
+radial bin moments and ii) formation of the scalar products via
+Eq.(<a class="reference external" href="#Eqn:Poissondiscretecorrectreal">[Eqn:Poisson discrete correct real]</a>)
+to obtain the potentials. The memory declaration of the moment array
+should reflect the way the individual moment components are addressed
+and the most efficient layout puts the angular momentum indices in rows
+and the radial bin indices in columns.</p>
+<p>How do we extract moments <span class="math notranslate nohighlight">\({\bf M}^R({\bf x})\)</span> and
+<span class="math notranslate nohighlight">\({\bf M}^I({\bf x})\)</span> at any particular position <span class="math notranslate nohighlight">\({\bf x}\)</span>
+inside the domain (and, in particular, at the cell face positions
+<span class="math notranslate nohighlight">\({\bf x}_F\)</span>), which are ultimately needed for the potential
+evaluation at that location? Assume that the location <span class="math notranslate nohighlight">\({\bf x}\)</span>
+corresponds to a particular radial bin <span class="math notranslate nohighlight">\({\bf x}\rightarrow Q\)</span>.
+Consider the three consecutive radial bins <span class="math notranslate nohighlight">\(Q-1\)</span>, <span class="math notranslate nohighlight">\(Q\)</span> and
+<span class="math notranslate nohighlight">\(Q+1\)</span>, together with their calculated moments:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{r|r|r}
+{\bf M}^R(Q-1) &amp; {\bf M}^R(Q) &amp; {\bf M}^R(Q+1) \\
+{\bf M}^I(Q-1) &amp; {\bf M}^I(Q) &amp; {\bf M}^I(Q+1)
+\end{array}\end{split}\]</div>
+<p>Let us concentrate on the <span class="math notranslate nohighlight">\(Q\)</span> bin, whose lower and upper radial
+limits are shown as solid vertical lines. The radial distance
+corresponding to <span class="math notranslate nohighlight">\({\bf x}\)</span> splits the <span class="math notranslate nohighlight">\(Q\)</span> bin into two
+parts: the left fractional part, denoted <span class="math notranslate nohighlight">\(R_{frac}\)</span>, and the right
+fractional part, denoted <span class="math notranslate nohighlight">\(I_{frac}\)</span>. Since both
+<span class="math notranslate nohighlight">\({\bf M}^R(Q-1)\)</span> and <span class="math notranslate nohighlight">\({\bf M}^I(Q+1)\)</span> are completely
+contained respectively in <span class="math notranslate nohighlight">\({\bf M}^R(Q)\)</span> and <span class="math notranslate nohighlight">\({\bf M}^I(Q)\)</span>,
+the moments at <span class="math notranslate nohighlight">\({\bf x}\)</span> be approximately evaluated as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+{\bf M}^R({\bf x}) &amp; = &amp;  {\bf M}^R(Q-1) + R_{frac}\left[{\bf M}^R(Q)-{\bf M}^R(Q-1)\right]
+\label{Eqn:Cell moment computational definition 1} \\
+{\bf M}^I({\bf x}) &amp; = &amp;  {\bf M}^I(Q+1) + I_{frac}\left[{\bf M}^I(Q)-{\bf M}^I(Q+1)\right],
+\label{Eqn:Cell moment computational definition 2}\end{aligned}\end{split}\]</div>
+<p>The extraction of the moments via
+(<a class="reference external" href="#Eqn:Cellmomentcomputationaldefinition1">[Eqn:Cell moment computational definition 1]</a>)
+and
+(<a class="reference external" href="#Eqn:Cellmomentcomputationaldefinition2">[Eqn:Cell moment computational definition 2]</a>)
+is of course an approximation that relies on the statistically dense
+distribution of the individual cell center moments inside each radial
+bin. For bins which are reasonably far away from the expansion center
+this statistical approximation is valid but for those close to the
+expansion center the statistical distribution does not hold and
+calculating the moments via the above scheme introduces a large
+statistical error. The way out of this problem is to move from a
+statistical radial bin description around the expansion center to a more
+discrete one, by constructing very narrow isolated radial bins. The code
+is thus forced to analyze the detailed structure of the geometrical
+domain grid surrounding the expansion center and to establish the inner
+radial zone of discrete distributed radial bins. The statistical radial
+bins are then referred to as belonging to the outer radial zone(s).</p>
+<p>While the structure of the inner radial zone is fixed due to the
+underlying geometrical grid, the size of each radial bin in the outer
+radial zones has to be specified by the user. There is at the moment no
+automatic derivation of the optimum (accuracy vs memory cost) bin size
+for the outer zones. There are two types of radial bin sizes defined for
+the Flash-X multipole solver: i) exponentially and/or ii) logarthmically
+growing:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\mbox{exponential bin size upper radial limit} &amp; = &amp; s\cdot \Delta r \cdot Q^t
+\label{Eqn:Exponential bin definition} \\
+\mbox{logarithmic bin size upper radial limit} &amp; = &amp; s\cdot \Delta r \cdot {e^{tQ}-1\over e^t-1}.
+\label{Eqn:Logarithmic bin definition}\end{aligned}\end{split}\]</div>
+<p>In these definitions, <span class="math notranslate nohighlight">\(\Delta r\)</span> is a small distance ’atomic’
+(basic unit) radial measure, defined as half the geometric mean of
+appropriate cell dimensions at highest refinement level, <span class="math notranslate nohighlight">\(s\)</span> is a
+scalar factor to optionally increase or decrase the atomic unit radial
+measure and <span class="math notranslate nohighlight">\(Q = 1,2,\ldots\)</span> is a local bin index counter for each
+outer zone. Note, that
+since <span class="math notranslate nohighlight">\(\Delta r\)</span> measures a basic radial unit along the radial
+distance from the expansion center (which, for approximate spherical
+problems, is located close to the domain’s geometrical origin), only
+those cell dimensions for calculating each <span class="math notranslate nohighlight">\(\Delta r\)</span> are taken,
+which are directly related to radial distances from the geometrical
+domain origin. For 3D cylindrical domain geometries for example, only
+the radial cylindrical and z-coordinate cell dimensions determine the 3D
+radial distance from the 3D cylindrical domain origin. The angular
+coordinate is not needed. Likewise for spherical domains only the radial
+cell coordinate is of importance. Definitions
+(<a class="reference external" href="#Eqn:Exponentialbindefinition">[Eqn:Exponential bin definition]</a>)
+and
+(<a class="reference external" href="#Eqn:Logarithmicbindefinition">[Eqn:Logarithmic bin definition]</a>)
+define the upper limit of the radial bins. Hence in order to obtain the
+true bin size for the <span class="math notranslate nohighlight">\(Q\)</span>-th bin one has to subtract its upper
+radial limit from the corresponding one of the <span class="math notranslate nohighlight">\((Q-1)\)</span>-th bin:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\mbox{$Q$-th exponential bin size} &amp; = &amp; s\cdot \Delta r \cdot \left[Q^t-(Q-1)^t\right] \\
+\mbox{$Q$-th logarithmic bin size} &amp; = &amp; s\cdot \Delta r \cdot e^{t(Q-1)}.\end{aligned}\end{split}\]</div>
+<p>In principle the user can specify as many outer zone types as he/she
+likes, each having its own exponential or logarithmic parameter pair
+<span class="math notranslate nohighlight">\(\{s,t\}\)</span>.</p>
+<p>Multithreading of the code is currently enabled in two parts: 1) during
+moment evaluation and 2) during potential evaluation. The threading in
+the moment evaluation section is achieved by running multiple threads
+over separate, non-conflicting radial bin sections. Moment evaluation is
+thus organized as a single loop over all relevant radial bins on each
+processor. Threading over the potential evaluation is done over blocks,
+as these will address different non-conflicting areas of the solution
+vector.</p>
+<p>The improved multipole solver was extensively tested and several runs
+have been performed using large domains (<span class="math notranslate nohighlight">\(&gt;10^{10}\)</span>) and extremely
+high angular numbers up to <span class="math notranslate nohighlight">\(L=100\)</span> for a variety of domain
+geometries. Currently, the following geometries can be handled: 3D
+cartesian, 3D cylindrical, 2D cylindrical, 2D spherical and 1D
+spherical. The structure of the code is such that addition of new
+geometries, should they ever be needed by some applications, can be done
+rapidly.</p>
+</section>
+<section id="multigrid">
+<h4>Multigrid<a class="headerlink" href="#multigrid" title="Permalink to this headline"></a></h4>
+<p>The <em>Grid/GridSolvers/Multigrid</em> module is appropriate for general
+source distributions. It solves Poisson’s equation for 1, 2, and 3
+dimensional problems with Cartesian geometries. It only supports the
+AMReX Grid in the current version (See AMReX documentation for more
+detail). It may be included by setup or Config by including:</p>
+<div class="codeseg docutils container">
+<p>physics/Gravity/GravityMain/Poisson/Multigrid</p>
+</div>
+<p>The multigrid solver may also be included stand-alone using:</p>
+<div class="codeseg docutils container">
+<p>Grid/GridSolvers/Multigrid</p>
+</div>
+</section>
+</section>
+<section id="hypre">
+<h3>HYPRE<a class="headerlink" href="#hypre" title="Permalink to this headline"></a></h3>
+<div class="line-block">
+<div class="line">As a part of implicit time advancement we end up with a system of
+equations that needs to be solved at every time step. In Flash-X the
+HYPRE linear algebra package is used to solve these systems of
+equations. Therefore it is necessary to install Hypre if this
+capability of Flash-X is to be used.</div>
+<div class="line">Grid_advanceDiffusion is the API function which solves the
+system of equations. This API is provided by both the split and
+unsplit solvers. The unsplit solver uses HYPRE to solve the system of
+equations and split solver does a direct inverse using Thomas
+algorithm. Note that the split solver relies heavily on PFFT
+infrastructure for data exchange and a significant portion of work in
+split Grid_advanceDiffusion involves PFFT routines. In the unsplit
+solver the data exchange is implicitly done within HYPRE and is
+hidden.</div>
+<div class="line">The steps in unsplit Grid_advanceDiffusion are as follows:</div>
+</div>
+<ul>
+<li><p>Setup HYPRE grid object</p></li>
+<li><p>Exchange Factor B</p></li>
+<li><p>Set initial guess</p></li>
+<li><p>Compute HYPRE Matrix M such that B = MX</p></li>
+<li><p>Compute RHS Vector B</p></li>
+<li><p>Compute matrix A</p></li>
+<li><p>Solve system AX = B</p></li>
+<li><div class="line-block">
+<div class="line">Update solution (in Flash-X)</div>
+</div>
+</li>
+</ul>
+<p>Mapping UG grid to HYPRE matrix is trivial, however mapping AMR
+grid to a HYPRE matrix can be quite complicated. The process is
+simplified using the grid interfaces provided by HYPRE.</p>
+<ul class="simple">
+<li><p>Struct Grid interface</p></li>
+<li><p>SStruct Grid interface</p></li>
+<li><p>IJ System interface</p></li>
+</ul>
+<div class="line-block">
+<div class="line">Setting up the HYPRE grid object is one of the most important step of
+the solution process. We use the SSTRUCT interface provided in HYPRE
+to setup the grid object. Since the HYPRE Grid object is mapped
+directly with Flash-X grid, whenever the Flash-X grid changes the
+HYPRE grid object needs to be updated. Consequentlywith AMR the HYPRE
+grid setup might happen multiple times.</div>
+<div class="line">Setting up a HYPRE grid object is a two step process,</div>
+</div>
+<ul class="simple">
+<li><p>Creating stenciled relationships.</p></li>
+<li><p>Creating Graph relationships.</p></li>
+</ul>
+<div class="line-block">
+<div class="line">Stenciled relationships typically exist between leaf blocks at same
+refinement level (intra part) and graph relationships exist between
+leaf blocks at different refinement levels (inter part). The
+fine-coarse boundary is handled in such a way that fluxes are
+conserved at the interface (see for details). UG does not require any
+graph relationships.</div>
+<div class="line">Whether a block needs a graph relationship depends on the refinement
+level of it’s neighbor. While this information is not directly
+available in PARAMESH, it is possible to determine whether the block
+neighbor is coarser or finer. Combining this information with the
+constraint of at best a factor of two jump in refinement at block
+boundaries, it is possible to compute the part number of a neighbor
+block, which in turn determines whether we need a graph. Creating a
+graph involves creating a link between all the cells on the block
+boundary.</div>
+<div class="line">Once the grid object is created, the matrix and vector objects are
+built on the grid object. The diffusion solve needs uninterpolated
+data from neighbor blocks even when there is a fine-coarse boundary,
+therefore it cannot rely upon the guardcell fill process. A two step
+process is used to handle this situation,</div>
+</div>
+<ul>
+<li><p>Since HYPRE has access to X(at n, <em>i.e.</em>, initial guess), the RHS
+vector B can be computed as MX where M is a modified Matrix.</p></li>
+<li><div class="line-block">
+<div class="line">Similarly the value of Factor B can be shared across the
+fine-coarse boundary by using
+Grid_conserveFluxes,the fluxes need to be set in a intuitive to
+way to achieve the desired effect.</div>
+</div>
+</li>
+</ul>
+<div class="line-block">
+<div class="line">With the computation of Vector B (RHS), the system can be solved using
+HYPRE and UNK can be updated.</div>
+</div>
+</section>
+</section>
+<section id="grid-geometry">
+<span id="sec-grid-geometry"></span><h2>Grid Geometry<a class="headerlink" href="#grid-geometry" title="Permalink to this headline"></a></h2>
+<p>Flash-X can use various kinds of coordinates (“<strong>geometries</strong>”) for
+modeling physical problems. The available geometries represent different
+(orthogonal) curvilinear coordinate systems.</p>
+<p>The geometry for a particular problem is set at runtime (after an
+appropriate invocation of setup) through the <em>geometry</em> runtime
+parameter, which can take a value of
+<em>“cartesian”, “spherical”, “cylindrical”,</em> or <em>“polar”</em>. Together
+with the dimensionality of the problem, this serves to completely define
+the nature of the problem’s coordinate axes (). Note that not all
+<em>Grid</em> implementations support all geometry/dimension combinations.
+Physics units may also be limited in the geometries supported, some may
+only work for Cartesian coordinates.</p>
+<p>The core code of a Grid implementation is not concerned with the
+mapping of cell indices to physical coordinates; this is not required
+for under-the-hood Grid operations such as keeping track of which
+blocks are neighbors of which other blocks, which cells need to be
+filled with data from other blocks, and so on. Thus the physical domain
+can be logically modeled as a rectangular mesh of cells, even in
+curvilinear coordinates.</p>
+<p>There are, however, some areas where geometry needs to be taken into
+consideration. The correct implementation of a given geometry requires
+that gradients and divergences have the appropriate area factors and
+that the volume of a cell is computed properly for that geometry.
+Initialization of the grid as well as AMR operations (such as
+restriction, prolongation, and flux-averaging) must respect the geometry
+also. Furthermore, the hydrodynamic methods in Flash-X are finite-volume
+methods, so the interpolation must also be conservative in the given
+geometry. The default mesh refinement criteria of Flash-X also currently
+take geometry into account, see above.</p>
+<section id="understanding-1d-2d-and-curvilinear-coordinates">
+<h3>Understanding 1D, 2D, and Curvilinear Coordinates<a class="headerlink" href="#understanding-1d-2d-and-curvilinear-coordinates" title="Permalink to this headline"></a></h3>
+<p>In the context of Flash-X, curvilinear coordinates are most useful with
+1-d or 2-d simulations, and this is how they are commonly used. But what
+does it mean to apply curvilinear coordinates in this way? And what does
+it mean to do a 1D or a 2D simulation of threedimensional reality?
+Physical reality has three spatial dimensions (as far as the physical
+problems simulated with Flash-X are concerned). In Cartesian
+coordinates, it is relatively straightforward to understand what a 2-d
+(or 1-d) simulation means: “Just leave out one (or two) coordinates.”
+This is less obvious for other coordinate systems, therefore some
+fundamental discussion follows.</p>
+<p>A reduced dimensionality (RD) simulation can be naively understood as
+taking a cut (or, for 1-d, a linear probe) through the real 3-d problem.
+However, there is also an assumption, not always explicitly stated, that
+is implied in this kind of simulation: namely, that the cut (or line) is
+representative of the 3-d problem. This can be given a stricter meaning:
+it is assumed that the physics of the problem do not depend on the
+omitted dimension (or dimensions). A RD simulation can be a good
+description of a physical system only to the degree that this assumption
+is warranted. Depending on the nature of the simulated physical system,
+non-dependence on the omitted dimensions may mean the absence of force
+and/or momenta vector components in directions of the omitted coordinate
+axes, zero net mass and energy flow out of the plane spanned by the
+included coordinates, or similar.</p>
+<p>For omitted dimensions that are lengths — <span class="math notranslate nohighlight">\(z\)</span> and possibly
+<span class="math notranslate nohighlight">\(y\)</span> in Cartesian, and <span class="math notranslate nohighlight">\(z\)</span> in cylindrical and polar RD
+simulations — one may think of a 2-d cut as representing a (possibly
+very thin) layer in 3-d space sandwiched between two parallel planes.
+There is no <em>a priori</em> definition of the thickness of the layer, so it
+is not determined what 3-d volume should be asigned to a 2-d cell in
+such coordinates. We can thus arbitrarily assign the length “<span class="math notranslate nohighlight">\(1\)</span>”
+to the edge length of a 3-d cell volume, making the volume equal to the
+2-d area. We can understand generalizations of “volume” to 1-d, and of
+“face areas” to 2-d and 1-d RD simulations with omitted linear
+coordinates, in an equivalent way: just set the length of cell edges
+along omitted dimensions to 1.</p>
+<p>For omitted dimensions that are angles — the <span class="math notranslate nohighlight">\(\theta\)</span> and
+<span class="math notranslate nohighlight">\(\phi\)</span> coordinates on spherical, cylindrical, and polar geometries
+— it is easier to think of omitting an angle as the equivalent of
+integrating over the full range of that angle coordinate (under the
+assumption that all physical solution variables are independent of that
+angle). Thus omitting an angle <span class="math notranslate nohighlight">\(\phi\)</span> in these geometries implies
+the assumption of axial symmetry, and this is noted in . Similarly,
+omitting both <span class="math notranslate nohighlight">\(\phi\)</span> and <span class="math notranslate nohighlight">\(\theta\)</span> in spherical coordinates
+implies an assumption of complete spherical symmetry. When <span class="math notranslate nohighlight">\(\phi\)</span>
+is omitted, a 2-d cell actually represents the 3-d object that is
+generated by rotating the 2-d area around a <span class="math notranslate nohighlight">\(z\)</span>-axis. Similarly,
+when only <span class="math notranslate nohighlight">\(r\)</span> is included, 1-d cells (<em>i.e.</em>, <span class="math notranslate nohighlight">\(r\)</span> intervals)
+represent hollow spheres or cylinders. (If the coordinate interval
+begins at <span class="math notranslate nohighlight">\(r_l=0.0\)</span>, the sphere or cylinder is massive instead of
+hollow.)</p>
+<p>As a result of these considerations, the measures for cell (and block)
+volumes and face areas in a simulation depends on the chosen geometry.
+Formulas for the volume of a cell dependent on the geometry are given in
+the geometry-specific sections further below.</p>
+<p>As discussed in , to ensure conservation at a jump in refinement in AMR
+grids, a flux correction step is taken. The fluxes leaving the fine
+cells adjacent to a coarse cell are used to determine more accurately
+the flux entering the coarse cell. This step takes the coordinate
+geometry into account in order to accurately determine the areas of the
+cell faces where fine and coarse cells touch. By way of example, an
+illustration is provided below in the section on cylindrical geometry.</p>
+<section id="extensive-quantities-in-reduced-dimensionality">
+<span id="sec-extqinrd"></span><h4>Extensive Quantities in Reduced Dimensionality<a class="headerlink" href="#extensive-quantities-in-reduced-dimensionality" title="Permalink to this headline"></a></h4>
+<p>The considerations above lead to some consequences for the understanding
+of extensive quantities, like mass or energies, that may not be obvious.</p>
+<p>The following discussion applies to geometries with omitted dimensions
+that are lengths — <span class="math notranslate nohighlight">\(z\)</span> and possibly <span class="math notranslate nohighlight">\(y\)</span> in Cartesian, and
+<span class="math notranslate nohighlight">\(z\)</span> in cylindrical and polar RD simulations. We will consider
+Cartesian geometries as the most common case, and just note that the
+remaining cases can be thought of analogously.</p>
+<p>In 2D Cartesian, the “volume” of a cell should be
+<span class="math notranslate nohighlight">\(\Delta V = \Delta x\,\Delta y\)</span>. We would like to preserve the
+form of equations that relate extensive quantities to their densities,
+<em>e.g.</em>, <span class="math notranslate nohighlight">\(\Delta m = \rho \Delta V\)</span> for mass and
+<span class="math notranslate nohighlight">\(\Delta E_{\mathrm tot} = \rho e_{\mathrm tot}\Delta V\)</span> for total
+energy in a cell. We also like to retain the usual definitions for
+intensive quantities such as density <span class="math notranslate nohighlight">\(\rho\)</span>, including their
+physical values and units, so that material density <span class="math notranslate nohighlight">\(\rho\)</span> is
+expressed in <span class="math notranslate nohighlight">\(g/cm^3\)</span> (more generally <span class="math notranslate nohighlight">\(M/L^3\)</span>), no matter
+whether 1D, 2D, or 3D. We cannot satisfy both desiderata without
+modifying the interpretation of “mass”, “energy”, and similar extensive
+quantities in the system of equations modeled by Flash-X.</p>
+<p>Specifically, in a 2D Cartesian simulation, we have to interpret “mass”
+as really representing a linear mass density, measured in <span class="math notranslate nohighlight">\(M/L\)</span>.
+Similarly, an “energy” is really a linear energy density, <em>etc.</em></p>
+<p>In a 1D Cartesian simulation, we have to interpret “mass” as really
+representing a surface mass density, measured in <span class="math notranslate nohighlight">\(M/L^2\)</span>, and an
+“energy” is really a surface energy density.</p>
+<p>(There is a different point of view, which amounts to the same thing:
+One can think of the “mass” of a cell (in 2D) as the physical mass
+contained in a threedimensional cell of volume
+<span class="math notranslate nohighlight">\(\Delta x \Delta y \Delta z\)</span> where the cell height
+<span class="math notranslate nohighlight">\(\Delta z\)</span> is set to be exactly 1 length unit. Always with the
+understanding that “nothing happens” in the <span class="math notranslate nohighlight">\(z\)</span> direction.)</p>
+<p>Note that this interpretation of “mass”,“energy”, <em>etc.</em> must be taken
+into account not just when examining the physics in individual cells,
+but equally applies for quantities integrated over larger regions,
+including the “total mass” or “total energy” <em>etc.</em> reported by Flash-X
+in <em>flash.dat</em> files — they are to be interpreted as (linear or
+surface) densities of the nominal quantities (or, alternatively, as
+integrals over 1 length unit in the missing Cartesian directions).</p>
+</section>
+</section>
+<section id="choosing-a-geometry">
+<h3>Choosing a Geometry<a class="headerlink" href="#choosing-a-geometry" title="Permalink to this headline"></a></h3>
+<p>The user chooses a geometry by setting the geometry runtime
+parameter in flash.par. The default is <em>cartesian</em> (unless
+overridden in a simulation’s Config file). Depending on the Grid
+implementation used and the way it is configured, the geometry may also
+have to be compiled into the program executable and thus may have to be
+specified at configuration time; the setup flag -geometry should
+be used for this purpose, see .</p>
+<p>The geometry runtime parameter is most useful in cases where
+the geometry does not have to be specified at compile-time, in
+particular for the Uniform Grid. The runtime parameter will, however,
+always be considered at run-time during Grid initialization. If the
+geometry runtime parameter is inconsistent with a geometry
+specified at setup time, Flash-X will then either override the geometry
+specified at setup time (with a warning) if that is possible, or it will
+abort.</p>
+<p>This runtime parameter is used by the Grid unit and also by
+hydrodynamics solvers, which add the necessary geometrical factors to
+the divergence terms. Next we describe how user code can use the runtime
+parameter’s value.</p>
+</section>
+<section id="getting-geometry-information-in-program-code">
+<h3>Getting Geometry Information in Program Code<a class="headerlink" href="#getting-geometry-information-in-program-code" title="Permalink to this headline"></a></h3>
+<p>The Grid unit provides an accessor Grid_getGeometry
+property that returns the geometry as an integer, which can be compared
+to the symbols {CARTESIAN, SPHERICAL, CYLINDRICAL, POLAR} defined in
+“constants.h” to determine which of the supported geometries we are
+using. A unit writer can therefore determine flow-control based on the
+geometry type (see ). Furthermore, this provides a mechanism for a unit
+to determine at runtime whether it supports the current geometry, and if
+not, to abort.</p>
+<div class="shrink docutils container">
+<div class="fcodeseg docutils container">
+<p>#include “constants.h”</p>
+<p>integer :: geometry</p>
+<p>call Grid_getGeometry(geometry)</p>
+<p>select case (geometry)</p>
+<p>case (CARTESIAN)</p>
+<p>! do Cartesian stuff here …</p>
+<p>case (SPHERICAL)</p>
+<p>! do spherical stuff here …</p>
+<p>case (CYLINDRICAL)</p>
+<p>! do cylindrical stuff here …</p>
+<p>case (POLAR)</p>
+<p>! do polar stuff here …</p>
+<p>end select</p>
+</div>
+</div>
+<p>Coordinate information for the mesh can be determined via the
+Grid_getCellCoords routine. This routine can provide the
+coordinates of cells at the left edge, right edge, or center. The width
+of cells can be determined via the Grid_getDeltas routine.
+Angle values and differences are given in radians. Coordinate
+information for a block of cells as a whole is available through
+Grid_getBlkCenterCoords and Grid_getBlkPhysicalSize.</p>
+<p>Note the following difference between the two groups of routines
+mentioned in the previous two paragraphs: the routines for volumes and
+areas take the chosen geometry into account in order to return geometric
+measures of physical volumes and faces (or their RD equivalents). On the
+other hand, the routines for coordinate values and widths return values
+for <span class="math notranslate nohighlight">\(X\)</span>, <span class="math notranslate nohighlight">\(Y\)</span>, and <span class="math notranslate nohighlight">\(Z\)</span> directly, without converting
+angles to (arc) lengths.</p>
+</section>
+<section id="available-geometries">
+<h3>Available Geometries<a class="headerlink" href="#available-geometries" title="Permalink to this headline"></a></h3>
+<p>Currently, all of Flash-X’s physics support one-, two-, and (with a few
+exceptions explicitly stated in the appropriate chapters)
+three-dimensional Cartesian grids. Some units, including the Flash-X
+Grid unit and PPM hydrodynamics unit (), support additional
+geometries, such as two-dimensional cylindrical (<span class="math notranslate nohighlight">\(r,z\)</span>) grids,
+one/two-dimensional spherical (<span class="math notranslate nohighlight">\(r\)</span>)/(<span class="math notranslate nohighlight">\(r, \theta\)</span>) grids, and
+two-dimensional polar (<span class="math notranslate nohighlight">\(r, \phi\)</span>) grids. Some specific
+considerations for each geometry follow.</p>
+<p>The following tables use the convention that <span class="math notranslate nohighlight">\(r_l\)</span> and <span class="math notranslate nohighlight">\(r_r\)</span>
+stand for the values of the <span class="math notranslate nohighlight">\(r\)</span> coordinate at the “left” and
+“right” end of the cell’s <span class="math notranslate nohighlight">\(r\)</span>-coordinate range, respectively
+(<em>i.e.</em>, <span class="math notranslate nohighlight">\(r_l &lt; r_r\)</span> is always true), and
+<span class="math notranslate nohighlight">\(\Delta r = r_r-r_l\)</span>; and similar for the other coordinates.</p>
+<section id="cartesian-geometry">
+<h4>Cartesian geometry<a class="headerlink" href="#cartesian-geometry" title="Permalink to this headline"></a></h4>
+<p>Flash-X uses Cartesian (plane-parallel) geometry by default. This is
+equivalent to specifying</p>
+<div class="codeseg docutils container">
+<p>geometry = “cartesian”</p>
+</div>
+<p>in the runtime parameter file.</p>
+<p><em>Cell Volume in Cartesian Coordinates</em></p>
+<div class="center docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 92%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>1-d</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\Delta x\)</span></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2-d</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta x \Delta y\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>3-d</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta x \Delta y \Delta z\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="cylindrical-geometry">
+<h4>Cylindrical geometry<a class="headerlink" href="#cylindrical-geometry" title="Permalink to this headline"></a></h4>
+<p>To run Flash-X with cylindrical coordinates, the geometry parameter
+must be set thus:</p>
+<div class="codeseg docutils container">
+<p>geometry = “cylindrical”</p>
+</div>
+<div class="center docutils container">
+<p><em>Cell Volume in Cylindrical Coordinates</em></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 95%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>1-d</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\pi (r_r^2 - r_l^2)\)</span></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2-d</p></td>
+<td><p><span class="math notranslate nohighlight">\(\pi (r_r^2 - r_l^2) \Delta z\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>3-d</p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{1}{2} (r_r^2 - r_l^2) \Delta z \Delta \phi\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>As in other non-Cartesian geometries, if the minimum radius is chosen to
+be zero (xmin = 0.), the left-hand boundary type should be
+reflecting (or axisymmetric). Of all supported non-Cartesian
+geometries, the cylindrical is in 2-d most similar to a 2-d coordinate
+system: it uses two linear coordinate axes (<span class="math notranslate nohighlight">\(r\)</span> and <span class="math notranslate nohighlight">\(z\)</span>)
+that form a rectangular grid physically as well as logically.</p>
+<p>As an illustrative example of the kinds of considerations necessary in
+curved coordinates, shows a jump in refinement along the cylindrical
+‘<span class="math notranslate nohighlight">\(z\)</span>’ direction. When performing the flux correction step at a
+jump in refinement, we must take into account the area of the annulus
+through which each flux passes to do the proper weighting. We define the
+cross-sectional area through which the <span class="math notranslate nohighlight">\(z\)</span>-flux passes as</p>
+<div class="math notranslate nohighlight">
+\[A = \pi (r_r^2 - r_l^2)
+\enskip .\]</div>
+<p>The flux entering the coarse cell above the jump in refinement is
+corrected to agree with the fluxes leaving the fine cells that border
+it. This correction is weighted according to the areas</p>
+<div class="math notranslate nohighlight">
+\[f_3 = \frac{A_1 f_1 + A_2 f_2}{A_3}~.\]</div>
+<div class="center docutils container">
+</div>
+<p>For fluxes in the radial direction, the cross-sectional area is
+independent of the height, <span class="math notranslate nohighlight">\(z\)</span>, so the corrected flux is simply
+taken as the average of the flux densities in the adjacent finer cells.</p>
+</section>
+<section id="spherical-geometry">
+<h4>Spherical geometry<a class="headerlink" href="#spherical-geometry" title="Permalink to this headline"></a></h4>
+<p>One or two dimensional spherical problems can be performed by specifying</p>
+<div class="codeseg docutils container">
+<p>geometry = “spherical”</p>
+</div>
+<p>in the runtime parameter file.</p>
+<div class="center docutils container">
+<p><em>Cell Volume in Spherical Coordinates</em></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 93%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>1-d</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\frac{4}{3} \pi (r_r^3 - r_l^3)\)</span></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2-d</p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac
+{2}{3} \pi (r_r^3 - r_l^3) (\cos(\theta_l) - \cos(\theta_r))\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>3-d</p></td>
+<td><p>:math:`
+frac{1}{3} (r_r^3 - r_l^3) (cos(theta_l) - cos(theta_r))</p>
+<blockquote>
+<div><p>Delta phi`</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>If the minimum radius is chosen to be zero (xmin = 0.), the
+left-hand boundary type should be reflecting.</p>
+</section>
+<section id="polar-geometry">
+<h4>Polar geometry<a class="headerlink" href="#polar-geometry" title="Permalink to this headline"></a></h4>
+<p>Polar geometry is a 2-D subset of 3-D cylindrical configuration without
+the “z” coordinate. Such geometry is natural for studying objects like
+accretion disks. This geometry can be selected by specifying</p>
+<div class="codeseg docutils container">
+<p>geometry = “polar”</p>
+</div>
+<p>in the runtime parameter file.</p>
+<div class="center docutils container">
+<p><em>Cell Volume in Polar Coordinates</em></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 93%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>1-d</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\pi (r_r^2 - r_l^2)\)</span></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2-d</p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{1}{2} (r_r^2 - r_l^2)\Delta \phi\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>3-d</p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{1}{2} (r_r^2 - r_l^2)\Delta \phi \Delta z\)</span> (not
+supported)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>As in other non-Cartesian geometries, if the minimum radius is chosen to
+be zero (xmin = 0.), the left-hand boundary type should be
+reflecting.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="infrastructure.html" class="btn btn-neutral float-left" title="Infrastructure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="IO.html" class="btn btn-neutral float-right" title="IO Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
