@@ -8,7 +8,7 @@ Overview of |flashx| architecture
 |flashx| is a component based software system where different
 permutations and combinations of various components generate different
 applications. Some aspects of |flashx| architecture are adapted from
-|flash| :raw-latex:`\cite{Dubey2009}`, but it is fundamentally a new
+|flash| , but it is fundamentally a new
 software with an architecture designed for use with heterogeneous
 platforms. Portability on heterogeneous platforms is achieved through
 a **language-agnostic performance portability layer** (LAPPL) comprised of three sets of tools:
