@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equation of State Unit &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Local Source Terms" href="sourceTerms.html" />
+    <link rel="prev" title="Incompressible Navier-Stokes Unit" href="IncompNS.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration )</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="physics.html">Physics Units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Hydro.html">Hydrodynamics Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IncompNS.html">Incompressible Navier-Stokes Unit</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Equation of State Unit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gamma-law-and-multigamma">Gamma Law and Multigamma</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helmholtz">Helmholtz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#initialization">Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#direct-and-wrapped-calls">Direct and Wrapped Calls</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#unit-test">Unit Test</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sourceTerms.html">Local Source Terms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity.html">Gravity Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Particles.html">Particles Unit</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="physics.html">Physics Units</a> &raquo;</li>
+      <li>Equation of State Unit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Eos.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="equation-of-state-unit">
+<span id="chp-eos-unit"></span><h1>Equation of State Unit<a class="headerlink" href="#equation-of-state-unit" title="Permalink to this headline"></a></h1>
+<section id="introduction">
+<span id="sec-eos-intro"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit implements the equation of state needed by the
+hydrodynamics and nuclear burning solvers. The function
+<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> provides the interface for operating on a
+one-dimensional vector. The same interface can be used for a single cell
+by reducing the vector size to 1. Additionally, this function can be
+used to find the thermodynamic quantities either from the density,
+temperature, and composition or from the density, internal energy, and
+composition. For user’s convenience, a wrapper function
+(<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_wrapped</span></code>) is provided, which takes a section of a
+block and translates it into the data format required by the
+<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> function, then calls the function. Upon return from
+the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> function, the wrapper translates the returned
+data back to the same section of the block.</p>
+<p>Four implementations of the (<code class="docutils literal notranslate"><span class="pre">Eos</span></code>) unit are available in the current
+release of Flash-X: <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> which implements a perfect-gas equation of
+state; <code class="docutils literal notranslate"><span class="pre">Gamma/RHD</span></code> which implements a perfect-gas equation taking
+relativistic effects into account; <code class="docutils literal notranslate"><span class="pre">Multigamma</span></code> which implements a
+perfect-gas equation of state with multiple fluids, each of which can
+have its own adiabatic index (<span class="math notranslate nohighlight">\(\gamma\)</span>); and <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code> which
+uses a fast Helmholtz free-energy table interpolation to handle
+degenerate/relativistic electrons/positrons and includes radiation
+pressure and ions (via the perfect gas approximation).</p>
+<p>As described in previous sections, Flash-X evolves the Euler equations
+for compressible, inviscid flow. This system of equations must be closed
+by an additional equation that provides a relation between the
+thermodynamic quantities of the gas. This relationship is known as the
+equation of state for the material, and its structure and properties
+depend on the composition of the gas.</p>
+<p>It is common to call an equation of state (henceforth EOS) routine more
+than <span class="math notranslate nohighlight">\(10^9\)</span> times during a two-dimensional simulation and more
+than <span class="math notranslate nohighlight">\(10^{11}\)</span> times during the course of a three-dimensional
+simulation of stellar phenomena. Thus, it is very desirable to have an
+EOS that is as efficient as possible, yet accurately represents the
+relevant physics. While Flash-X is capable of using any general equation
+of state, we discuss here the three equation of state routines that are
+supplied: an ideal-gas or gamma-law EOS, an EOS for a fluid composed of
+multiple gamma-law gases, and a tabular Helmholtz free energy EOS
+appropriate for stellar interiors. The two gamma-law EOSs consist of
+simple analytic expressions that make for a very fast EOS routine both
+in the case of a single gas or for a mixture of gases. The Helmholtz EOS
+includes much more physics and relies on a table look-up scheme for
+performance.</p>
+</section>
+<section id="gamma-law-and-multigamma">
+<span id="sec-eos-gammas"></span><h2>Gamma Law and Multigamma<a class="headerlink" href="#gamma-law-and-multigamma" title="Permalink to this headline"></a></h2>
+<p>Flash-X uses the method of Colella &amp; Glaz (1985) to handle general
+equations of state. General equations of state contain 4 adiabatic
+indices (Chandrasekhar 1939), but the method of Colella &amp; Glaz
+parameterizes the EOS and requires only two of the adiabatic indices The
+first is necessary to calculate the adiabatic sound speed and is given
+by</p>
+<div class="math notranslate nohighlight">
+\[\gamma_1 = \frac{\rho}{P}\frac{\partial P}{\partial \rho} \; .\]</div>
+<p>The second relates the pressure to the energy and is given by</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:game}\gamma_4 = 1 + \frac{P}{\rho\epsilon} \; .\]</div>
+<p>These two adiabatic indices are stored as the mesh-based variables
+<code class="docutils literal notranslate"><span class="pre">GAMC_VAR</span></code> and <code class="docutils literal notranslate"><span class="pre">GAME_VAR</span></code>. All EOS routines must return
+<span class="math notranslate nohighlight">\(\gamma_1\)</span>, and <span class="math notranslate nohighlight">\(\gamma_4\)</span> is calculated from
+<a class="reference external" href="#Eqn:game">[Eqn:game]</a>.</p>
+<p>The gamma-law EOS models a simple ideal gas with a constant adiabatic
+index <span class="math notranslate nohighlight">\(\gamma\)</span>. Here we have dropped the subscript on
+<span class="math notranslate nohighlight">\(\gamma\)</span>, because for an ideal gas, all adiabatic indices are
+equal. The relationship between pressure <span class="math notranslate nohighlight">\(P\)</span>, density
+<span class="math notranslate nohighlight">\(\rho\)</span>, and specific internal energy <span class="math notranslate nohighlight">\(\epsilon\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos2b}
+%{P = {N_a \ k \over \bar{A}} \rho T}
+P = \left(\gamma - 1\right)\rho\epsilon~.
+%\epsilon = {1 \over \gamma - 1} \ {P \over \rho}\]</div>
+<p>We also have an expression relating pressure to the temperature
+<span class="math notranslate nohighlight">\(T\)</span></p>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos2a}
+P = \frac{N_a k}{\bar{A}} \rho T ~,\]</div>
+<p>where <span class="math notranslate nohighlight">\(N_a\)</span> is the Avogadro number, <span class="math notranslate nohighlight">\(k\)</span> is the Boltzmann
+constant, and <span class="math notranslate nohighlight">\(\bar{A}\)</span> is the average atomic mass, defined as</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{\bar{A}} = \sum_{i}\frac{X_{i}}{A_{i}}~,\]</div>
+<p>where <span class="math notranslate nohighlight">\(X_i\)</span> is the mass fraction of the <span class="math notranslate nohighlight">\(i\)</span>th element.
+Equating these expressions for pressure yields an expression for the
+specific internal energy as a function of temperature</p>
+<div class="math notranslate nohighlight">
+\[\epsilon = \frac{1}{\gamma - 1} \frac{N_a k} {\bar{A}} T~.\]</div>
+<p>The relativistic variant of the ideal gas equation is explained in more
+detail in .</p>
+<p>Simulations are not restricted to a single ideal gas; the multigamma EOS
+simulations with several species of ideal gases each with its own value
+of <span class="math notranslate nohighlight">\(\gamma\)</span>. In this case the above expressions hold, but
+<span class="math notranslate nohighlight">\(\gamma\)</span> represents the weighted average adiabatic index
+calculated from</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{\left(\gamma - 1\right)} = \bar{A}\sum_{i}\frac{1}{\left(\gamma_{i} -
+1\right)}\frac{X_{i}}{A_{i}}~.\]</div>
+<p>We note that the analytic expressions apply to both the forward
+(internal energy as a function of density, temperature, and composition)
+and backward (temperature as a function of density, internal energy and
+composition) relations. Because the backward relation requires no
+iteration in order to obtain the temperature, this EOS is quite
+inexpensive to evaluate. Despite its fast performance, use of the
+gamma-law EOS is limited, due to its restricted range of applicability
+for astrophysical problems.</p>
+</section>
+<section id="helmholtz">
+<span id="sec-eos-helmholtz"></span><h2>Helmholtz<a class="headerlink" href="#helmholtz" title="Permalink to this headline"></a></h2>
+<p>The Helmholtz EOS provided with the Flash-X distribution contains more
+physics and is appropriate for addressing astrophysical phenomena in
+which electrons and positrons may be relativistic and/or degenerate and
+in which radiation may significantly contribute to the thermodynamic
+state. Full details of the Helmholtz equation of state are provided in
+Timmes &amp; Swesty (1999). This EOS includes contributions from radiation,
+completely ionized nuclei, and degenerate/relativistic electrons and
+positrons. The pressure and internal energy are calculated as the sum
+over the components</p>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos3a}
+P_{\rm tot} = P_{\rm rad} + P_{\rm ion} + P_{\rm ele} + P_{\rm pos} + P_{\rm
+coul}\]</div>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos3b}
+\epsilon_{\rm tot} = \epsilon_{\rm rad} + \epsilon_{\rm ion} +
+\epsilon_{\rm ele} + \epsilon_{\rm pos}  + \epsilon_{\rm coul} \; .\]</div>
+<p>Here the subscripts “rad,” “ion,” “ele,” “pos,” and “coul” represent the
+contributions from radiation, nuclei, electrons, positrons, and
+corrections for Coulomb effects, respectively. The radiation portion
+assumes a blackbody in local thermodynamic equilibrium, the ion portion
+(nuclei) is treated as an ideal gas with <span class="math notranslate nohighlight">\(\gamma \, = \, 5/3\)</span>, and
+the electrons and positrons are treated as a non-interacting Fermi gas.</p>
+<p>The blackbody pressure and energy are calculated as</p>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos4a}
+P_{\rm rad} = {a T^4 \over 3}\]</div>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos4b}
+\epsilon_{\rm rad} = { 3 P_{\rm rad} \over \rho} \,\]</div>
+<p>where <span class="math notranslate nohighlight">\(a\)</span> is related to the Stephan-Boltzmann constant
+<span class="math notranslate nohighlight">\(\sigma_B \, = \,
+a c/4\)</span>, and <span class="math notranslate nohighlight">\(c\)</span> is the speed of light. The ion portion of each
+routine is the ideal gas of () with <span class="math notranslate nohighlight">\(\gamma \, =
+\, 5/3\)</span>. The number densities of free electrons <span class="math notranslate nohighlight">\(N_{\rm ele}\)</span> and
+positrons <span class="math notranslate nohighlight">\(N_{\rm pos}\)</span> in the noninteracting Fermi gas formalism
+are given by</p>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos6a}
+N_{\rm ele} = {8 \pi \sqrt{2} \over h^3} \
+                  m_{\rm e}^3 \ c^3 \ \beta^{3/2} \
+          \left[ F_{1/2}(\eta,\beta) \ + \ F_{3/2}(\eta,\beta) \right]\]</div>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos6b}
+N_{\rm pos} = {8 \pi \sqrt{2} \over h^3} \
+                  m_{\rm e}^3 \ c^3 \ \beta^{3/2}
+  \left[
+         F_{1/2} \left( -\eta - 2/\beta, \beta \right)
+         \ + \ \beta \
+         F_{3/2} \left( -\eta - 2 /\beta, \beta \right)
+    \right] \enskip ,\]</div>
+<p>where <span class="math notranslate nohighlight">\(h\)</span> is Planck’s constant, <span class="math notranslate nohighlight">\(m_{\rm e}\)</span> is the electron
+rest mass, <span class="math notranslate nohighlight">\(\beta \: = \: k T / (m_{\rm e} c^2)\)</span> is the relativity
+parameter, <span class="math notranslate nohighlight">\(\eta \: = \: \mu / k T\)</span> is the normalized chemical
+potential energy <span class="math notranslate nohighlight">\(\mu\)</span> for electrons, and
+<span class="math notranslate nohighlight">\(F_{k}(\eta,\beta)\)</span> is the Fermi-Dirac integral</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:eos7}
+    F_{k}(\eta,\beta) = \int\limits_{0}^{\infty} \
+    {x^{k} \ (1 + 0.5 \ \beta \ x)^{1/2} \ dx
+     \over
+     \exp(x - \eta) + 1
+    }\ .\]</div>
+<p>Because the electron rest mass is not included in the chemical
+potential, the positron chemical potential must have the form
+<span class="math notranslate nohighlight">\(\eta_{{\rm pos}} \, = \, -\eta - 2/\beta\)</span>. For complete
+ionization, the number density of free electrons in the matter is</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:eos8}
+N_{\rm ele,matter}
+   = {\bar{Z} \over \bar{A}} \ N_a \ \rho = \bar{Z} \ N_{\rm ion}
+\ ,\]</div>
+<p>and charge neutrality requires</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:eos9}
+N_{\rm ele,matter} = N_{\rm ele} - N_{\rm pos} \ .\]</div>
+<p>Solving this equation with a standard one-dimensional root-finding
+algorithm determines <span class="math notranslate nohighlight">\(\eta\)</span>. Once <span class="math notranslate nohighlight">\(\eta\)</span> is known, the
+Fermi-Dirac integrals can be evaluated, giving the pressure, specific
+thermal energy, and entropy due to the free electrons and positrons.
+From these, other thermodynamic quantities such as <span class="math notranslate nohighlight">\(\gamma_1\)</span> and
+<span class="math notranslate nohighlight">\(\gamma_4\)</span> are found. Full details of this formalism may be found
+in Fryxell <em>et al.</em> (2000) and references therein.</p>
+<p>The above formalism requires many complex calculations to evaluate the
+thermodynamic quantities, and routines for these calculations typically
+are designed for accuracy and thermodynamic consistency at the expense
+of speed. The Helmholtz EOS in Flash-X provides a table of the Helmholtz
+free energy (hence the name) and makes use of a thermodynamically
+consistent interpolation scheme obviating the need to perform the
+complex calculations required of the above formalism during the course
+of a simulation. The interpolation scheme uses a bi-quintic Hermite
+interpolant resulting in an accurate EOS that performs reasonably well.</p>
+<p>The Helmholtz free energy,</p>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos13a}
+F = \epsilon - T \ S\]</div>
+<div class="math notranslate nohighlight">
+\[\label {Eqn:eos13b}
+dF = -S \ dT + {P \over \rho^2} \ d\rho
+\enskip ,\]</div>
+<p>is the appropriate thermodynamic potential for use when the temperature
+and density are the natural thermodynamic variables. The free energy
+table distributed with Flash-X was produced from the Timmes EOS (Timmes
+&amp; Arnett 1999). The Timmes EOS evaluates the Fermi-Dirac integrals
+<a class="reference external" href="#Eqn:eos7">[Eqn:eos7]</a> and their partial derivatives with respect to
+<span class="math notranslate nohighlight">\(\eta\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span> to machine precision with the efficient
+quadrature schemes of Aparicio (1998) and uses a Newton-Raphson
+iteration to obtain the chemical potential of
+<a class="reference external" href="#Eqn:eos9">[Eqn:eos9]</a>. All partial derivatives of the pressure,
+entropy, and internal energy are formed analytically. Searches through
+the free energy table are avoided by computing hash indices from the
+values of any given <span class="math notranslate nohighlight">\((T,\rho \bar{Z}/\bar{A})\)</span> pair. No
+computationally expensive divisions are required in interpolating from
+the table; all of them can be computed and stored the first time the EOS
+routine is called.</p>
+<p>We note that the Helmholtz free energy table is constructed for only the
+electron-positron plasma, and it is a 2-dimensional function of density
+and temperature, <em>i.e.</em> <span class="math notranslate nohighlight">\(F(\rho,{\rm T})\)</span>. It is made with
+<span class="math notranslate nohighlight">\({\bar {\rm A}} \, = \, {\bar {\rm Z}} = 1\)</span> (pure hydrogen), with
+an electron fraction <span class="math notranslate nohighlight">\(Y_{\rm e} \, = \, 1\)</span>. One reason for not
+including contributions from photons and ions in the table is that these
+components of the Helmholtz EOS are very simple (), and one doesn’t need
+fancy table look-up schemes to evaluate simple analytical functions. A
+more important reason for only constructing an electron-positron EOS
+table with <span class="math notranslate nohighlight">\(Y_{\rm e} \, = \, 1\)</span> is that the 2-dimensional table
+is valid for <em>any</em> composition. Separate planes for each
+<span class="math notranslate nohighlight">\(Y_{\rm e}\)</span> are not necessary (or desirable), since simple
+multiplication by <span class="math notranslate nohighlight">\(Y_{\rm
+e}\)</span> in the appropriate places gives the desired composition scaling. If
+photons and ions were included in the table, then this valuable
+composition independence would be lost, and a 3-dimensional table would
+be necessary.</p>
+<p>The Helmholtz EOS has been subjected to considerable analysis and
+testing (Timmes &amp; Swesty 2000), and particular care was taken to reduce
+the numerical error introduced by the thermodynamical models below the
+formal accuracy of the hydrodynamics algorithm (Fryxell, et al. 2000;
+Timmes &amp; Swesty 2000). The physical limits of the Helmholtz EOS are
+<span class="math notranslate nohighlight">\(10^{-10}\,&lt;\,\rho\,&lt;\,10^{11}~({\rm g~cm}^{-3})\)</span> and
+<span class="math notranslate nohighlight">\(10^{4}\,&lt;\,T\,&lt;\,10^{11}\)</span> (K). As with the gamma-law EOS, the
+Helmholtz EOS provides both forward and backward relations. In the case
+of the forward relation (<span class="math notranslate nohighlight">\(\rho, T\)</span>, given along with the
+composition) the table lookup scheme and analytic formulae directly
+provide relevant thermodynamic quantities. In the case of the backward
+relation (<span class="math notranslate nohighlight">\(\rho, \epsilon\)</span>, and composition given), the routine
+performs a Newton-Rhaphson iteration to determine temperature. It is
+possible for the input variables to be changed in the iterative modes
+since the solution is not exact. The returned quantities are
+thermodynamically consistent.</p>
+</section>
+<section id="usage">
+<span id="sec-eos-usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h2>
+<section id="initialization">
+<span id="sec-eos-initialization"></span><h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline"></a></h3>
+<p>The initialization function of the Eos unit <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_init</span></code> is
+fairly simple for the two ideal gas gamma law implementations included.
+It gathers the runtime parameters and the physical constants needed by
+the equation of state and stores them in the data module. The Helmholtz
+EOS <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_init</span></code> routine is a little more complex. The
+<code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code> EOS requires an input file <code class="docutils literal notranslate"><span class="pre">helm_table.dat</span></code> that
+contains the lookup table for the electron contributions. This table is
+currently stored in ASCII for portability purposes. When the table is
+first read in, a binary version called <code class="docutils literal notranslate"><span class="pre">helm_table.bdat</span></code> is created.
+This binary format can be used for faster subsequent restarts on the
+same machine but may not be portable across platforms. The <code class="docutils literal notranslate"><span class="pre">Eos_init</span></code>
+routine reads in the table data on processor 0 and broadcasts it to all
+other processors.</p>
+</section>
+<section id="runtime-parameters">
+<span id="sec-eos-runtime-parameters"></span><h3>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline"></a></h3>
+<p>Runtime parameters for the <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> unit require the user to set the
+thermodynamic properties for the single gas. <code class="docutils literal notranslate"><span class="pre">Eos/gamma</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Eos/eos_singleSpeciesA</span></code>, <code class="docutils literal notranslate"><span class="pre">Eos/eos_singleSpeciesZ</span></code> set the ratio of
+specific heats and the nucleon and proton numbers for the gas. In
+contrast, the <code class="docutils literal notranslate"><span class="pre">Multigamma</span></code> implementation does not set runtime
+parameters to define properties of the multiple species. Instead, the
+simulation <code class="docutils literal notranslate"><span class="pre">Config</span></code> file indicates the requested species, for example
+helium and oxygen can be defined as</p>
+<div class="center docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPECIES</span> <span class="n">HE4</span>
+<span class="n">SPECIES</span> <span class="n">O16</span>
+</pre></div>
+</div>
+</div>
+<p>The properties of the gases are initialized in the file
+<code class="docutils literal notranslate"><span class="pre">Simulation/Simulation_initSpecies</span></code><code class="docutils literal notranslate"><span class="pre">.F90</span></code>, for example</p>
+<div class="center docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">Simulation_initSpecies</span><span class="p">()</span>
+  <span class="n">use</span> <span class="n">Multispecies_interface</span><span class="p">,</span> <span class="n">ONLY</span> <span class="p">:</span> <span class="n">Multispecies_setProperty</span>
+  <span class="n">implicit</span> <span class="n">none</span>
+<span class="c1">#include &quot;Simulation.h&quot;</span>
+<span class="c1">#include &quot;Multispecies.h&quot;</span>
+  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">HE4_SPEC</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="mf">4.</span><span class="p">)</span>
+  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">HE4_SPEC</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="mf">2.</span><span class="p">)</span>
+  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">HE4_SPEC</span><span class="p">,</span> <span class="n">GAMMA</span><span class="p">,</span> <span class="mf">1.66666666667e0</span><span class="p">)</span>
+  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">O16_SPEC</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">)</span>
+  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">O16_SPEC</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
+  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">O16_SPEC</span><span class="p">,</span> <span class="n">GAMMA</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">)</span>
+<span class="n">end</span> <span class="n">subroutine</span> <span class="n">Simulation_initSpecies</span>
+</pre></div>
+</div>
+</div>
+<p>For the Helmholtz equation of state, the table-lookup algorithm requires
+a given temperature and density. When temperature or internal energy are
+supplied as the input parameter, an iterative solution is found.
+Therefore, no matter what mode is selected for <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code> input, the
+best initial value of temperature should be provided to speed
+convergence of the iterations. The iterative solver is controlled by two
+runtime parameters <code class="docutils literal notranslate"><span class="pre">Eos/eos_maxNewton</span></code> and <code class="docutils literal notranslate"><span class="pre">Eos/eos_tolerance</span></code> which
+define the maximum number of iterations and convergence tolerance. An
+additional runtime parameter for <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code>, <code class="docutils literal notranslate"><span class="pre">Eos/eos_coulumbMult</span></code>,
+indicates whether or not to apply Coulomb corrections. In some regions
+of the <span class="math notranslate nohighlight">\(\rho\)</span>-<span class="math notranslate nohighlight">\(T\)</span> plane, the approximations made in the
+Coulomb corrections may be invalid and result in negative pressures.
+When the parameter <code class="docutils literal notranslate"><span class="pre">eos_coulombMult</span></code> is set to zero, the Coulomb
+corrections are not applied.</p>
+</section>
+<section id="direct-and-wrapped-calls">
+<span id="sec-eos-wrapper"></span><h3>Direct and Wrapped Calls<a class="headerlink" href="#direct-and-wrapped-calls" title="Permalink to this headline"></a></h3>
+<p>The primary function in the <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit operates on a vector, taking
+density, composition, and either temperature, internal energy, or
+pressure as input, and returning <span class="math notranslate nohighlight">\(\gamma_1\)</span>, and either the
+pressure, temperature or internal energy (whichever was not used as
+input). This equation of state interface is useful for initializing a
+problem. The user is given direct control over the input and output,
+since everything is passed through the argument list. Also, the vector
+data format is more efficient than calling the equation of state routine
+directly on a point by point basis, since it permits pipelining and
+provides better cache performance. Certain optional quantities such
+electron pressure, degeneracy parameter, and thermodynamic derivatives
+can be calculated by the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> function if needed. These
+quantities are selected for computation based upon a logical mask array
+provided as an input argument. A .true. value in the mask array results
+in the corresponding quantity being computed and reported back to the
+calling function. Examples of calling the basic implementation <code class="docutils literal notranslate"><span class="pre">Eos</span></code>
+are provided in the API description, see <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code>.</p>
+<p>The hydrodynamic and burning computations repeatedly call the Eos
+function to update pressure and temperature during the course of their
+calculation. Typically, values in all the cells of the block need of be
+updated in these calls. Since the primary Eos interface requires the
+data to be organized as a vector, using it directly could make the code
+in the calling unit very cumbersome and error prone. The wrapper
+interface, <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_wrapped</span></code> provides a means by which the
+details of translating the data from block to vector and back are hidden
+from the calling unit. The wrapper interface permits the caller to
+define a section of block by giving the limiting indices along each
+dimension. The <code class="docutils literal notranslate"><span class="pre">Eos_wrapped</span></code> routine translates the block section thus
+described into the vector format of the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> interface,
+and upon return translates the vector format back to the block section.
+This wrapper routine cannot calculate the optional derivative
+quantities. If they are needed, call the <code class="docutils literal notranslate"><span class="pre">Eos</span></code> routine directly with
+the optional mask set to true and space allocated for the returned
+quantities.</p>
+</section>
+</section>
+<section id="unit-test">
+<span id="sec-eos-unit-test"></span><h2>Unit Test<a class="headerlink" href="#unit-test" title="Permalink to this headline"></a></h2>
+<p>The unit test of the Eos function can exercise all three
+implementations. Because the Gamma law allows only one species, the
+setup required for the three implementations is specific. To invoke any
+three-dimensional <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit test, the command is:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">./setup</span> <span class="pre">unitTest/Eos/</span></code><em>implementation</em> <code class="docutils literal notranslate"><span class="pre">-auto</span> <span class="pre">-3d</span></code></p>
+</div></blockquote>
+<p>where <em>implementation</em> is one of <code class="docutils literal notranslate"><span class="pre">Gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">Multigamma</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code>. The <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit test works on the assumption that if the
+four physical variables in question (density, pressure, energy and
+temperature) are in thermal equilibrium with one another, then applying
+the equation of state to any two of them should leave the other two
+completely unchanged. Hence, if we initialize density and temperature
+with some arbitrary values, and apply the equation of state to them in
+<code class="docutils literal notranslate"><span class="pre">MODE_DENS_TEMP</span></code>, then we should get pressure and energy values that
+are thermodynamically consistent with density and temperature. Now after
+saving the original temperature value, we apply the equation of state to
+density and newly calculated pressure. The new value of the temperature
+should be identical to the saved original value. This verifies that the
+<code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit is computing correctly in <code class="docutils literal notranslate"><span class="pre">MODE_DENS_PRES</span></code> mode. By
+repeating this process for the remaining two modes, we can say with
+great confidence that the <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit is functioning normally.</p>
+<p>In our implementation of the Eos unit test, the initial conditions
+applied to the domain create a gradient for density along the <span class="math notranslate nohighlight">\(x\)</span>
+axis and gradients for temperature and pressure along the <span class="math notranslate nohighlight">\(y\)</span>
+axis. If the test is being run for the Multigamma or Helmholtz
+implementations, then the species are initialized to have gradients
+along the <span class="math notranslate nohighlight">\(z\)</span> axis.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="IncompNS.html" class="btn btn-neutral float-left" title="Incompressible Navier-Stokes Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sourceTerms.html" class="btn btn-neutral float-right" title="Local Source Terms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

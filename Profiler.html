@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timer and Profiler Units &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tools" href="tools.html" />
+    <link rel="prev" title="Logfile Unit" href="Logfile.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration )</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="monitor.html">Monitor Units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Logfile.html">Logfile Unit</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Timer and Profiler Units</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timers">Timers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpinative">MPINative</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tau">Tau</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#profiler">Profiler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="monitor.html">Monitor Units</a> &raquo;</li>
+      <li>Timer and Profiler Units</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Profiler.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="timer-and-profiler-units">
+<span id="chp-profiler-and-timer-units"></span><h1>Timer and Profiler Units<a class="headerlink" href="#timer-and-profiler-units" title="Permalink to this headline"></a></h1>
+<section id="timers">
+<span id="sec-timers-unit"></span><h2>Timers<a class="headerlink" href="#timers" title="Permalink to this headline"></a></h2>
+<section id="mpinative">
+<span id="sec-mpinative"></span><h3>MPINative<a class="headerlink" href="#mpinative" title="Permalink to this headline"></a></h3>
+<p>Flash-X includes an interface to a set of stopwatch-like timing routines
+for monitoring performance. The interface is defined in the
+<code class="docutils literal notranslate"><span class="pre">monitors/Timers</span></code> unit, and an implementation that uses the timing
+functionality provided by MPI is provided in
+<code class="docutils literal notranslate"><span class="pre">monitors/Timers/TimersMain/MPINative</span></code>. Future implementations might
+use the PAPI framework to track hardware counter details.</p>
+<p>The performance routines start or stop a timer at the beginning or end
+of a section of code to be monitored, and accumulate performance
+information in dynamically assigned accounting segments. The code also
+has an interface to write the timing summary to the Flash-X logfile.
+These routines are not recommended for timing very short segments of
+code due to the overhead in accounting.</p>
+<p>There are two ways of using the <code class="docutils literal notranslate"><span class="pre">Timers</span></code> routines in your code. One
+mode is to simply pass timer names as strings to the start and stop
+routines. In this first way, a timer with the given name will be created
+if it doesn’t exist, or otherwise reference the one already in
+existence. The second mode of using the timers references them not by
+name but by an integer key. This technique offers potentially faster
+access if a timer is to be started and stopped many times (although
+still not recommended because of the overhead). The integer key is
+obtained by calling with a string name <code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_create</span></code>
+which will only create the timer if it doesn’t exist and will return the
+integer key. This key can then be passed to the start and stop routines.</p>
+<p>The typical usage pattern for the timers is implemented in the default
+<code class="docutils literal notranslate"><span class="pre">Driver</span></code> implementation. This pattern is: call
+<code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_init</span></code> once at the beginning of a run, call
+<code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_start</span></code> and <code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_stop</span></code>
+around sections of code, and call <code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_getSummary</span></code>
+at the end of the run to report the timing summary at the end of the
+logfile. However, it is possible to call
+<code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_reset</span></code> in the middle of a run to reset all
+timing information. This could be done along with writing the summary
+once per-timestep to report code times on a per-timestep basis, which
+might be relevant, for instance, for certain non-fixed operation count
+solvers. Since <code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_reset</span></code> does not reset the
+integer key mappings, it is safe to obtain a key through
+<code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_create</span></code> once in a saved variable, and continue
+to use it after calling <code class="docutils literal notranslate"><span class="pre">monitors/Timers/Timers_reset</span></code>.</p>
+<p>Two runtime parameters control the <code class="docutils literal notranslate"><span class="pre">Timer</span></code> unit and are described
+below.</p>
+<div class="center docutils container">
+<div class="docutils container" id="tab-timers-parameters">
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Timers parameters (continued).</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td><p>Type</p></td>
+<td><p>Default value</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eachPro</span>
+<span class="pre">cWritesSummary</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LOGICAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p>Should each
+process write
+its summary to
+its own file? If
+true, each
+process will
+write its
+summary to a
+file named
+tim
+er_summary_:m
+ath:<cite>&lt;</cite>process
+id<span class="math notranslate nohighlight">\(&gt;\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wr</span>
+<span class="pre">iteStatSummary</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LOGICAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p>Should timers
+write the
+max/min/avg
+values for
+timers to the
+logfile?</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">monitors/Timers/TimersMain/MPINative</span></code> writes two summaries to the
+logfile: the first gives the timer execution of the master processor,
+and the second gives the statistics of max, min, and avg times for
+timers on all processors. The secondary max, min, and avg times will not
+be written if some process executed timers differently than another. For
+example, this anomaly happens if not all processors contain at least one
+block. In this case, the <code class="docutils literal notranslate"><span class="pre">Hydro</span></code> timers only execute on the processors
+that possess blocks. See for an example of this type of output. The max,
+min, and avg summary can be disabled by setting the runtime parameter
+<code class="docutils literal notranslate"><span class="pre">Timers/writeStatSummary</span></code> to false. In addition, each process can
+write its summary to its own file named <code class="docutils literal notranslate"><span class="pre">timer_summary_&lt;process</span> <span class="pre">id&gt;</span></code>.
+To prohibit each process from writing its summary to its own file, set
+the runtime parameter <code class="docutils literal notranslate"><span class="pre">Timers/eachProcWritesSummary</span></code> to false.</p>
+</section>
+<section id="tau">
+<h3>Tau<a class="headerlink" href="#tau" title="Permalink to this headline"></a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">|flashx|3.1</span></code> we add an alternative <code class="docutils literal notranslate"><span class="pre">Timers</span></code> implementation which
+is designed to be used with the <code class="docutils literal notranslate"><span class="pre">Tau</span></code> framework
+(<a class="reference external" href="http://acts.nersc.gov/tau/">http://acts.nersc.gov/tau/</a>). Here, we use <code class="docutils literal notranslate"><span class="pre">Tau</span></code> API calls to time the
+<code class="docutils literal notranslate"><span class="pre">|flashx|</span></code> labeled code sections (marked by <code class="docutils literal notranslate"><span class="pre">Timers_start</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Timers_stop</span></code>). After running the simulation, the <code class="docutils literal notranslate"><span class="pre">Tau</span></code> profile
+contains timing information for both <code class="docutils literal notranslate"><span class="pre">|flashx|</span></code> labeled code sections
+and all individual subroutines / functions. This is useful because fine
+grained subroutine / function level data can be overwhelming in a huge
+code like <code class="docutils literal notranslate"><span class="pre">|flashx|</span></code>. Also, the callpaths are preserved, meaning we can
+see how long is spent in individual subroutines / functions when they
+are called from within a particular <code class="docutils literal notranslate"><span class="pre">|flashx|</span></code> labeled code section.
+Another reason to use the <code class="docutils literal notranslate"><span class="pre">Tau</span></code> version is that the <code class="docutils literal notranslate"><span class="pre">MPINative</span></code>
+version (See ) is implemented using recursion, and so incurs significant
+overhead for fine grain measurements.</p>
+<p>To use this implementation we must compile the <code class="docutils literal notranslate"><span class="pre">|flashx|</span></code> source code
+with the <code class="docutils literal notranslate"><span class="pre">Tau</span></code> compiler wrapper scripts. These are set as the default
+compilers automatically whenever we specify the <code class="docutils literal notranslate"><span class="pre">-tau</span></code> option (see )
+to the setup script. In addition to the <code class="docutils literal notranslate"><span class="pre">-tau</span></code> option we must specify
+<code class="docutils literal notranslate"><span class="pre">–with-unit=monitors/Timers/TimersMain/Tau</span></code> as this <code class="docutils literal notranslate"><span class="pre">Timers</span></code>
+implementation is not the default.</p>
+</section>
+</section>
+<section id="profiler">
+<span id="sec-profiler-unit"></span><h2>Profiler<a class="headerlink" href="#profiler" title="Permalink to this headline"></a></h2>
+<p>In addition to an interface for simple timers, Flash-X includes a
+generic interface for third-party profiling or tracing libraries. This
+interface is defined in the <code class="docutils literal notranslate"><span class="pre">monitors/Profiler</span></code> unit.</p>
+<p>In Flash-X we created an interface to the IBM profiling libraries
+libmpihpm.a and libmpihpm_smp.a and also to HPCToolkit
+<a class="reference external" href="http://hpctoolkit.org/">http://hpctoolkit.org/</a> (Rice University). We make use of this interface
+to profile Flash-X evolution only, i.e. not initialization. To use this
+style of profiling add <code class="docutils literal notranslate"><span class="pre">-unit=monitors/Profiler/ProfilerMain/mpihpm</span></code>
+or <code class="docutils literal notranslate"><span class="pre">-unit=monitors/Profiler/ProfilerMain/hpctoolkit</span></code> to your setup
+line and also set the Flash-X runtime parameter <code class="docutils literal notranslate"><span class="pre">profileEvolutionOnly</span></code>
+= .true.</p>
+<p>For the IBM profiling library (mpihpm) you need to add LIB_MPIHPM and
+LIB_MPIHPM_SMP macros to your Makefile.h to link Flash-X to the
+profiling libraries. The actual macro used in the link line depends on
+whether you setup Flash-X with multithreading support (LIB_MPIHPM for
+MPI-only Flash-X and LIB_MPIHPM_SMP for multithreaded Flash-X). Example
+values from sites/miralac1/Makefile.h follow</p>
+<div class="codeseg docutils container">
+<p>LIB_MPI = HPM_COUNTERS = /bgsys/drivers/ppcfloor/bgpm/lib/libbgpm.a
+LIB_MPIHPM = -L/soft/perftools/hpctw -lmpihpm
+<span class="math notranslate nohighlight">\((HPM_COUNTERS)\)</span>(LIB_MPI) LIB_MPIHPM_SMP =
+-L/soft/perftools/hpctw -lmpihpm_smp
+<span class="math notranslate nohighlight">\((HPM_COUNTERS)\)</span>(LIB_MPI)</p>
+</div>
+<p>For HPCToolkit you need to set the environmental variable
+HPCRUN_DELAY_SAMPLING=1 at job launch to enable selective profiling (see
+the HPCToolkit user guide).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Logfile.html" class="btn btn-neutral float-left" title="Logfile Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tools.html" class="btn btn-neutral float-right" title="Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

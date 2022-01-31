@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IO Unit &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Runtime Parameters Unit" href="RuntimeParameters.html" />
+    <link rel="prev" title="Grid Unit" href="Grid.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration )</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="infrastructure.html">Infrastructure</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Grid.html">Grid Unit</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">IO Unit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#io-implementations">IO Implementations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-files">Output Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#checkpoint-files-restarting-a-simulation">Checkpoint files - Restarting a Simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#plotfiles">Plotfiles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#particle-files">Particle files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#integrated-grid-quantities-flash-dat">Integrated Grid Quantities – flash.dat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#general-runtime-parameters">General Runtime Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#restarts-and-runtime-parameters">Restarts and Runtime Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-scalars">Output Scalars</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-user-defined-arrays">Output User-defined Arrays</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-scratch-variables">Output Scratch Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#face-centered-data">Face-Centered Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-filenames">Output Filenames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-formats">Output Formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hdf5">HDF5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parallel-netcdf">Parallel-NetCDF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#direct-io">Direct IO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#output-side-effects">Output Side Effects</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#working-with-output-files">Working with Output Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unit-test">Unit Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#derived-data-type-i-o">Derived data type I/O</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="RuntimeParameters.html">Runtime Parameters Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Multispecies.html">Multispecies Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PhysicalConstants.html">Physical Constants Unit</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="infrastructure.html">Infrastructure</a> &raquo;</li>
+      <li>IO Unit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/IO.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="io-unit">
+<span id="chp-io"></span><h1>IO Unit<a class="headerlink" href="#io-unit" title="Permalink to this headline"></a></h1>
+<p>Flash-X uses parallel input/output (IO) libraries to simplify and manage
+the output of the large amounts of data usually produced. In addition to
+keeping the data output in a standard format, the parallel IO libraries
+also ensure that files will be portable across various platforms. The
+mapping of Flash-X data-structures to records in these files is
+controlled by the Flash-X IO unit. Flash-X can output data with HDF5
+parallel IO library. Various techniques can be used to write the data to
+disk when running a parallel simulation. The first is to move all the
+data to a single processor for output; this technique is known as serial
+IO. Secondly, each processor can write to a separate file, known as
+direct IO. As a third option, each processor can use parallel access to
+write to a single file in a technique known as parallel IO. Finally, a
+hybrid method can be used where clusters of processors write to the same
+file, though different clusters of processors output to different files.
+In general, parallel access to a single file will provide the best
+parallel IO performance unless the number of processors is very large.
+On some platforms, such as Linux clusters, there may not be a parallel
+file system, so moving all the data to a single processor is the only
+solution. Therefore Flash-X supports HDF5 libraries in both serial and
+parallel forms, where the serial version collects data to one processor
+before writing it, while the parallel version has every processor
+writing its data to the same file.</p>
+<section id="io-implementations">
+<span id="sec-flashx-output-formats"></span><h2>IO Implementations<a class="headerlink" href="#io-implementations" title="Permalink to this headline"></a></h2>
+<p>Flash-X supports multiple IO implementations: direct, serial and
+parallel implementations as well as support for different parallel
+libraries. In addition, Flash-X also supports multiple () <code class="docutils literal notranslate"><span class="pre">Grid</span></code>
+implementations. As a consequence, there are many permutations of the IO
+API implementation, and the selected implementation must match not only
+the correct IO library, but also the correct grid. Although there are
+many IO options, the <code class="docutils literal notranslate"><span class="pre">setup</span></code> script in Flash-X is quite ‘smart’ and
+will not let the user setup a problem with incompatible <code class="docutils literal notranslate"><span class="pre">IO</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Grid</span></code> unit implementations. summarizes the different implementation
+of the Flash-X IO unit in the current release.</p>
+<div class="longtable docutils container">
+<p>p2.5inp3.5in</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line">Implementation Path &amp; Description</div>
+</div>
+<div class="line-block">
+<div class="line">Implementation path &amp; Description <code class="docutils literal notranslate"><span class="pre">IO/IOMain/HDF5/parallel/PM</span></code>
+&amp;Hierarchical Data Format (HDF) 5 output. A single HDF5 file is
+created, with each processor writing its data to the same file
+simultaneously. This particular implementation only works with the
+<code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> grid package.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IO/IOMain/HDF5/parallel/AM</span></code> &amp;Hierarchical Data Format (HDF) 5
+output. A single HDF5 file is created, with each processor writing
+its data to the same file simultaneously. This particular
+implementation only works with the <code class="docutils literal notranslate"><span class="pre">|amrex|</span></code>grid package.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/parallel/UG</span></code> &amp;Hierarchical Data Format (HDF) 5
+output. A single HDF5 file is created, with each processor writing
+its data to the same file simultaneously. This implementation only
+works with the Uniform Grid.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/parallel/NoFbs</span></code> &amp;Hierarchical Data Format (HDF) 5
+output. A single HDF5 file is created, with each processor writing
+its data to the same file simultaneously. All data is written out
+as one block. This implementation only works with the Uniform Grid.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/serial/PM</span></code> &amp; Hierarchical Data Format (HDF) 5
+output. Each processor passes its data to processor 0 through
+explicit MPI sends and receives. Processor 0 does all of the
+writing. The resulting file format is identical to the parallel
+version; the only difference is how the data is moved during the
+writing. This implementation only works with the <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> grid
+package.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/serial/AM</span></code> &amp; Hierarchical Data Format (HDF) 5
+output. Each processor passes its data to processor 0 through
+explicit MPI sends and receives. Processor 0 does all of the
+writing. The resulting file format is identical to the parallel
+version; the only difference is how the data is moved during the
+writing. This implementation only works with the <code class="docutils literal notranslate"><span class="pre">|amrex|</span></code>grid
+package.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/serial/UG</span></code> &amp; Hierarchical Data Format (HDF) 5
+output. Each processor passes its data to processor 0 through
+explicit MPI sends and receives. Processor 0 does all of the
+writing. The resulting file format is identical to the parallel
+version; the only difference is how the data is moved during the
+writing. This particular implementation only works with the Uniform
+Grid.</div>
+</div>
+</div>
+<p>Flash-X also comes with some predefined setup <strong>shortcuts</strong> which make
+choosing the correct IO significantly easier; see for more details about
+shortcuts. In Flash-X HDF5 serial IO is included by default. Since
+<code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> 4.0 is the default grid, the included IO implementations
+will be compatible with <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> 4.0. For clarity, a number or
+examples are shown below.</p>
+<p>An example of a basic setup with HDF5 serial IO and the <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code>
+grid, (both defaults) is:</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto</p>
+</div>
+<p>To include a parallel implementation of HDF5 for a <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> grid the
+<code class="docutils literal notranslate"><span class="pre">setup</span></code> syntax is:</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto -unit=IO/IOMain/hdf5/parallel/PM</p>
+</div>
+<p>using the already defined shortcuts the <code class="docutils literal notranslate"><span class="pre">setup</span></code> line can be shortened
+to</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto +parallelio</p>
+</div>
+<p>To set up a problem with the Uniform Grid and HDF5 serial IO, the
+<code class="docutils literal notranslate"><span class="pre">setup</span></code> line is:</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto -unit=Grid/GridMain/UG
+-unit=IO/IOMain/hdf5/serial/UG</p>
+</div>
+<p>using the already defined shortcuts the <code class="docutils literal notranslate"><span class="pre">setup</span></code> line can be shortened
+to</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto +ug</p>
+</div>
+<p>To set up a problem with the Uniform Grid and HDF5 parallel IO, the
+complete <code class="docutils literal notranslate"><span class="pre">setup</span></code> line is:</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto -unit=Grid/GridMain/UG
+-unit=IO/IOMain/hdf5/parallel/UG</p>
+</div>
+<p>using the already defined shortcuts the <code class="docutils literal notranslate"><span class="pre">setup</span></code> line can be shortened
+to</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto +ug +parallelio</p>
+</div>
+<p>If you do <em>not</em> want to use IO, you need to <em>explicitly</em> specify on the
+<code class="docutils literal notranslate"><span class="pre">setup</span></code> line that it should not be included, as in this example:</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto +noio</p>
+</div>
+<p>To setup a problem using the Parallel-NetCDF library the user should
+include either</p>
+<div class="codeseg docutils container">
+<p>-unit=IO/IOMain/pnetcdf/PM or -unit=IO/IOMain/pnetcdf/UG</p>
+</div>
+<p>to the setup line. The predefined shortcut for including the
+Parallel-NetCDF library is</p>
+<div class="codeseg docutils container">
+<p>+pnetcdf</p>
+</div>
+<p>Note that Parallel-NetCDF IO unit does not have a serial implementation.</p>
+<p>If you are using non-fixedblocksize the shortcut</p>
+<div class="codeseg docutils container">
+<p>+nofbs</p>
+</div>
+<p>will bring in both Uniform Grid,set the mode to nonfixed blocksize, and
+choose the appropriate IO.</p>
+<p>In keeping with the Flash-X code architecture, the F90 module
+<code class="docutils literal notranslate"><span class="pre">IO_data</span></code> stores all the data with <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit scope. The routine
+<code class="docutils literal notranslate"><span class="pre">IO/IO_init</span></code> is called once by <code class="docutils literal notranslate"><span class="pre">Driver/Driver_initFlash</span></code> and
+initializes <code class="docutils literal notranslate"><span class="pre">IO</span></code> data and stores any runtime parameters. See .</p>
+</section>
+<section id="output-files">
+<h2>Output Files<a class="headerlink" href="#output-files" title="Permalink to this headline"></a></h2>
+<p>The IO unit can output 4 different types of files: checkpoint files,
+plotfiles, particle files and flash.dat, a text file holding the
+integrated grid quantities. Flash-X also outputs a logfile, but this
+file is controlled by the Logfile Unit; see for a description of that
+format.</p>
+<p>There are a number of runtime parameters that are used to control the
+output and frequency of IO files. A list of all the runtime parameters
+and their descriptions for the <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit can be found online
+<a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">``</span></a>IO/all of them. Additional description is located in for
+checkpoint parameters, for plotfile parameters, for particle file
+parameters, for flash.dat parameters, and for genereal IO parameters.</p>
+<section id="checkpoint-files-restarting-a-simulation">
+<h3>Checkpoint files - Restarting a Simulation<a class="headerlink" href="#checkpoint-files-restarting-a-simulation" title="Permalink to this headline"></a></h3>
+<p>Checkpoint files are used to restart a simulation. In a typical
+production run, a simulation can be interrupted for a number of reasons—
+<em>e.g.</em>, if the machine crashes, the present queue window closes, the
+machine runs out of disk space, or perhaps (gasp) there is a bug in
+Flash-X. Once the problem is fixed, a simulation can be restarted from
+the last checkpoint file rather than the beginning of the run. A
+checkpoint file contains all the information needed to restart the
+simulation. The data is stored at full precision of the code (8-byte
+reals) and includes all of the variables, species, grid reconstruction
+data, scalar values, as well as meta-data about the run.</p>
+<p>The API routine for writing a checkpoint file is
+<code class="docutils literal notranslate"><span class="pre">IO/IO_writeCheckpoint</span></code>. Users usually will not need to call this
+routine directly because the Flash-X IO unit calls
+<code class="docutils literal notranslate"><span class="pre">IO_writeCheckpoint</span></code> from the routine <code class="docutils literal notranslate"><span class="pre">IO/IO_output</span></code> which checks
+the runtime parameters to see if it is appropriate to write a checkpoint
+file at this time. There are a number of ways to get Flash-X to produce
+a checkpoint file for restarting. Within the flash.par, runtime
+parameters can be set to dump output. A checkpoint file can be dumped
+based on elapsed simulation time, elapsed wall clock time or the number
+of timesteps advanced. A checkpoint file is also produced when the
+simulation ends, when the max simulation time <code class="docutils literal notranslate"><span class="pre">Driver/tmax</span></code>, the
+minimum cosmological redshift, or the total number of steps
+<code class="docutils literal notranslate"><span class="pre">Driver/nend</span></code> has been reached. A user can force a dump to a
+checkpoint file at another time by creating a file named
+<code class="docutils literal notranslate"><span class="pre">.dump_checkpoint</span></code> in the output directory of the master processor.
+This manual action causes Flash-X to write a checkpoint in the next
+timestep. Checkpoint files will continue to be dumped after every
+timestep as long as the code finds a <code class="docutils literal notranslate"><span class="pre">.dump_checkpoint</span></code> file in the
+output directory, so the user must remember to remove the file once all
+the desired checkpoint files have been dumped. Creating a file named
+<code class="docutils literal notranslate"><span class="pre">.dump_restart</span></code> in the output directory will cause Flash-X to output a
+checkpoint file and then stop the simulation. This technique is useful
+for producing one last checkpoint file to save time evolution since the
+last checkpoint, if the machine is going down or a queue window is about
+to end. These different methods can be combined without problems. Each
+counter (number of timesteps between last checkpoint, amount of
+simulation time single last checkpoint, the change in cosmological
+redshift, and the amount of wall clock time elapsed since the last
+checkpoint) is independent of the others, and are not influenced by the
+use of a <code class="docutils literal notranslate"><span class="pre">.dump_checkpoint</span></code> or <code class="docutils literal notranslate"><span class="pre">.dump_restart</span></code>.</p>
+<p>Runtime Parameters used to control checkpoint file output include:</p>
+<div class="center docutils container">
+<div class="docutils container" id="tab-checkpoint-parameters">
+<table class="docutils align-default" id="id9">
+<caption><span class="caption-text">Checkpoint IO parameters (continued).</span><a class="headerlink" href="#id9" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td><p>Type</p></td>
+<td><p>Default value</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">checkp</span>
+<span class="pre">ointFileNumber</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number of
+the initial
+checkpoint file.
+This number is
+appended to the
+end of the
+filename and
+incremented at
+each subsequent
+output. When
+restarting a
+simulation, this
+indicates which
+checkpoint file
+to use.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">checkpointFi</span>
+<span class="pre">leIntervalStep</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number of
+timesteps
+desired between
+subsequent
+checkpoint
+files.</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">checkpointFi</span>
+<span class="pre">leIntervalTime</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">REAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.</span></code></p></td>
+<td><p>The amount of
+simulation time
+desired between
+subsequent
+checkpoint
+files.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">checkpoin</span>
+<span class="pre">tFileIntervalZ</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">REAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HUGE(1.)</span></code></p></td>
+<td><p>The amount of
+cosmological
+redshift change
+that is desired
+between
+subsequent
+checkpoint
+files.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">roll</span>
+<span class="pre">ing_checkpoint</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p>10000</p></td>
+<td><p>The number of
+checkpoint files
+to keep
+available at any
+point in the
+simulation. If a
+checkpoint
+number is
+greater than
+<code class="docutils literal notranslate"><span class="pre">rolli</span>
+<span class="pre">ng_checkpoint</span></code>,
+then the
+checkpoint
+number is reset
+to 0. There will
+be at most
+<code class="docutils literal notranslate"><span class="pre">roll</span>
+<span class="pre">ing_checkpoint</span></code>
+checkpoint files
+kept. This
+parameter is
+intended to be
+used when disk
+space is at a
+premium.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wall_cl</span>
+<span class="pre">ock_checkpoint</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">REAL</span></code></p></td>
+<td><ol class="arabic simple" start="43200">
+<li></li>
+</ol>
+</td>
+<td><p>The maximum
+amount of wall
+clock time
+(seconds) to
+elapse between
+checkpoints.
+When the
+simulation is
+started, the
+current time is
+stored. If
+<code class="docutils literal notranslate"><span class="pre">wall_cl</span>
+<span class="pre">ock_checkpoint</span></code>
+seconds elapse
+over the course
+of the
+simulation, a
+checkpoint file
+is stored. This
+is useful for
+ensuring that a
+checkpoint file
+is produced
+before a queue
+closes.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">restart</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.false.</span></code></p></td>
+<td><p>A logical
+variable
+indicating
+whether the
+simulation is
+restarting from
+a checkpoint
+file
+(<code class="docutils literal notranslate"><span class="pre">.true.</span></code>) or
+starting from
+scratch
+(<code class="docutils literal notranslate"><span class="pre">.false.</span></code>).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Flash-X is capable of restarting from any of the checkpoint files it
+produces. The user should make sure that the checkpoint file is valid
+(<em>e.g.</em>, the code did not stop while outputting). To tell Flash-X to
+restart, set the <code class="docutils literal notranslate"><span class="pre">Driver/restart</span></code> runtime parameter to <code class="docutils literal notranslate"><span class="pre">.true.</span></code> in
+the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code>. Also, set <code class="docutils literal notranslate"><span class="pre">IO/checkpointFileNumber</span></code> to the number
+of the file from which you wish to restart. If plotfiles or particle
+files are being produced set <code class="docutils literal notranslate"><span class="pre">IO/plotfileNumber</span></code> and
+<code class="docutils literal notranslate"><span class="pre">IO/particleFileNumber</span></code> to the number of the <em>next</em> plotfile and
+particle file you want Flash-X to output. In Flash-X plotfiles and
+particle file outputs are forced whenever a checkpoint file is written.
+Sometimes several plotfiles may be produced after the last valid
+checkpoint file. Resetting <code class="docutils literal notranslate"><span class="pre">plotfileNumber</span></code> to the first plotfile
+produced after the checkpoint from which you are restarting will ensure
+that there are no gaps in the output. See</p>
+<p>for more details on plotfiles.</p>
+</section>
+<section id="plotfiles">
+<span id="sec-plotfiles"></span><h3>Plotfiles<a class="headerlink" href="#plotfiles" title="Permalink to this headline"></a></h3>
+<p>A plotfile contains all the information needed to interpret the grid
+data maintained by Flash-X. The data in plotfiles, including the grid
+metadata such as coordinates and block sizes, are stored at single
+precision to preserve space. This can, however, be overridden by setting
+the runtime parameters <code class="docutils literal notranslate"><span class="pre">plotfileMetadataDP</span></code> and/or
+<code class="docutils literal notranslate"><span class="pre">plotfileGridQuantityDP</span></code> to true to set the grid metadata and the
+quantities stored on the grid (dens, pres, temp, etc.) to use double
+precision, respectively. Users must choose which variables to output
+with the runtime parameters <code class="docutils literal notranslate"><span class="pre">IO/plot_var_1</span></code>, <code class="docutils literal notranslate"><span class="pre">IO/plot_var_2</span></code>,
+<em>etc.</em>, by setting them in the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code> file. For example:</p>
+<div class="codeseg docutils container">
+<p>plot_var_1 = “dens” plot_var_2 = “pres”</p>
+</div>
+<p>Currently, we support a number of plotvars named <code class="docutils literal notranslate"><span class="pre">plot_var_n</span></code> up to
+the number of <code class="docutils literal notranslate"><span class="pre">UNKVARS</span></code> in a given simulation. Similarly, scratch
+variables may be output to plot files . At this time, the plotting of
+face centered quantities is not supported.</p>
+<div class="flashtip docutils container">
+<p>In Flash-X a few variables like density and pressure were output to
+the plotfiles by default. Because Flash-X supports a wider range of
+simulations, it makes no assumptions that density or pressure
+variables are even included in the simulation. In Flash-X a user
+<em>must</em> define plotfile variables in the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code> file, otherwise
+the plotfiles will not contain any variables.</p>
+</div>
+<div class="line-block">
+<div class="line">The interface for writing a plotfile is the routine
+<code class="docutils literal notranslate"><span class="pre">IO/IO_writePlotfile</span></code>. As with checkpoint files, the user will not
+need to call this routine directly because it is invoked indirectly
+through calling <code class="docutils literal notranslate"><span class="pre">IO/IO_output</span></code> when, based on runtime parameters,
+Flash-X needs to write a plotfile. Flash-X can produce plotfiles in
+much the same manner as it does with checkpoint files. They can be
+dumped based on elapsed simulation time, on steps since the last
+plotfile dump or by forcing a plotfile to be written by hand by
+creating a<code class="docutils literal notranslate"><span class="pre">.dump_plotfile</span></code> in the output directory. A plotfile
+will also be written at the termination of a simulation as well.</div>
+<div class="line">If plotfiles are being kept at particular intervals (such as time
+intervals) for purposes such as visualization or analysis, it is also
+possible to have Flash-X denote a plotfile as “forced”. This
+designation places the word forced between the basename and the file
+format type identifier (or the split number if splitting is used).
+These files are numbered separately from normal plotfiles. By default,
+plotfiles are considered forced if output for any reason other than
+the change in simulation time, change in cosmological redshift, change
+in step number, or the termination of a simulation from reaching
+<code class="docutils literal notranslate"><span class="pre">nend</span></code> , <code class="docutils literal notranslate"><span class="pre">zFinal</span></code>, or <code class="docutils literal notranslate"><span class="pre">tmax</span></code>. This option can be disabled by
+setting <code class="docutils literal notranslate"><span class="pre">ignoreForcedPlot</span></code> to true in a simulations <code class="docutils literal notranslate"><span class="pre">flash.par</span></code>
+file. The following runtime parameters pertain to controlling
+plotfiles:</div>
+</div>
+<div class="center docutils container">
+<div class="docutils container" id="tab-plotfile-parameters">
+<table class="docutils align-default" id="id10">
+<caption><span class="caption-text">Plotfile IO parameters (continued).</span><a class="headerlink" href="#id10" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td><p>Type</p></td>
+<td><p>Default value</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-odd"><td><p>``
+plotFileNumber``</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number of
+the starting (or
+restarting)
+plotfile. This
+number is
+appended to the
+filename.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plotFi</span>
+<span class="pre">leIntervalTime</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">REAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.</span></code></p></td>
+<td><p>The amount of
+simulation time
+desired between
+subsequent
+plotfiles.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plotFi</span>
+<span class="pre">leIntervalStep</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number of
+timesteps
+desired between
+subsequent
+plotfiles.</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plo</span>
+<span class="pre">tFileIntervalZ</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HUGE(1.)</span></code></p></td>
+<td><p>The change in
+cosmological
+redshift desired
+between
+subsequent
+plotfiles.</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.false.</span></code></p></td>
+<td><p>A logical
+variable
+indicating
+whether to
+interpolate the
+data to cell
+corners before
+outputting. This
+option only
+applies to
+plotfiles.</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">STRING</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code></p></td>
+<td><p>Name of the
+variables to
+store in a
+plotfile. Up to
+12 variables can
+be selected for
+storage, and the
+standard
+4-character
+variable name
+can be used to
+select them.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ig</span>
+<span class="pre">noreForcedPlot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.false.</span></code></p></td>
+<td><p>A logical
+variable
+indicating
+whether or not
+to denote
+certain
+plotfiles as
+forced.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">forced</span>
+<span class="pre">PlotfileNumber</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>An integer that
+sets the
+starting number
+for a forced
+plotfile.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot</span>
+<span class="pre">fileMetadataDP</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.false.</span></code></p></td>
+<td><p>A logical
+variable
+indicating
+whether or or
+not to output
+the normally
+single-precision
+grid metadata
+fields as double
+precision in
+plotfiles. This
+specifically
+affects
+<code class="docutils literal notranslate"><span class="pre">coordinates</span></code>,
+<code class="docutils literal notranslate"><span class="pre">block</span> <span class="pre">size</span></code>,
+and
+`
+<cite>bounding box`</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plotfile</span>
+<span class="pre">GridQuantityDP</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.false.</span></code></p></td>
+<td><p>A logical
+variable that
+sets whether or
+not quantities
+stored on the
+grid, such as
+those stored in
+<code class="docutils literal notranslate"><span class="pre">unk</span></code>, are
+output in single
+precision or
+double precision
+in plotfiles.</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="particle-files">
+<span id="sec-particle-files"></span><h3>Particle files<a class="headerlink" href="#particle-files" title="Permalink to this headline"></a></h3>
+<p>When Lagrangian particles are included in a simulation, the ParticleIO
+subunit controls input and output of the particle information. The
+particle files are stored in double precision. Particle data is written
+to the checkpoint file in order to restart the simulation, but is not
+written to plotfiles. Hence analysis and metadata about particles is
+also written to the particle files. The particle files are intended for
+more frequent dumps. The interface for writing the particle file is
+<code class="docutils literal notranslate"><span class="pre">IO/IO_writeParticles</span></code>. Again the user will not usually call this
+function directly because the routine <code class="docutils literal notranslate"><span class="pre">IO_output</span></code> controls particle
+output based on the runtime parameters controlling particle files. They
+are controlled in much of the same way as the plotfiles or checkpoint
+files and can be dumped based on elapsed simulation time, on steps since
+the last particle dump or by forcing a particle file to be written by
+hand by creating a <code class="docutils literal notranslate"><span class="pre">.dump_particle_file</span></code> in the output directory. The
+following runtime parameters pertain to controlling particle files:</p>
+<div class="center docutils container">
+<div class="docutils container" id="tab-particle-file-parameters">
+<table class="docutils align-default" id="id11">
+<caption><span class="caption-text">Particle File IO runtime parameters.</span><a class="headerlink" href="#id11" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td><p>Type</p></td>
+<td><p>Default value</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">part</span>
+<span class="pre">icleFileNumber</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number of
+the starting (or
+restarting)
+particle file.
+This number is
+appended to the
+end of the
+filename.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">particleFi</span>
+<span class="pre">leIntervalTime</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">REAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.</span></code></p></td>
+<td><p>The amount of
+simulation time
+desired between
+subsequent
+particle file
+dumps.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">particleFi</span>
+<span class="pre">leIntervalStep</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number of
+timesteps
+desired between
+subsequent
+particle file
+dumps.</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">particl</span>
+<span class="pre">eFileIntervalZ</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">REAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HUGE(1.)</span></code></p></td>
+<td><p>The change in
+cosmological
+redshift desired
+between
+subsequent
+particle file
+dumps.</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>All the code necessary to output particle data is contained in the
+<code class="docutils literal notranslate"><span class="pre">IO</span></code> subunit called <code class="docutils literal notranslate"><span class="pre">IOParticles</span></code>. Whenever the <code class="docutils literal notranslate"><span class="pre">Particles</span></code> unit
+is included in a simulation the correct <code class="docutils literal notranslate"><span class="pre">IOParticles</span></code> subunit will
+also be included. For example as setup:</p>
+<div class="codeseg docutils container">
+<p>./setup IsentropicVortex -2d -auto -unit=Particles +ug</p>
+</div>
+<p>will include the <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit <code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/serial/UG</span></code> and the
+correct <code class="docutils literal notranslate"><span class="pre">IOParticles</span></code> subunit <code class="docutils literal notranslate"><span class="pre">IO/IOParticles/hdf5/serial/UG</span></code>. The
+shortcuts <code class="docutils literal notranslate"><span class="pre">+parallelio</span></code>, <code class="docutils literal notranslate"><span class="pre">+pnetcdf</span></code>, <code class="docutils literal notranslate"><span class="pre">+ug</span></code> will also cause the
+setup script to pick up the correct <code class="docutils literal notranslate"><span class="pre">IOParticles</span></code> subunit as long as a
+<code class="docutils literal notranslate"><span class="pre">Particles</span></code> unit is included in the simulation.</p>
+</section>
+<section id="integrated-grid-quantities-flash-dat">
+<h3>Integrated Grid Quantities – flash.dat<a class="headerlink" href="#integrated-grid-quantities-flash-dat" title="Permalink to this headline"></a></h3>
+<p>At each simulation time step, values which represent the overall state
+(<em>e.g.</em>, total energy and momentum) are computed by calculating over all
+cells in the computations domain. These integral quantities are written
+to the ASCI file <code class="docutils literal notranslate"><span class="pre">flash.dat</span></code>. A default routine
+<code class="docutils literal notranslate"><span class="pre">IO/IO_writeIntegralQuantities</span></code> is provided to output standard
+measures for hydrodynamic simulations. The user should copy and modify
+the routine <code class="docutils literal notranslate"><span class="pre">IO_writeIntegralQuantities</span></code> into a given simulation
+directory to store any quantities other than the default values. Two
+runtime parameters pertaining to the <code class="docutils literal notranslate"><span class="pre">flash.dat</span></code> file are listed in
+the table below.</p>
+<div class="center docutils container">
+<div class="docutils container" id="tab-flash-dat-parameters">
+<table class="docutils align-default" id="id12">
+<caption><span class="caption-text">flash.dat runtime parameters.</span><a class="headerlink" href="#id12" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 20%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td><p>Type</p></td>
+<td><p>Default value</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stats_file</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">STRING</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;flash.dat&quot;</span></code></p></td>
+<td><p>Name of the
+file to which
+the integral
+quantities are
+written.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wr_i</span>
+<span class="pre">ntegrals_freq</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">INTEGER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>The number of
+timesteps to
+elapse between
+outputs to the
+scalar/integral
+data file
+(<code class="docutils literal notranslate"><span class="pre">flash.dat</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="general-runtime-parameters">
+<h3>General Runtime Parameters<a class="headerlink" href="#general-runtime-parameters" title="Permalink to this headline"></a></h3>
+<p>There are several runtime parameters that pertain to the general IO unit
+or multiple output files rather than one particular output file. They
+are listed in the table below.</p>
+<div class="center docutils container">
+<div class="longtable docutils container">
+<p>p1.7inllp2.7in</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">Parameter &amp; Type &amp; Default value &amp; Description</div>
+</div>
+<div class="line">Parameter &amp; Type &amp; Default value &amp; Description</div>
+</div>
+<div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">basenm</span></code> &amp; <code class="docutils literal notranslate"><span class="pre">STRING</span></code> &amp; <code class="docutils literal notranslate"><span class="pre">&quot;flash_&quot;</span></code> &amp; The main part of the
+output filenames. The full filename consists of the base name, a
+series of three-character abbreviations indicating whether it is
+a plotfile, particle file or checkpoint file, the file format,
+and a 4-digit file number. See for a description of how Flash-X
+output files are named.</div>
+</div>
+<div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">output_directory</span></code> &amp; <code class="docutils literal notranslate"><span class="pre">STRING</span></code> &amp; <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> &amp; Output directory
+for plotfiles, particle files and checkpoint files. The default
+is the directory in which the executable sits.
+<code class="docutils literal notranslate"><span class="pre">output_directory</span></code> can be an absolute or relative path.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">memory_stat_freq</span></code> &amp; <code class="docutils literal notranslate"><span class="pre">INTEGER</span></code> &amp; <code class="docutils literal notranslate"><span class="pre">100000</span></code> &amp; The number of
+timesteps to elapse between memory statistic dumps to the log
+file (<code class="docutils literal notranslate"><span class="pre">flash.log</span></code>).</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">useCollectiveHDF5</span></code> &amp;<code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code>&amp;<code class="docutils literal notranslate"><span class="pre">.true.</span></code> &amp; When using
+the parallel HDF5 implementation of IO, will enable collective
+mode for HDF5.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">summaryOutputOnly</span></code> &amp;<code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code>&amp;<code class="docutils literal notranslate"><span class="pre">.false.</span></code> &amp; When set
+to .true. write an integrated grid quantities file only.
+Checkpoint, plot and particle files are not written unless the
+user creates a .dump_plotfile, .dump_checkpoint, .dump_restart
+or .dump_particle file.</div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="restarts-and-runtime-parameters">
+<span id="sec-runtime-parameters"></span><h2>Restarts and Runtime Parameters<a class="headerlink" href="#restarts-and-runtime-parameters" title="Permalink to this headline"></a></h2>
+<p>Flash-X outputs the runtime parameters of a simulation to all checkpoint
+files. When a simulation is restarted, these values are known by the
+<code class="docutils literal notranslate"><span class="pre">RuntimeParameters</span></code> unit while the code is running. On a restart, all
+values from the checkpoint used in the restart are stored as previous
+values in the lists kept by the <code class="docutils literal notranslate"><span class="pre">RuntimeParameters</span></code> unit. All current
+values are taken from the defaults used by Flash-X and any simulation
+parameter files (<em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">flash.par</span></code>). If needed, the previous values
+from the checkpoint file can be obtained using the routines
+<code class="docutils literal notranslate"><span class="pre">RuntimeParameters/RuntimeParameters_getPrev</span></code>.</p>
+</section>
+<section id="output-scalars">
+<span id="sec-output-scalars"></span><h2>Output Scalars<a class="headerlink" href="#output-scalars" title="Permalink to this headline"></a></h2>
+<p>In Flash-X, each unit has the opportunity to request scalar data to be
+output to checkpoint or plotfiles. Because there is no central database,
+each unit “owns” different data in the simulation. For example, the
+<code class="docutils literal notranslate"><span class="pre">Driver</span></code> unit owns the timestep variable <code class="docutils literal notranslate"><span class="pre">dt</span></code>, the simulation
+variable <code class="docutils literal notranslate"><span class="pre">simTime</span></code>, and the simulation step number <code class="docutils literal notranslate"><span class="pre">nStep</span></code>. The
+<code class="docutils literal notranslate"><span class="pre">Grid</span></code> unit owns the sizes of each block, <code class="docutils literal notranslate"><span class="pre">nxb</span></code>, <code class="docutils literal notranslate"><span class="pre">nyb</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">nzb</span></code>. The <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit owns the variable <code class="docutils literal notranslate"><span class="pre">checkpointFileNumber</span></code>.
+Each of these quantities are output into checkpoint files. Instead of
+hard coding the values into checkpoint routines, Flash-X offers a more
+flexible interface whereby each unit sends its data to the <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit.
+The <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit then stores these values in a linked list and writes
+them to the checkpoint file or plotfile. Each unit has a routine called
+“<code class="docutils literal notranslate"><span class="pre">Unit_sendOutputData</span></code>”, <em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">Driver/Driver_sendOutputData</span></code>
+and <code class="docutils literal notranslate"><span class="pre">Grid/Grid_sendOutputData</span></code>. These routines in turn call
+<code class="docutils literal notranslate"><span class="pre">IO/IO_setScalar</span></code>. For example, the routine
+<code class="docutils literal notranslate"><span class="pre">Grid/Grid_sendOutputData</span></code> calls</p>
+<div class="codeseg docutils container">
+<p>IO_setScalar(“nxb”, NXB) IO_setScalar(“nyb”, NYB) IO_setScalar(“nzb”,
+NZB)</p>
+</div>
+<p>To output additional simulation scalars in a checkpoint file, the user
+should override one of the “<code class="docutils literal notranslate"><span class="pre">Unit_sendOutputData</span></code>” or
+<code class="docutils literal notranslate"><span class="pre">Simulation_sendOutputData</span></code>.</p>
+<p>After restarting a simulation from a checkpoint file, a unit might call
+<code class="docutils literal notranslate"><span class="pre">IO/IO_getScalar</span></code> to reset a variable value. For example, the
+<code class="docutils literal notranslate"><span class="pre">Driver</span></code> unit calls <code class="docutils literal notranslate"><span class="pre">IO_getScalar(&quot;dt&quot;,</span> <span class="pre">dr_dt)</span></code> to get the value of
+the timestep <code class="docutils literal notranslate"><span class="pre">dt</span></code> reinitialized from the checkpoint file. A value from
+the checkpoint file can be obtained by calling <code class="docutils literal notranslate"><span class="pre">IO/IO_getPrevScalar</span></code>.
+This call can take an optional argument to find out if an error has
+occurred in finding the previous value, most commonly because the value
+was not found in the checkpoint file. By using this argument, the user
+can then decide what to do if the value is not found. If the scalar
+value is not found and the optional argument is not used, then the
+subroutine will call <code class="docutils literal notranslate"><span class="pre">Driver/Driver_abortFlash</span></code> and terminate the run.</p>
+</section>
+<section id="output-user-defined-arrays">
+<span id="sec-output-user-defined-arrays"></span><h2>Output User-defined Arrays<a class="headerlink" href="#output-user-defined-arrays" title="Permalink to this headline"></a></h2>
+<p>Often in a simulation the user needs to output additional information to
+a checkpoint or plotfile which is not a grid scope variable. In Flash-X
+any additional information had to be hard coded into the simulation. In
+Flash-X, we have provided a general interface <code class="docutils literal notranslate"><span class="pre">IO/IO_writeUserArray</span></code>
+and <code class="docutils literal notranslate"><span class="pre">IO/IO_readUserArray</span></code> which allows the user to write and read any
+generic array needed to be stored. The above two functions do not have
+any implementation and it is up to the user to fill them in with the
+needed calls to the HDF5 or pnetCDF C routines. We provide
+implementation for reading and writing integer and double precision
+arrays with the helper routines <code class="docutils literal notranslate"><span class="pre">io_h5write_generic_iarr</span></code>,
+<code class="docutils literal notranslate"><span class="pre">io_h5write_generic_rarr</span></code>, <code class="docutils literal notranslate"><span class="pre">io_ncmpi_write_generic_iarr</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">io_ncmpi_write_generic_rarr</span></code>. Data is written out as a 1-dimensional
+array, but the user can write multidimensional arrays simply by passing
+a reference to the data and the total number of elements to write. See
+these routines and the simulation <code class="docutils literal notranslate"><span class="pre">StirTurb</span></code> for details on their
+usage.</p>
+</section>
+<section id="output-scratch-variables">
+<span id="lbl-outputscratchvariables"></span><h2>Output Scratch Variables<a class="headerlink" href="#output-scratch-variables" title="Permalink to this headline"></a></h2>
+<p>In Flash-X a user can allocate space for a scratch or temporary variable
+with grid scope using one of the <code class="docutils literal notranslate"><span class="pre">Config</span></code> keywords <code class="docutils literal notranslate"><span class="pre">SCRATCHVAR</span></code>,
+<code class="docutils literal notranslate"><span class="pre">SCRATCHCENTERVAR</span></code>, <code class="docutils literal notranslate"><span class="pre">SCRATCHFACEXVAR</span></code>,<code class="docutils literal notranslate"><span class="pre">SCRATCHFACEYVAR</span></code> or
+<code class="docutils literal notranslate"><span class="pre">SCRATCHFACEZVAR</span></code> (see ). To output these scratch variables, the user
+only needs to set the values of the runtime parameters
+<code class="docutils literal notranslate"><span class="pre">IO/plot_grid_var_1</span></code>, <code class="docutils literal notranslate"><span class="pre">IO/plot_grid_var_2</span></code>, <em>etc.</em>, by setting them
+in the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code> file. For example to output the magnitude of
+vorticity with a declaration in a <code class="docutils literal notranslate"><span class="pre">Config</span></code> file of
+<code class="docutils literal notranslate"><span class="pre">SCRATCHVAR</span> <span class="pre">mvrt</span></code>:</p>
+<div class="codeseg docutils container">
+<p>plot_grid_var_1 = “mvrt”</p>
+</div>
+<p>Note that the post-processing routines like <code class="docutils literal notranslate"><span class="pre">fidlr</span></code> do not display
+these variables, although they are present in the output file. Future
+implementations may support this visualization.</p>
+</section>
+<section id="face-centered-data">
+<h2>Face-Centered Data<a class="headerlink" href="#face-centered-data" title="Permalink to this headline"></a></h2>
+<p>Face-centered variables are now output to checkpoint files, when they
+are declared in a configuration file. Presently, up to nine
+face-centered variables are supported in checkpoint files. Plotfile
+output of face-centered data is not yet supported.</p>
+</section>
+<section id="output-filenames">
+<span id="sec-output-file-names"></span><h2>Output Filenames<a class="headerlink" href="#output-filenames" title="Permalink to this headline"></a></h2>
+<p>Flash-X constructs the output filenames based on the user-supplied
+basename, (runtime parameter <code class="docutils literal notranslate"><span class="pre">basenm</span></code>) and the file counter that is
+incremented after each output. Additionally, information about the file
+type and data storage is included in the filename. The general
+checkpoint filename is:</p>
+<dl class="simple">
+<dt><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id13"><span class="problematic" id="id14">basename_s0000_</span></a>left{begin{array}{c}mathtt{hdf5}\ mathtt{ncmpi}\</dt><dd><p>end{array}right}_chk_0000``,</p>
+</dd>
+</dl>
+<p>where <code class="docutils literal notranslate"><span class="pre">hdf5</span></code> or <code class="docutils literal notranslate"><span class="pre">ncmpi</span></code> (prefix for PnetCDF) is picked depending on
+the particular IO implementation, the number following the “s” is the
+split file number, if split file IO is in use, and the number at the end
+of the filename is the current checkpointFileNumber. (The PnetCDF
+function prefix “<code class="docutils literal notranslate"><span class="pre">ncmpi</span></code>” derived from the serial NetCDF calls
+beginning with “<code class="docutils literal notranslate"><span class="pre">nc</span></code>”)</p>
+<p>The general plotfile filename is:</p>
+<dl class="simple">
+<dt><a href="#id7"><span class="problematic" id="id8">``</span></a><a href="#id15"><span class="problematic" id="id16">basename_s0000_</span></a>left{begin{array}{c}</dt><dd><p>mathtt{hdf5}\
+mathtt{ncmpi}\
+end{array}right}_plt_left{
+begin{array}{c}mathtt{crn}\
+mathtt{cnt}\
+end{array}right}_0000``,</p>
+</dd>
+</dl>
+<p>where <code class="docutils literal notranslate"><span class="pre">hdf5</span></code> or <code class="docutils literal notranslate"><span class="pre">ncmpi</span></code> is picked depending on the IO implementation
+used, <code class="docutils literal notranslate"><span class="pre">crn</span></code> and <code class="docutils literal notranslate"><span class="pre">cnt</span></code> indicate data stored at the cell corners or
+centers respectively, the number following “s” is the split file number,
+if used, and the number at the end of the filename is the current value
+of <code class="docutils literal notranslate"><span class="pre">plotfileNumber</span></code>. <code class="docutils literal notranslate"><span class="pre">crn</span></code> is reserved, even though corner data
+output is not presently supported by Flash-X’s IO.</p>
+</section>
+<section id="output-formats">
+<span id="sec-output-formats"></span><h2>Output Formats<a class="headerlink" href="#output-formats" title="Permalink to this headline"></a></h2>
+<p>HDF5 is our most most widely used IO library although Parallel-NetCDF is
+rapidly gaining acceptance among the high performance computing
+community. In Flash-X we also offer a serial direct FORTRAN IO which is
+currently only implemented for the uniform grid. This option is intended
+to provide users a way to output data if they do not have access to HDF5
+or PnetCDF. Additionally, if HDF5 or PnetCDF are not performing well on
+a given platform the direct IO implementation can be used as a last
+resort. Our tools, fidlr and sfocu (), do not currently support the
+direct IO implementation, and the output files from this mode are not
+portable across platforms.</p>
+<section id="hdf5">
+<span id="sec-hdf5"></span><h3>HDF5<a class="headerlink" href="#hdf5" title="Permalink to this headline"></a></h3>
+<p>HDF5 is supported on a large variety of platforms and offers large file
+support and parallel IO via MPI-IO. Information about the different
+versions of HDF can be found at
+<a class="reference external" href="https://support.hdfgroup.org/documentation/">https://support.hdfgroup.org/documentation/</a>. The IO in Flash-X
+implementations require HDF5 1.4.0 or later. Please note that HDF5 1.6.2
+requires IDL 1.6 or higher in order to use fidlr3.0 for post processing.</p>
+<p>Implementations of the <code class="docutils literal notranslate"><span class="pre">HDF5</span></code> <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit use the HDF application
+programming interface (API) for organizing data in a database fashion.
+In addition to the raw data, information about the data type and byte
+ordering (little- or big-endian), rank, and dimensions of the dataset is
+stored. This makes the HDF format extremely portable across platforms.
+Different packages can query the file for its contents without knowing
+the details of the routine that generated the data.</p>
+<p>Flash-X provides different HDF5 IO unit implementations – the serial and
+parallel versions for each supported grid, Uniform Grid and
+<code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code>. It is important to remember to match the IO implementation
+with the correct grid, although the <code class="docutils literal notranslate"><span class="pre">setup</span></code> script generally takes
+care of this matching. <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> 2, <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> 4.0, and
+<code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> 4dev all work with the <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code>(PM) implementation of
+IO. Nonfixed blocksize IO has its own implementation in parallel, and is
+presently not supported in serial mode. Examples are given below for the
+five different HDF5 IO implementations.</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto -unit=IO/IOMain/hdf5/serial/PM (included by
+default) ./setup Sod -2d -auto -unit=IO/IOMain/hdf5/parallel/PM
+./setup Sod -2d -auto -unit=Grid/GridMain/UG
+-unit=IO/IOMain/hdf5/serial/UG ./setup Sod -2d -auto
+-unit=Grid/GridMain/UG -unit=IO/IOMain/hdf5/parallel/UG ./setup Sod
+-2d -auto -nofbs -unit=Grid/GridMain/UG
+-unit=IO/IOMain/hdf5/parallel/NoFbs</p>
+</div>
+<p>The default IO implementation is <code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/serial/PM</span></code>. It can be
+included simply by adding <code class="docutils literal notranslate"><span class="pre">-unit=IO</span></code> to the <code class="docutils literal notranslate"><span class="pre">setup</span></code> line. In
+Flash-X, the user can set up shortcuts See for more information about
+creating shortcuts.</p>
+<p>The format of the HDF5 output files produced by these various IO
+implementations is identical; only the method by which they are written
+differs. It is possible to create a checkpoint file with the parallel
+routines and restart Flash-X from that file using the serial routines or
+vice-versa. (This switch would require resetting up and compiling a code
+to get an executable with the serial version of IO.) When outputting
+with the Uniform Grid, some data is stored that isn’t explicitly
+necessary for data analysis or visualization, but is retained to keep
+the output format of <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> the same as with the Uniform Grid. See
+for more information on output data formats. For example, the refinement
+level in the Uniform Grid case is always equal to 1, as is the nodetype
+array. A tree structure for the Uniform Grid is ‘faked’ for
+visualization purposes. In a similar way, the non-fixedblocksize mode
+outputs all of the data stored by the grid as though it is one large
+block. This allows restarting with differing numbers of processors and
+decomposing the domain in an arbitrary fashion in Uniform Grid.</p>
+<p>Parallel HDF5 mode has two runtime parameters useful for debugging:
+<code class="docutils literal notranslate"><span class="pre">IO/chkGuardCellsInput</span></code> and <code class="docutils literal notranslate"><span class="pre">IO/chkGuardCellsOutput</span></code>. When these
+runtime parameters are true, the Flash-X input and output routines read
+and/or output the guard cells in addition to the normal interior cells.
+Note that the HDF5 files produced are <em>not</em> compatible with the
+visualization and analysis tools provided with Flash-X.</p>
+<section id="collective-mode">
+<span id="sec-iocollectivemode"></span><h4>Collective Mode<a class="headerlink" href="#collective-mode" title="Permalink to this headline"></a></h4>
+<p>By default, the parallel mode of HDF5 uses an independent access pattern
+for writing datasets and performs IO without aggregating the disk access
+for writing. Parallel HDF5 can also be run so that the writes to the
+file’s datasets are aggregated, allowing the data from multiple
+processors to be written to disk in fewer operations. This can greatly
+increase the performance of IO on filesystems that support this
+behavior. Flash-X can make use of this mode by setting the runtime
+parameter <code class="docutils literal notranslate"><span class="pre">useCollectiveHDF5</span></code> to true.</p>
+</section>
+<section id="machine-compatibility">
+<h4>Machine Compatibility<a class="headerlink" href="#machine-compatibility" title="Permalink to this headline"></a></h4>
+<p>The HDF5 modules have been tested successfully on the ASC platforms and
+on a Linux clusters. Performance varies widely across the platforms, but
+the parallel version is usually faster than the serial version.
+Experience on performing parallel IO on a Linux Cluster using PVFS is
+reported in Ross <em>et al.</em> (2001). Note that for clusters without a
+parallel filesystem, you should not use the parallel HDF5 IO module with
+an NFS mounted filesystem. In this case, all of the information will
+still have to pass through the node from which the disk is hanging,
+resulting in contention. It is recommended that a serial version of the
+HDF5 unit be used instead.</p>
+</section>
+<section id="hdf5-data-format">
+<span id="sec-data-format"></span><h4>HDF5 Data Format<a class="headerlink" href="#hdf5-data-format" title="Permalink to this headline"></a></h4>
+<p>The HDF5 data format for Flash-X is identical to Flash-X for all grid
+variables and datastructures used to recreate the tree and neighbor data
+with the exception that <code class="docutils literal notranslate"><span class="pre">bounding</span> <span class="pre">box</span></code>, <code class="docutils literal notranslate"><span class="pre">coordinates</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">block</span> <span class="pre">size</span></code> are now sized as <code class="docutils literal notranslate"><span class="pre">mdim</span></code>, or the maximum dimensions
+supported by Flash-X’s grids, which is three, rather than <code class="docutils literal notranslate"><span class="pre">ndim</span></code>.
+<code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> 4.0 and <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> 4dev, however, do requires a few
+additional tree data structures to be output which are described below.
+The format of the metadata stored in the HDF5 files has changed to
+reduce the number of ‘writes’ required. Additionally, scalar data, like
+<code class="docutils literal notranslate"><span class="pre">time,</span> <span class="pre">dt,</span> <span class="pre">nstep</span></code>, <em>etc.</em>, are now stored in a linked list and written
+all at one time. Any unit can add scalar data to the checkpoint file by
+calling the routine <code class="docutils literal notranslate"><span class="pre">IO/IO_setScalar</span></code>. See for more details. The
+Flash-X HDF5 format is summarized in .</p>
+<div class="docutils container" id="tab-hdf5">
+</div>
+</section>
+<section id="split-file-io">
+<h4>Split File IO<a class="headerlink" href="#split-file-io" title="Permalink to this headline"></a></h4>
+<p>On machines with large numbers of processors, IO may perform better if,
+all processors write to a limited number of separate files rather than
+one single file. This technique can help mitigate IO bottlenecks and
+contention issues on these large machines better than even parallel-mode
+IO can. In addition this technique has the benefit of keeping the number
+of output files much lower than if every processor writes its own file.
+Split file IO can be enabled by setting the <code class="docutils literal notranslate"><span class="pre">IO/outputSplitNum</span></code>
+parameter to the number of files desired (i.e. if <code class="docutils literal notranslate"><span class="pre">outputSplitNum</span></code> is
+set to 4, every checkpoint, plotfile and particle file will be broken
+into 4 files, by processor number). This feature is only available with
+the HDF5 parallel IO mode, and is still experimental. Users should use
+this at their own risk.</p>
+</section>
+</section>
+<section id="parallel-netcdf">
+<span id="sec-pnetcdf-io"></span><h3>Parallel-NetCDF<a class="headerlink" href="#parallel-netcdf" title="Permalink to this headline"></a></h3>
+<p>Another implementation of the IO unit uses the Parallel-NetCDF library
+available at <a class="reference external" href="http://www.mcs.anl.gov/parallel-netcdf/">http://www.mcs.anl.gov/parallel-netcdf/</a>. At this time, the
+Flash-X code requires version 1.1.0 or higher. Our testing shows
+performance of PNetCDF library to be very similar to HDF5 library when
+using collective I/O optimizations in parallel I/O mode.</p>
+<p>There are two different PnetCDF IO unit implementations. Both are
+parallel implementations, one for each supported grid, the Uniform Grid
+and <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code>. It is important to remember to match the IO
+implementation with the correct grid. To include PnetCDF IO in a
+simulation the user should add <code class="docutils literal notranslate"><span class="pre">-unit=IO/IOMain/pnetcdf.....</span></code> to the
+<code class="docutils literal notranslate"><span class="pre">setup</span></code> line. See examples below for the two different PnetCDF IO
+implementations.</p>
+<div class="codeseg docutils container">
+<p>./setup Sod -2d -auto -unit=IO/IOMain/pnetcdf/PM ./setup Sod -2d
+-auto -unit=Grid/GridMain/UG -unit=IO/IOMain/pnetcdf/UG</p>
+</div>
+<p>The paths to these IO implementations can be long and tedious to type,
+users are advised to set up shortcuts for various implementations. See
+for information about creating shortcuts.</p>
+<p>To the end-user, the PnetCDF data format is very similar to the HDF5
+format. (Under the hood the data storage is quite different.) In HDF5
+there are datasets and dataspaces, in PnetCDF there are dimensions and
+variables. All the same data is stored in the PnetCDF checkpoint as in
+the HDF5 checkpoint file, although there are some differences in how the
+data is stored. The grid data is stored in multidimensional arrays, as
+it is in HDF5. These are unknown names, refine level, node type, gid,
+coordinates, proc number, block size and bounding box. The particles
+data structure is also stored in the same way. The simulation metadata,
+like file format version, file creation time, command line, <em>etc.</em>, are
+stored as global attributes. The runtime parameters and the output
+scalars are also stored as attributes. The <code class="docutils literal notranslate"><span class="pre">unk</span></code> and particle labels
+are also stored as global attributes. In PnetCDF, all global quantities
+must be consistent across all processors involved in a write to a file,
+or else the write will fail. All IO calls are run in a collective mode
+in PnetCDF.</p>
+</section>
+<section id="direct-io">
+<h3>Direct IO<a class="headerlink" href="#direct-io" title="Permalink to this headline"></a></h3>
+<p>As mentioned above, the direct IO implementation has been added so users
+can always output data even if the HDF5 or pnetCDF libraries are
+unavailable. The user should examine the two helper routines
+<code class="docutils literal notranslate"><span class="pre">io_writeData</span></code> and <code class="docutils literal notranslate"><span class="pre">io_readData</span></code>. Copy the base implementation to a
+simulation directory, and modify them in order to write out specifically
+what is needed. To include the direct IO implementation add the
+following to your setup line:</p>
+<div class="codeseg docutils container">
+<p>-unit=IO/IOMain/direct/UG or -unit=IO/IOMain/direct/PM</p>
+</div>
+</section>
+<section id="output-side-effects">
+<h3>Output Side Effects<a class="headerlink" href="#output-side-effects" title="Permalink to this headline"></a></h3>
+<p>In Flash-X when plotfiles or checkpoint files are output by
+<code class="docutils literal notranslate"><span class="pre">IO/IO_output</span></code>, the grid is fully restricted and user variables are
+computed prior to writing the file. <code class="docutils literal notranslate"><span class="pre">IO/IO_writeCheckpoint</span></code> and
+<code class="docutils literal notranslate"><span class="pre">IO/IO_writePlotfile</span></code> by default, do not do this step themselves. The
+restriction can be forced for all writes by setting runtime parameter
+<code class="docutils literal notranslate"><span class="pre">IO/alwaysRestrictCheckpoint</span></code> to true and the user variables can
+always be computed prior to output by setting
+<code class="docutils literal notranslate"><span class="pre">IO/alwaysComputeUserVars</span></code> to true.</p>
+</section>
+</section>
+<section id="working-with-output-files">
+<h2>Working with Output Files<a class="headerlink" href="#working-with-output-files" title="Permalink to this headline"></a></h2>
+<p>The checkpoint file output formats offer great flexibility when
+visualizing the data. The visualization program does not have to know
+the details of how the file was written; rather it can query the file to
+find the number of dimensions, block sizes, variable data etc that it
+needs to visualize the data. <code class="docutils literal notranslate"><span class="pre">IDL</span></code> routines for reading HDF5 and
+PnetCDF formats are provided in <code class="docutils literal notranslate"><span class="pre">tools/fidlr3/</span></code>. These can be used
+interactively though the <code class="docutils literal notranslate"><span class="pre">IDL</span></code> command line (see ). In addition, ViSit
+version 10.0 and higher (see ) can natively read Flash-X HDF5 output
+files by using the command line option <code class="docutils literal notranslate"><span class="pre">-assume_format</span> <span class="pre">|flashx|</span></code>.</p>
+</section>
+<section id="unit-test">
+<span id="sec-io-unit-test"></span><h2>Unit Test<a class="headerlink" href="#unit-test" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit test is provided to test IO performance on various
+platforms with the different Flash-X IO implementations and parallel
+libraries. The <code class="docutils literal notranslate"><span class="pre">unitTest</span></code> is setup like any other Flash-X simulation.
+It can be run with any IO implementation as long as the correct Grid
+implementation is included. This <code class="docutils literal notranslate"><span class="pre">unitTest</span></code> writes a checkpoint file,
+a plotfile, and if particles are included, a particle file. Particles IO
+can be tested simply by including particles in the simulation. Variables
+needed for particles should be uncommented in the <code class="docutils literal notranslate"><span class="pre">Config</span></code> file.</p>
+<p>Example setups:</p>
+<div class="codeseg docutils container">
+<p>#setup for PARAMESH Grid and serial HDF5 io ./setup unitTest/IO -auto</p>
+<p>#setup for PARAMESH Grid with parallel HDF5 IO (see shortcuts docs
+for explanation) ./setup unitTest/IO -auto +parallelIO (same as)
+./setup unitTest/IO -auto -unit=IO/IOMain/hdf5/parallel/PM</p>
+<p>#setup for Uniform Grid with serial HDF5 IO, 3d problem, increasing
+default number of zones ./setup unitTest/IO -3d -auto +ug -nxb=16
+-nyb=16 -nzb=16 (same as) ./setup unitTest/IO -3d -auto
+-unit=Grid/GridMain/UG -nxb=16 -nyb=16 -nzb=16</p>
+<p>#setup for PM3 and parallel netCDF, with particles ./setup
+unitTest/IO -auto -unit=Particles +pnetcdf</p>
+<p>#setup for UG and parallel netCDF ./setup unitTest/IO -auto +pnetcdf
++ug</p>
+</div>
+<p>Run the test like any other Flash-X simulation:</p>
+<div class="codeseg docutils container">
+<p>mpirun -np numProcs flash3</p>
+</div>
+<p>There are a few things to keep in mind when working with the IO unit
+test:</p>
+<ul class="simple">
+<li><p>The Config file in unitTest/IO declares some dummy grid scope
+variables which are stored in the unk array. If the user wants a more
+intensive IO test, more variables can be added. Variables are
+initialized to dummy values in <code class="docutils literal notranslate"><span class="pre">Driver_evolveFlash</span></code>.</p></li>
+<li><p>Variables will only be output to the plotfile if they are declared in
+the <code class="docutils literal notranslate"><span class="pre">flash.par</span></code> (see the example <code class="docutils literal notranslate"><span class="pre">flash.par</span></code> in the unit test).</p></li>
+<li><p>The only units besides the simulation unit included in this
+simulation are
+<code class="docutils literal notranslate"><span class="pre">Grid,</span> <span class="pre">IO,</span> <span class="pre">Driver,</span> <span class="pre">Timers,</span> <span class="pre">Logfile,</span> <span class="pre">RuntimeParameters</span></code> and
+<code class="docutils literal notranslate"><span class="pre">PhysicalConstants</span></code>.</p></li>
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">PARAMESH</span></code> Grid implementation is being used, it is
+important to note that the grid will not refine on its own. The user
+should set <code class="docutils literal notranslate"><span class="pre">lrefine_min</span></code> to a value <span class="math notranslate nohighlight">\(&gt;\)</span> 1 to create more
+blocks. The user could also set the runtime parameters <code class="docutils literal notranslate"><span class="pre">nblockx</span></code>,
+<code class="docutils literal notranslate"><span class="pre">nblocky</span></code>, <code class="docutils literal notranslate"><span class="pre">nblockz</span></code> to make a bigger problem.</p></li>
+<li><p>Just like any other simulation, the user can change the number of
+zones in a simulation using <code class="docutils literal notranslate"><span class="pre">-nxb=numZones</span></code> on the setup line.</p></li>
+</ul>
+</section>
+<section id="derived-data-type-i-o">
+<h2>Derived data type I/O<a class="headerlink" href="#derived-data-type-i-o" title="Permalink to this headline"></a></h2>
+<p>In Flash-X we introduced an alternative I/O implementation for both HDF5
+and Parallel-NetCDF which is a slight spin on the standard parallel I/O
+implementations. In this new implementation we select the data from the
+mesh data structures directly using HDF5 hyperslabs (HDF5) and MPI
+derived datatypes (Parallel-NetCDF) and then write the selected data to
+datasets in the file. This eliminates the need for manually copying data
+into a Flash-X allocated temporary buffer and then writing the data from
+the temporary buffer to disk.</p>
+<p>You can include derived data type I/O in your Flash-X application by
+adding the setup shortcuts <code class="docutils literal notranslate"><span class="pre">+hdf5TypeIO</span></code> for HDF5 and <code class="docutils literal notranslate"><span class="pre">+pnetTypeIO</span></code>
+for Parallel-NetCDF to your setup line. If you are using the HDF5
+implementation then you need a parallel installation of HDF5. All of the
+runtime parameters introduced in this chapter should be compatible with
+derived data type I/O.</p>
+<p>A nice property of derived data type I/O is that it eliminates a lot of
+the I/O code duplication which has been spreading in the Flash-X I/O
+unit over the last decade. The same code is used for UG, NoFBS and
+Paramesh Flash-X applications and we have also shared code between the
+HDF5 and Parallel-NetCDF implementations. A technical reason for using
+the new I/O implementation is that we provide more information to the
+I/O libraries about the exact data we want to read from / write to disk.
+This allows us to take advantage of recent enhancements to I/O libraries
+such as the nonblocking APIs in the Parallel-NetCDF library. We discuss
+experimentation with this API and other ideas in the paper “A Case Study
+for Scientific I/O: Improving the Flash-X Astrophysics Code”
+<a class="reference external" href="www.mcs.anl.gov/uploads/cels/papers/P1819.pdf">www.mcs.anl.gov/uploads/cels/papers/P1819.pdf</a></p>
+<p>The new I/O code has been tested in our internal Flash-X regression
+tests from before the Flash-X release and there are no known issues,
+however, it will probably be in the release following Flash-X when we
+will recommend using it as the default implementation. We have made the
+research ideas from our case study paper usable for all Flash-X
+applications, however, the code still needs a clean up and exhaustive
+testing with all the Flash-X runtime parameters introduced in this
+chapter.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Grid.html" class="btn btn-neutral float-left" title="Grid Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="RuntimeParameters.html" class="btn btn-neutral float-right" title="Runtime Parameters Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

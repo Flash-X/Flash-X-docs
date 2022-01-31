@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Source Terms &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Gravity Unit" href="Gravity.html" />
+    <link rel="prev" title="Equation of State Unit" href="Eos.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration )</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="physics.html">Physics Units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Hydro.html">Hydrodynamics Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IncompNS.html">Incompressible Navier-Stokes Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Eos.html">Equation of State Unit</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Local Source Terms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#burn-unit">Burn Unit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#algorithms">Algorithms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reaction-networks">Reaction networks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#detecting-shocks">Detecting shocks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#energy-generation-rates-and-reaction-rates">Energy generation rates and reaction rates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#temperature-based-timestep-limiting">Temperature-based timestep limiting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity.html">Gravity Unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Particles.html">Particles Unit</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="physics.html">Physics Units</a> &raquo;</li>
+      <li>Local Source Terms</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/sourceTerms.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="local-source-terms">
+<span id="sec-source-terms"></span><h1>Local Source Terms<a class="headerlink" href="#local-source-terms" title="Permalink to this headline"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">physics/sourceTerms</span></code> organizational directory contains several
+units that implement forcing terms. The <code class="docutils literal notranslate"><span class="pre">Burn</span></code>, <code class="docutils literal notranslate"><span class="pre">Stir</span></code>, <code class="docutils literal notranslate"><span class="pre">Ionize</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">Diffuse</span></code> units contain implementations in Flash-X. Two other
+units, <code class="docutils literal notranslate"><span class="pre">Cool</span></code> and <code class="docutils literal notranslate"><span class="pre">Heat</span></code>, contain only stub level routines in their
+API.</p>
+<section id="burn-unit">
+<span id="sec-burn"></span><h2>Burn Unit<a class="headerlink" href="#burn-unit" title="Permalink to this headline"></a></h2>
+<p>The nuclear burning implementation of the <code class="docutils literal notranslate"><span class="pre">Burn</span></code> unit uses a
+sparse-matrix semi-implicit ordinary differential equation (ODE) solver
+to calculate the nuclear burning rate and to update the fluid variables
+accordingly (Timmes 1999). The primary interface routines for this unit
+are <code class="docutils literal notranslate"><span class="pre">physics/sourceTerms/Burn/Burn_init</span></code>, which sets up the nuclear
+isotope tables needed by the unit, and
+<code class="docutils literal notranslate"><span class="pre">physics/sourceTerms/Burn/Burn</span></code>, which calls the ODE solver and
+updates the hydrodynamical variables in a single row of a single block.
+The routine <code class="docutils literal notranslate"><span class="pre">physics/sourceTerms/Burn/Burn_computeDt</span></code> may limit the
+computational timestep because of burning considerations. There is also
+a helper routine
+<code class="docutils literal notranslate"><span class="pre">Simulation/SimulationComposition/Simulation_initSpecies</span></code> (see
+<code class="docutils literal notranslate"><span class="pre">Simulation/Simulation_initSpecies</span></code>) which provides the properties of
+ions included in the burning network.</p>
+<section id="algorithms">
+<h3>Algorithms<a class="headerlink" href="#algorithms" title="Permalink to this headline"></a></h3>
+<p> Modeling thermonuclear flashes typically requires the energy generation
+rate due to nuclear burning over a large range of temperatures,
+densities and compositions. The average energy generated or lost over a
+period of time is found by integrating a system of ordinary differential
+equations (the nuclear reaction network) for the abundances of important
+nuclei and the total energy release. In some contexts, such as supernova
+models, the abundances themselves are also of interest. In either case,
+the coefficients that appear in the equations are typically extremely
+sensitive to temperature. The resulting stiffness of the system of
+equations requires the use of an implicit time integration scheme.</p>
+<p>A user can choose between two implicit integration methods and two
+linear algebra packages in Flash-X. The runtime parameter
+<code class="docutils literal notranslate"><span class="pre">Burn/odeStepper</span></code> controls which integration method is used in the
+simulation. The choice <code class="docutils literal notranslate"><span class="pre">odeStepper</span> <span class="pre">=</span> <span class="pre">1</span></code> is the default and invokes a
+Bader-Deuflhard scheme. The choice <code class="docutils literal notranslate"><span class="pre">odeStepper</span> <span class="pre">=</span> <span class="pre">2</span></code> invokes a
+Kaps-Rentrop or Rosenbrock scheme. The runtime parameter
+<code class="docutils literal notranslate"><span class="pre">Burn/algebra</span></code> controls which linear algebra package is used in the
+simulation. The choice <code class="docutils literal notranslate"><span class="pre">algebra</span> <span class="pre">=</span> <span class="pre">1</span></code> is the default and invokes the
+sparse matrix MA28 package. The choice <code class="docutils literal notranslate"><span class="pre">algebra</span> <span class="pre">=</span> <span class="pre">2</span></code> invokes the GIFT
+linear algebra routines. While any combination of the integration
+methods and linear algebra packages will produce correct answers, some
+combinations may execute more efficiently than others for certain types
+of simulations. No general rules have been found for best combination
+for a given simulation. The most efficient combination depends on the
+timestep being taken, the spatial resolution of the model, the values of
+the local thermodynamic variables, and the composition. Users are
+advised to experiment with the various combinations to determine the
+best one for their simulation. However, an extensive analysis was
+performed in the Timmes paper cited below.</p>
+<p>Timmes (1999) reviewed several methods for solving stiff nuclear
+reaction networks, providing the basis for the reaction network solvers
+included with Flash-X. The scaling properties and behavior of three
+semi-implicit time integration algorithms (a traditional first-order
+accurate Euler method, a fourth-order accurate Kaps-Rentrop / Rosenbrock
+method, and a variable order Bader-Deuflhard method) and eight linear
+algebra packages (LAPACK, LUDCMP, LEQS, GIFT, MA28, UMFPACK, and Y12M)
+were investigated by running each of these 24 combinations on seven
+different nuclear reaction networks (hard-wired 13- and 19-isotope
+networks and soft-wired networks of 47, 76, 127, 200, and 489 isotopes).
+Timmes’ analysis suggested that the best balance of accuracy, overall
+efficiency, memory footprint, and ease-of-use was provided by the two
+integration methods (Bader-Deuflhard and Kaps-Rentrop) and the two
+linear algebra packages (MA28 and GIFT) that are provided with the
+Flash-X code.</p>
+</section>
+<section id="reaction-networks">
+<h3>Reaction networks<a class="headerlink" href="#reaction-networks" title="Permalink to this headline"></a></h3>
+<p>We begin by describing the equations solved by the nuclear burning unit.
+We consider material that may be described by a density <span class="math notranslate nohighlight">\(\rho\)</span> and
+a single temperature <span class="math notranslate nohighlight">\(T\)</span> and contains a number of isotopes
+<span class="math notranslate nohighlight">\(i\)</span>, each of which has <span class="math notranslate nohighlight">\(Z_{i}\)</span> protons and <span class="math notranslate nohighlight">\(A_i\)</span>
+nucleons (protons + neutrons). Let <span class="math notranslate nohighlight">\(n_i\)</span> and <span class="math notranslate nohighlight">\(\rho_i\)</span> denote
+the number and mass density, respectively, of the <span class="math notranslate nohighlight">\(i\)</span>th isotope,
+and let <span class="math notranslate nohighlight">\(X_i\)</span> denote its mass fraction, so that</p>
+<div class="math notranslate nohighlight">
+\[X_i = \rho_i/\rho = n_i A_i/(\rho N_A)\ ,\]</div>
+<p>where <span class="math notranslate nohighlight">\(N_A\)</span> is Avogadro’s number. Let the molar abundance of the
+<span class="math notranslate nohighlight">\(i\)</span>th isotope be</p>
+<div class="math notranslate nohighlight">
+\[Y_i = X_i/A_i = n_i/(\rho N_A)\ .\]</div>
+<p>Mass conservation is then expressed by</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:mass conservation}
+\sum_{i=1}^N X_i = 1~.\]</div>
+<p>At the end of each timestep, Flash-X checks that the stored abundances
+satisfy <a class="reference external" href="#Eqn:massconservation">[Eqn:mass conservation]</a> to machine
+precision in order to avoid the unphysical buildup (or decay) of the
+abundances or energy generation rate. Roundoff errors in this equation
+can lead to significant problems in some contexts (<em>e.g.</em>, classical
+nova envelopes), where trace abundances are important.</p>
+<p>The general continuity equation for the <span class="math notranslate nohighlight">\(i\)</span>th isotope is given
+in Lagrangian formulation by</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:isotope continuity}
+{dY_i\over dt} + \nabla \cdot \left ( Y_i \textbf{V}_i \right ) = \dot{R_i}\ .\]</div>
+<p>In this equation <span class="math notranslate nohighlight">\(\dot{R_i}\)</span> is the total reaction rate due to all
+binary reactions of the form <em>i(j,k)l</em>,</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:binary rate}
+\dot{R_{i}}
+ = \sum_{j,k}
+              Y_{l} Y_{k} \lambda _{kj}(l)  - Y_{i} Y_{j} \lambda _{jk}(i)\ ,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda _{kj}\)</span> and <span class="math notranslate nohighlight">\(\lambda _{jk}\)</span> are the reverse
+(creation) and forward (destruction) nuclear reaction rates,
+respectively. Contributions from three-body reactions, such as the
+triple-<span class="math notranslate nohighlight">\(\alpha\)</span> reaction, are easy to append to
+<a class="reference external" href="#Eqn:binaryrate">[Eqn:binary rate]</a>. The mass diffusion velocities
+<span class="math notranslate nohighlight">\(\textbf{V}_i\)</span> in
+<a class="reference external" href="#Eqn:isotopecontinuity">[Eqn:isotope continuity]</a> are obtained from
+the solution of a multicomponent diffusion equation (Chapman &amp; Cowling
+1970; Burgers 1969; Williams 1988) and reflect the fact that mass
+diffusion processes arise from pressure, temperature, and/or abundance
+gradients as well as from external gravitational or electrical forces.</p>
+<p>The case <span class="math notranslate nohighlight">\(\textbf{V}_i\equiv 0\)</span> is important for two reasons.
+First, mass diffusion is often unimportant when compared to other
+transport processes, such as thermal or viscous diffusion (<em>i.e.</em>, large
+Lewis numbers and/or small Prandtl numbers). Such a situation obtains,
+for example, in the study of laminar flame fronts propagating through
+the quiescent interior of a white dwarf. Second, this case permits the
+decoupling of the reaction network solver from the hydrodynamical solver
+through the use of operator splitting, greatly simplifying the
+algorithm. This is the method used by the default Flash-X distribution.
+Setting <span class="math notranslate nohighlight">\(\textbf{V}_i\equiv 0\)</span> transforms
+<a class="reference external" href="#Eqn:isotopecontinuity">[Eqn:isotope continuity]</a> into</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:nucrate 1}
+{dY_i\over dt} = \dot{R_i}\ ,\]</div>
+<p>which may be written in the more compact, standard form</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:nucrate 2}
+\dot {{\bf y}} = {\bf f} \ ({\bf y})\ .\]</div>
+<p>Stated another way, in the absence of mass diffusion or advection, any
+changes to the fluid composition are due to local processes.</p>
+<p>Because of the highly nonlinear temperature dependence of the nuclear
+reaction rates and because the abundances themselves often range over
+several orders of magnitude in value, the values of the coefficients
+which appear in <a class="reference external" href="#Eqn:nucrate1">[Eqn:nucrate 1]</a> and
+<a class="reference external" href="#Eqn:nucrate2">[Eqn:nucrate 2]</a> can vary quite significantly. As a
+result, the nuclear reaction network equations are “stiff.” A system of
+equations is stiff when the ratio of the maximum to the minimum
+eigenvalue of the Jacobian matrix <span class="math notranslate nohighlight">\({\tilde {\bf
+J}}\equiv\partial{{\bf f}}/\partial{{\bf y}}\)</span> is large and imaginary.
+This means that at least one of the isotopic abundances changes on a
+much shorter timescale than another. Implicit or semi-implicit time
+integration methods are generally necessary to avoid following this
+short-timescale behavior, requiring the calculation of the Jacobian
+matrix.</p>
+<p>It is instructive at this point to look at an example of how
+<a class="reference external" href="#Eqn:nucrate1">[Eqn:nucrate 1]</a> and the associated Jacobian matrix
+are formed. Consider the
+<span class="math notranslate nohighlight">\(^{12}\)</span>C(<span class="math notranslate nohighlight">\(\alpha\)</span>,<span class="math notranslate nohighlight">\(\gamma\)</span>)<span class="math notranslate nohighlight">\(^{16}\)</span>O
+reaction, which competes with the triple-<span class="math notranslate nohighlight">\(\alpha\)</span> reaction during
+helium burning in stars. The rate <span class="math notranslate nohighlight">\(R\)</span> at which this reaction
+proceeds is critical for evolutionary models of massive stars, since it
+determines how much of the core is carbon and how much of the core is
+oxygen after the initial helium fuel is exhausted. This reaction
+sequence contributes to the right-hand side of <a class="reference external" href="#Eqn:nucrate2">[Eqn:nucrate
+2]</a> through the terms</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\nonumber
+\dot {Y} (^4He)   &amp; =&amp; - Y(^4He) \ Y(^{12}C) \ R + \ldots \\
+\dot {Y} (^{12}C) &amp; =&amp; - Y(^4He) \ Y(^{12}C) \ R \ + \ldots  \\
+\nonumber
+\dot {Y} (^{16}O) &amp; =&amp; + Y(^4He) \ Y(^{12}C) \ R \ + \ldots ,\end{aligned}\end{split}\]</div>
+<p>where the ellipses indicate additional terms coming from other reaction
+sequences. The minus signs indicate that helium and carbon are being
+destroyed, while the plus sign indicates that oxygen is being created.
+Each of these three expressions contributes two terms to the Jacobian
+matrix
+<span class="math notranslate nohighlight">\({\tilde {\bf J}}\)</span>=<span class="math notranslate nohighlight">\(\partial{{\bf f}}/\partial{{\bf y}}\)</span></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\nonumber
+J(^4He,^4He)     = - Y(^{12}C) \ R \ + \ldots  \hskip 0.5in
+&amp;
+J(^4He,^{12}C)   = - Y(^4He) \ R \ + \ldots \\
+J(^{12}C,^4He)   = - Y(^{12}C) \ R \ + \ldots \hskip 0.5in
+&amp;
+J(^{12}C,^{12}C) = - Y(^4He) \ R \ + \ldots   \\
+\nonumber
+J(^{16}O,^4He)   = + Y(^{12}C) \ R \ + \ldots \hskip 0.5in
+&amp;
+J(^{16}O,^{12}C) = + Y(^4He) \ R \ + \ldots .\end{aligned}\end{split}\]</div>
+<p>Entries in the Jacobian matrix represent the flow, in number of nuclei
+per second, into (positive) or out of (negative) an isotope. All of the
+temperature and density dependence is included in the reaction rate
+<span class="math notranslate nohighlight">\(R\)</span>. The Jacobian matrices that arise from nuclear reaction
+networks are neither positive-definite nor symmetric, since the forward
+and reverse reaction rates are generally not equal. In addition, the
+magnitudes of the matrix entries change as the abundances, temperature,
+or density change with time.</p>
+<p>This release of Flash-X contains three reaction networks. A
+seven-isotope alpha-chain (<code class="docutils literal notranslate"><span class="pre">Iso7</span></code>) is useful for problems that do not
+have enough memory to carry a larger set of isotopes. The 13-isotope
+<span class="math notranslate nohighlight">\(\alpha\)</span>-chain plus heavy-ion reaction network (<code class="docutils literal notranslate"><span class="pre">Aprox13</span></code>) is
+suitable for most multi-dimensional simulations of stellar phenomena,
+where having a reasonably accurate energy generation rate is of primary
+concern. The 19-isotope reaction network (<code class="docutils literal notranslate"><span class="pre">Aprox19</span></code>) has the same
+<span class="math notranslate nohighlight">\(\alpha\)</span>-chain and heavy-ion reactions as the 13-isotope network,
+but it includes additional isotopes to accommodate some types of
+hydrogen burning (PP chains and steady-state CNO cycles), along with
+some aspects of photo-disintegration into <span class="math notranslate nohighlight">\(^{54}\)</span>Fe. This 19
+isotope reaction network is described in Weaver, Zimmerman, &amp; Woosley
+(1978).</p>
+<p>The networks supplied with Flash-X are examples of a “hard-wired”
+reaction network, where each of the reaction sequences are carefully
+entered by hand. This approach is suitable for small networks, when
+minimizing the CPU time required to run the reaction network is a
+primary concern, although it suffers the disadvantage of inflexibility.</p>
+<p>The MA28 sparse matrix package used by Flash-X is described by Duff,
+Erisman, &amp; Reid (1986) and is used as an external library. This package,
+which has been described as the “Coke classic” of sparse linear algebra
+packages, uses a direct – as opposed to an iterative – method for
+solving linear systems. Direct methods typically divide the solution of
+<span class="math notranslate nohighlight">\(\tilde{{\bf A}} \cdot {\bf
+x} = {\bf b}\)</span> into a symbolic LU decomposition, a numerical LU
+decomposition, and a backsubstitution phase. In the symbolic LU
+decomposition phase, the pivot order of a matrix is determined, and a
+sequence of decomposition operations that minimizes the amount of
+fill-in is recorded. Fill-in refers to zero matrix elements which become
+nonzero (<em>e.g.</em>, a sparse matrix times a sparse matrix is generally a
+denser matrix). The matrix is not decomposed; only the steps to do so
+are stored. Since the nonzero pattern of a chosen nuclear reaction
+network does not change, the symbolic LU decomposition is a one-time
+initialization cost for reaction networks. In the numerical LU
+decomposition phase, a matrix with the same pivot order and nonzero
+pattern as a previously factorized matrix is numerically decomposed into
+its lower-upper form. This phase must be done only once for each set of
+linear equations. In the backsubstitution phase, a set of linear
+equations is solved with the factors calculated from a previous
+numerical decomposition. The backsubstitution phase may be performed
+with as many right-hand sides as needed, and not all of the right-hand
+sides need to be known in advance.</p>
+<p>MA28 uses a combination of nested dissection and frontal envelope
+decomposition to minimize fill-in during the factorization stage. An
+approximate degree update algorithm that is much faster (asymptotically
+and in practice) than computing the exact degrees is employed. One
+continuous real parameter sets the amount of searching done to locate
+the pivot element. When this parameter is set to zero, no searching is
+done and the diagonal element is the pivot, while when set to unity,
+partial pivoting is done. Since the matrices generated by reaction
+networks are usually diagonally dominant, the routine is set in Flash-X
+to use the diagonal as the pivot element. Several test cases showed that
+using partial pivoting did not make a significant accuracy difference
+but was less efficient, since a search for an appropriate pivot element
+had to be performed. MA28 accepts the nonzero entries of the matrix in
+the <span class="math notranslate nohighlight">\((i, j,
+a_{i,j}\)</span>) coordinate system and typically uses 70<span class="math notranslate nohighlight">\(-\)</span>90% less
+storage than storing the full dense matrix.</p>
+<section id="two-time-integration-methods">
+<h4>Two time integration methods<a class="headerlink" href="#two-time-integration-methods" title="Permalink to this headline"></a></h4>
+<p>One of the time integration methods used by Flash-X for evolving the
+reaction networks is a 4th-order accurate Kaps-Rentrop, or Rosenbrock
+method. In essence, this method is an implicit Runge-Kutta algorithm.
+The reaction network is advanced over a timestep <span class="math notranslate nohighlight">\(h\)</span> according to</p>
+<div class="math notranslate nohighlight">
+\[\label{Eqn:kr1}
+{\bf y}^{n+1} = {\bf y}^n + \sum_{i=1}^4 b_i \Delta_i
+\ ,\]</div>
+<p>where the four vectors <span class="math notranslate nohighlight">\(\Delta^i\)</span> are found from successively
+solving the four matrix equations</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+(\tilde{{\bf 1}}/\gamma h - \tilde{{\bf J}}) \cdot \Delta_1 &amp; = &amp;
+{\bf f} ({\bf y}^n)\\
+(\tilde{{\bf 1}}/\gamma h - \tilde{{\bf J}}) \cdot \Delta_2 &amp; = &amp;
+{\bf f} ({\bf y}^n + a_{21}\Delta_1) + c_{21}\Delta_1/h\\
+(\tilde{{\bf 1}}/\gamma h - \tilde{{\bf J}}) \cdot \Delta_3 &amp; = &amp;
+{\bf f} ({\bf y}^n + a_{31}\Delta_1 + a_{32}\Delta_2) +
+(c_{31}\Delta_1 + c_{32}\Delta_2)/h\\
+(\tilde{{\bf 1}}^\gamma h - \tilde{{\bf J}}) \cdot \Delta_4 &amp; = &amp;
+{\bf f} ({\bf y}^n + a_{31}\Delta_1 + a_{32}\Delta_2) +
+(c_{41}\Delta_1 + c_{42}\Delta_2 + c_{43}\Delta_3)/h
+\ .\end{aligned}\end{split}\]</div>
+<p><span class="math notranslate nohighlight">\(b_i\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span>, <span class="math notranslate nohighlight">\(a_{ij}\)</span>, and <span class="math notranslate nohighlight">\(c_{ij}\)</span> are
+fixed constants of the method. An estimate of the accuracy of the
+integration step is made by comparing a third-order solution with a
+fourth-order solution, which is a significant improvement over the basic
+Euler method. The minimum cost of this method <span class="math notranslate nohighlight">\(-\)</span> which applies
+for a single timestep that meets or exceeds a specified integration
+accuracy <span class="math notranslate nohighlight">\(-\)</span> is one Jacobian evaluation, three evaluations of the
+right-hand side, one matrix decomposition, and four backsubstitutions.
+Note that the four matrix equations represent a staged set of linear
+equations (<span class="math notranslate nohighlight">\(\Delta_4\)</span> depends on <span class="math notranslate nohighlight">\(\Delta_3 \ldots\)</span> depends
+on <span class="math notranslate nohighlight">\(\Delta_1\)</span>). Not all of the right-hand sides are known in
+advance. This general feature of higher-order integration methods
+impacts the optimal choice of a linear algebra package. The fourth-order
+Kaps-Rentrop routine in Flash-X makes use of the routine GRK4T given by
+Kaps &amp; Rentrop (1979).</p>
+<p>Another time integration method used by Flash-X for evolving the
+reaction networks is the variable order Bader-Deuflhard method (<em>e.g.</em>,
+Bader &amp; Deuflhard 1983). The reaction network is advanced over a large
+timestep <span class="math notranslate nohighlight">\(H\)</span> from <span class="math notranslate nohighlight">\({\bf y}^n\)</span> to <span class="math notranslate nohighlight">\({\bf y}^{n+1}\)</span> by
+the following sequence of matrix equations. First,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\nonumber
+h &amp; = &amp; H/m \\
+\label{Eqn:BD 1}
+(\tilde{{\bf 1}} - \tilde{{\bf J}}) \cdot \Delta_0 &amp; = &amp; h {\bf f}
+({\bf y}^n) \\
+\nonumber
+{\bf y}_1 &amp; = &amp;{\bf y}^n + \Delta_0\ .\end{aligned}\end{split}\]</div>
+<p>Then from <span class="math notranslate nohighlight">\(k=1,2,\ldots,m-1\)</span></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\nonumber
+(\tilde{{\bf 1}} - \tilde{{\bf J}}) \cdot {\bf x} &amp; = &amp;
+h {\bf f}({\bf y}_{k}) - \Delta_{k-1}  \\
+\Delta_k &amp; = &amp; \Delta_{k-1} + 2 {\bf x} \\
+\nonumber
+{\bf y}_{k+1} &amp; = &amp;{\bf y}_k + \Delta_k \ ,\end{aligned}\end{split}\]</div>
+<p>and closure is obtained by the last stage</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\nonumber
+(\tilde{{\bf 1}} - \tilde{{\bf J}}) \cdot \Delta_m &amp; = &amp;
+h [ {\bf f} ({\bf y}_m)  - \Delta_{m-1} ] \\
+\label{Eqn:BD 3}
+{\bf y}^{n+1} &amp; = &amp;{\bf y}_m + \Delta_m \ .\end{aligned}\end{split}\]</div>
+<p>This staged sequence of matrix equations is executed at least twice with
+<span class="math notranslate nohighlight">\(m=2\)</span> and <span class="math notranslate nohighlight">\(m=6\)</span>, yielding a fifth-order method. The sequence
+may be executed a maximum of seven times, which yields a fifteenth-order
+method. The exact number of times the staged sequence is executed
+depends on the accuracy requirements (set to one part in 10<span class="math notranslate nohighlight">\(^6\)</span>
+in Flash-X) and the smoothness of the solution. Estimates of the
+accuracy of an integration step are made by comparing the solutions
+derived from different orders. The minimum cost of this method — which
+applies for a single timestep that met or exceeded the specified
+integration accuracy — is one Jacobian evaluation, eight evaluations of
+the right-hand side, two matrix decompositions, and ten
+backsubstitutions. This minimum cost can be increased at a rate of one
+decomposition (the expensive part) and <span class="math notranslate nohighlight">\(m\)</span> backsubstitutions (the
+inexpensive part) for every increase in the order <span class="math notranslate nohighlight">\(2k+1\)</span>. The cost
+of increasing the order is compensated for, hopefully, by being able to
+take correspondingly larger (but accurate) timestep. The controls for
+order versus step size are a built-in part of the Bader-Deuflhard
+method. The cost per step of this integration method is at least twice
+as large as the cost per step of either a traditional first-order
+accurate Euler method or the fourth-order accurate Kaps-Rentrop
+discussed above. However, if the Bader-Deuflhard method can take
+accurate timesteps that are at least twice as large, then this method
+will be more efficient globally. Timmes (1999) shows that this is
+typically (but not always!) the case. Note that in , not all of the
+right-hand sides are known in advance, since the sequence of linear
+equations is staged. This staging feature of the integration method may
+make some matrix packages, such as MA28, a more efficient choice.</p>
+<p>The Flash-X runtime parameter <code class="docutils literal notranslate"><span class="pre">Burn/odeStepper</span></code> controls which
+integration method is used in the simulation. The choice
+<code class="docutils literal notranslate"><span class="pre">odeStepper</span> <span class="pre">=</span> <span class="pre">1</span></code> is the default and invokes the variable order
+Bader-Deuflhard scheme. The choice <code class="docutils literal notranslate"><span class="pre">odeStepper</span> <span class="pre">=</span> <span class="pre">2</span></code> invokes the fourth
+order Kaps-Rentrop / Rosenbrock scheme.</p>
+</section>
+</section>
+<section id="detecting-shocks">
+<h3>Detecting shocks<a class="headerlink" href="#detecting-shocks" title="Permalink to this headline"></a></h3>
+<p>For most astrophysical detonations, the shock structure is so thin that
+there is insufficient time for burning to take place within the shock.
+However, since numerical shock structures tend to be much wider than
+their physical counterparts, it is possible for a significant amount of
+burning to occur within the shock. Allowing this to happen can lead to
+unphysical results. The burner unit includes a multidimensional shock
+detection algorithm that can be used to prevent burning in shocks. If
+the <code class="docutils literal notranslate"><span class="pre">Burn/useShockBurn</span></code> parameter is set to <code class="docutils literal notranslate"><span class="pre">.false.</span></code>, this
+algorithm is used to detect shocks in the Burn unit and to switch off
+the burning in shocked cells.</p>
+<p>Currently, the shock detection algorithm supports Cartesian and
+2-dimensional cylindrical coordinates. The basic algorithm is to compare
+the jump in pressure in the direction of compression (determined by
+looking at the velocity field) with a shock parameter (typically 1/3).
+If the total velocity divergence is negative and the relative pressure
+jump across the compression front is larger than the shock parameter,
+then a cell is considered to be within a shock.</p>
+<p>This computation is done on a block by block basis. It is important that
+the velocity and pressure variables have up-to-date guard cells, so a
+guard cell call is done for the burners only if we are detecting shocks
+(<em>i.e.</em> <code class="docutils literal notranslate"><span class="pre">useShockBurning</span> <span class="pre">=</span> <span class="pre">.false.</span></code>).</p>
+</section>
+<section id="energy-generation-rates-and-reaction-rates">
+<h3>Energy generation rates and reaction rates<a class="headerlink" href="#energy-generation-rates-and-reaction-rates" title="Permalink to this headline"></a></h3>
+<p>The instantaneous energy generation rate is given by the sum</p>
+<div class="math notranslate nohighlight">
+\[\dot {\epsilon}_{\rm nuc} = N_A \ \sum_i \ {dY_{i}\over dt} \ .\]</div>
+<p>Note that a nuclear reaction network does not need to be evolved in
+order to obtain the instantaneous energy generation rate, since only the
+right hand sides of the ordinary differential equations need to be
+evaluated. It is more appropriate in the Flash-X program to use the
+average nuclear energy generated over a timestep</p>
+<div class="math notranslate nohighlight">
+\[\dot {\epsilon}_{\rm nuc} = N_A \ \sum_i \ {\Delta Y_i \over \Delta t}\ .\]</div>
+<p>In this case, the nuclear reaction network does need to be evolved. The
+energy generation rate, after subtraction of any neutrino losses, is
+returned to the Flash-X program for use with the operator splitting
+technique.</p>
+<p>The tabulation of Caughlan &amp; Fowler (1988) is used in Flash-X for most
+of the key nuclear reaction rates. Modern values for some of the
+reaction rates were taken from the reaction rate library of Hoffman
+(2001, priv. comm.). A user can choose between two reaction rate
+evaluations in Flash-X. The runtime parameter <code class="docutils literal notranslate"><span class="pre">Burn/useBurnTable</span></code>
+controls which reaction rate evaluation method is used in the
+simulation. The choice <code class="docutils literal notranslate"><span class="pre">useBurnTable</span> <span class="pre">=</span> <span class="pre">0</span></code> is the default and evaluates
+the reaction rates from analytical expressions. The choice
+<code class="docutils literal notranslate"><span class="pre">useBurnTable</span> <span class="pre">=</span> <span class="pre">1</span></code> evaluates the reactions rates from table
+interpolation. The reaction rate tables are formed on-the-fly from the
+analytical expressions. Tests on one-dimensional detonations and
+hydrostatic burnings suggest that there are no major differences in the
+abundance levels if tables are used instead of the analytic expressions;
+we find less than 1% differences at the end of long timescale runs.
+Table interpolation is about 10 times faster than evaluating the
+analytic expressions, but the speedup to Flash-X is more modest, a few
+percent at best, since reaction rate evaluation never dominates in a
+real production run.</p>
+<p>Finally, nuclear reaction rate screening effects as formulated by
+Wallace <em>et al.</em> (1982) and decreases in the energy generation rate
+<span class="math notranslate nohighlight">\(\dot {\epsilon}_{\rm nuc}\)</span> due to neutrino losses as given by
+Itoh <em>et al.</em> (1996) are included in Flash-X.</p>
+</section>
+<section id="temperature-based-timestep-limiting">
+<h3>Temperature-based timestep limiting<a class="headerlink" href="#temperature-based-timestep-limiting" title="Permalink to this headline"></a></h3>
+<p>When using explicit hydrodynamics methods, a timestep limiter must be
+used to ensure the stability of the numerical solution. The standard CFL
+limiter is always used when an explicit hydrodynamics unit is included
+in Flash-X. This constraint does not allow any information to travel
+more than one computational cell per timestep. When coupling burning
+with the hydrodynamics, the CFL timestep may be so large compared to the
+burning timescales that the nuclear energy release in a cell may exceed
+the existing internal energy in that cell. When this happens, the two
+operations (hydrodynamics and nuclear burning) become decoupled.</p>
+<p>To limit the timestep when burning is performed, an additional
+constraint is imposed. The limiter tries to force the energy generation
+from burning to be smaller than the internal energy in a cell. The
+runtime parameter <code class="docutils literal notranslate"><span class="pre">Burn/enucDtFactor</span></code> controls this ratio. The
+timestep limiter is calculated as</p>
+<div class="math notranslate nohighlight">
+\[\Delta t_{burn} = {\tt enucDtFactor} \cdot \frac{E_{int}}{E_{nuc}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(E_{nuc}\)</span> is the nuclear energy, expressed as energy per
+volume per time, and <span class="math notranslate nohighlight">\(E_{int}\)</span> is the internal energy per volume.
+For good coupling between the hydrodynamics and burning,
+<code class="docutils literal notranslate"><span class="pre">enucDtFactor</span></code> should be <span class="math notranslate nohighlight">\(&lt; 1\)</span>. The default value is kept
+artificially high so that in most simulations the time limiting due to
+burning is turned off. Care must be exercised in the use of this
+routine.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Eos.html" class="btn btn-neutral float-left" title="Equation of State Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Gravity.html" class="btn btn-neutral float-right" title="Gravity Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
