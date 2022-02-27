@@ -52,7 +52,7 @@ directory. The Flash-X setup and build mechanisms will take care
 of compiling this code (if needed for a simulation configuration); 
 PARAMESH code is not organized or built as a separate library.
 
-## Git with Submodules
+#Git with Submodules
 
 To prepare for building simulations that use libraries whose code must be retrieved
 from a separate git repository, the following modified `git` commands can be used:
