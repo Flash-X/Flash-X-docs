@@ -109,7 +109,23 @@ location should be made known to AMReX .</p></li>
 </section>
 <section id="obtaining-and-configuring-flashx-for-quick-start">
 <span id="unpack"></span><h2>Obtaining and configuring Flash-X for quick start<a class="headerlink" href="#obtaining-and-configuring-flashx-for-quick-start" title="Permalink to this headline"></a></h2>
-<p>To begin, clone the Flash-X source code distribution…..</p>
+<p>To begin, clone the Flash-X source code distribution.</p>
+<p>The code of the PARAMESH library for Flash-X is provided as a git
+submodule by a separate code repository named PARAMESH-for-Flash-X.
+After successful initialization of the submodule the code will
+appear as a subtree under Grid/GridMain/AMR in the PM4_package
+directory. The Flash-X setup and build mechanisms will take care
+of compiling this code (if needed for a simulation configuration);
+PARAMESH code is not organized or built as a separate library.</p>
+<p>## Git with Submodules</p>
+<p>To prepare for building simulations that use libraries whose code must be retrieved
+from a separate git repository, the following modified <cite>git</cite> commands can be used:</p>
+<ul class="simple">
+<li><p><cite>git pull –recurse-submodules=yes</cite> (in place of the usual <cite>git pull</cite>)</p></li>
+<li><p><cite>git submodule update –init</cite> (additionally, after <cite>git pull</cite>)</p></li>
+<li><p><cite>git submodule update –init source/Grid/GridMain/AMR/Paramesh4/PM4_package</cite>
+(variant of the previous item, in case you want to only get the Paramesh package submodule)</p></li>
+</ul>
 <p>This quick start example uses Paramesh for AMR and does not depend
 on PETSc or Hypre. It also does not use accelerators or other devices on
 the node, neither does it exercise advanced features of the
