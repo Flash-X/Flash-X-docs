@@ -222,10 +222,44 @@ Makefile files in its parent’s directory. While source files at a given
 level of the directory hierarchy override files with the same name at
 higher levels, Makefiles and configuration files are cumulative. Since
 functions can have multiple implementations, selection for a specific
-application follows a few simple rules applied in order described in
-the Setup chapter.</p>
-<p>However, we must take care that this special use of the directory
-structure for inheritance does not interfere with its traditional use
+application follows a few simple rules described in the following
+Figures.</p>
+<div class="center docutils container">
+<blockquote>
+<div><figure class="align-default" id="fig-highlevel-flowchart">
+<a class="reference internal image-reference" href="_images/overview_flowchart.png"><img alt="overall_flowchart" src="_images/overview_flowchart.png" style="width: 4in;" /></a>
+<figcaption>
+<p><span class="caption-text">Overview of the control flow during configuration</span><a class="headerlink" href="#fig-highlevel-flowchart" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</div></blockquote>
+<div class="center docutils container">
+<figure class="align-default" id="fig-high-inheritance">
+<a class="reference internal image-reference" href="_images/overall_inheritance.png"><img alt="overall_inheritance" src="_images/overall_inheritance.png" style="width: 4in;" /></a>
+<figcaption>
+<p><span class="caption-text">Overview of the inheritance in various components of the code</span><a class="headerlink" href="#fig-high-inheritance" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<div class="center docutils container">
+<figure class="align-default" id="fig-keys-rp">
+<a class="reference internal image-reference" href="_images/keys_rp_inheritance.png"><img alt="Inheritance as it applied to keys defining macros and runtime parameters" src="_images/keys_rp_inheritance.png" style="width: 4in;" /></a>
+<figcaption>
+<p><span class="caption-text">Overview of the control flow during configuration</span><a class="headerlink" href="#fig-keys-rp" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<div class="center docutils container">
+<figure class="align-default" id="fig-file-generation">
+<a class="reference internal image-reference" href="_images/file_generation.png"><img alt="Step_file_generation" src="_images/file_generation.png" style="width: 4in;" /></a>
+<figcaption>
+<p><span class="caption-text">Steps in arbitration on files to be included/generated</span><a class="headerlink" href="#fig-file-generation" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<p>However, we must take care that this special use of the directory</p>
+</div>
+<p>structure for inheritance does not interfere with its traditional use
 for organization. We avoid any problems by means of a careful naming
 convention that allows clear distinction between organizational and
 namespace directories. See for naming conventions.</p>

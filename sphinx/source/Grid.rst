@@ -46,8 +46,13 @@ facilitates the ability of |flashx| to use multiple mesh packages.
 
 .. container:: center
 
-   |image|
+   .. figure:: Grid_single_block.png
+      :alt: Grid_block
+      :name: Fig:block
+      :width: 3in
 
+      One block with its surrounding halo of guardcells
+      
 Any unit in the code can retrieve all or part of a block of data from
 the Grid unit along with the coordinates of corresponding cells; it
 can then use this information for internal computations, and finally

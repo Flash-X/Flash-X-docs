@@ -158,7 +158,12 @@ management along with the use of blocks as computational entities
 enables Flash-X to abstract the grid from physics solvers and
 facilitates the ability of Flash-X to use multiple mesh packages.</p>
 <div class="center docutils container">
-<p><a href="#id4"><span class="problematic" id="id5">|image|</span></a></p>
+<figure class="align-default" id="fig-block">
+<a class="reference internal image-reference" href="_images/Grid_single_block.png"><img alt="Grid_block" src="_images/Grid_single_block.png" style="width: 3in;" /></a>
+<figcaption>
+<p><span class="caption-text">One block with its surrounding halo of guardcells</span><a class="headerlink" href="#fig-block" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 </div>
 <p>Any unit in the code can retrieve all or part of a block of data from
 the Grid unit along with the coordinates of corresponding cells; it
@@ -526,7 +531,7 @@ of guard cells. The guard cells contain boundary information needed to
 update the interior cells. These can be obtained from physically
 neighboring blocks, externally specified boundary conditions, or both.</p>
 <div class="center docutils container">
-<p><a href="#id6"><span class="problematic" id="id7">|image1|</span></a></p>
+<p><a href="#id4"><span class="problematic" id="id5">|image1|</span></a></p>
 </div>
 <p>The number of guard cells needed depends upon the interpolation schemes
 and the differencing stencils used by the various physics units (usually
@@ -564,7 +569,7 @@ computed.</p>
 <span id="sec-amr-data-struct"></span><h3>Grid Interpolation (and Averaging)<a class="headerlink" href="#grid-interpolation-and-averaging" title="Permalink to this headline"></a></h3>
 <p>The adaptive grid requires data <strong>interpolation</strong> or <strong>averaging</strong> when
 the refinement level (<em>i.e.</em>, mesh resolution) changes in space or in
-time.  <a href="#id8"><span class="problematic" id="id1">[3]_</span></a> If during guardcell filling a block’s neighbor has a coarser
+time.  <a href="#id6"><span class="problematic" id="id1">[3]_</span></a> If during guardcell filling a block’s neighbor has a coarser
 level of refinement, the neighbor’s cells are used to <strong>interpolate</strong>
 guard cell values to the cells of the finer block. Interpolation is also
 used when filling the blocks of children newly created in the course of
