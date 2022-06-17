@@ -15,20 +15,18 @@ are listed in below.
 
 *Setup tool*    -- Tom Klosterman / Klaus Weide -- may be out of date
 
-*Grid*            --  Klaus Weide                              --
-likely to be current
-
-*I/O*               -- Rajeev Jain                                 --
+*Grid*            --  Klaus Weide / Tom Klosterman -- likely to be
 current
 
-*Runtime Parameters* -- Klaus Weide                              --
-current
 
-*Multispecies* -- Klaus Weida -- current
+*I/O*               -- Rajeev Jain     -- current
+
 
 **Physics**
 
 *Unsplit Hydro*   -- Klaus Weide  -- current
+
+*Incompressible Hydro* -- Akash Dhruv -- may be out of date 
 
 *Spark*   -- Sean Couch / Anshu Dubey -- may be out of date
 
@@ -40,9 +38,23 @@ yet
 *Eos* -- Austin Harris / Sean Couch -- current, Weaklib is a
 submodule, not described here
 
-*Thornado* -- Eirik Endive -- submodule, not described here
+*Thornado* -- Eirik Endeve -- submodule, not described here
 
 *Particles*  -- Anshu Dubey -- current, tracers only
+
+
+
+**Contact**
+
+  Akash Dhruv - adhruv@anl.gov
+  Anshu Dubey - adubey@anl.gov
+  Sean Couch   - scouch@msu.edu
+  Eirik Endeve - endevee@ornl.gov
+  Austin Harris - harrisja@ornl.gov
+  Rajeev Jain - rajeeja@anl.gov
+  Jared O'Neal - joneal@anl.gov
+  Klaus Weide - kweide@uchicago.edu
+
 
 
 
