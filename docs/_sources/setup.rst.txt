@@ -2,7 +2,7 @@
 
 .. _`Chp:The |flashx| configuration `:
 
-The |flashx| configuration )
+The |flashx| configuration 
 ============================================
 
 The configuration toolchain effectively implements the Flash-X

@@ -158,14 +158,64 @@ Makefile files in its parent’s directory. While source files at a given
 level of the directory hierarchy override files with the same name at
 higher levels, Makefiles and configuration files are cumulative. Since
 functions can have multiple implementations, selection for a specific
-application follows a few simple rules applied in order described in
-the Setup chapter.
+application follows a few simple rules described in the following
+Figures.
 
-However, we must take care that this special use of the directory
+.. container:: center
+
+   .. figure:: overview_flowchart.png
+      :alt: overall_flowchart
+      :name: Fig:highlevel_flowchart
+      :width: 4in
+
+      Overview of the control flow during configuration
+
+
+      
+
+ .. container:: center
+
+   .. figure:: overall_inheritance.png
+      :alt: overall_inheritance
+      :name: Fig:high_inheritance
+      :width: 4in
+
+      Overview of the inheritance in various components of the code
+
+
+
+      
+ .. container:: center
+
+   .. figure:: keys_rp_inheritance.png
+      :alt: Inheritance as it applied to keys defining macros and
+	    runtime parameters
+      :name: Fig:keys_rp
+      :width: 4in
+
+      Overview of the control flow during configuration
+
+      
+
+
+ .. container:: center
+
+   .. figure:: file_generation.png
+      :alt: Step_file_generation
+      :name: Fig:file_generation
+      :width: 4in
+
+      Steps in arbitration on files to be included/generated
+
+
+ However, we must take care that this special use of the directory
 structure for inheritance does not interfere with its traditional use
 for organization. We avoid any problems by means of a careful naming
 convention that allows clear distinction between organizational and
 namespace directories. See for naming conventions.
+
+
+
 
 .. _`Sec: unitTest `:
 

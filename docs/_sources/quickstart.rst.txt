@@ -42,7 +42,25 @@ You should verify that you have the following:
 Obtaining and configuring |flashx| for quick start
 -------------------------------------------------
 
-To begin, clone the |flashx| source code distribution.....
+To begin, clone the |flashx| source code distribution. 
+
+The code of the PARAMESH library for Flash-X is provided as a git 
+submodule by a separate code repository named PARAMESH-for-Flash-X. 
+After successful initialization of the submodule the code will 
+appear as a subtree under Grid/GridMain/AMR in the PM4_package 
+directory. The Flash-X setup and build mechanisms will take care 
+of compiling this code (if needed for a simulation configuration); 
+PARAMESH code is not organized or built as a separate library.
+
+#Git with Submodules
+
+To prepare for building simulations that use libraries whose code must be retrieved
+from a separate git repository, the following modified `git` commands can be used:
+
+- `git pull --recurse-submodules=yes` (in place of the usual `git pull`)
+- `git submodule update --init` (additionally, after `git pull`)
+- `git submodule update --init source/Grid/GridMain/AMR/Paramesh4/PM4_package`
+  (variant of the previous item, in case you want to only get the Paramesh package submodule)
 
 This quick start example uses |paramesh| for AMR and does not depend
 on PETSc or Hypre. It also does not use accelerators or other devices on
