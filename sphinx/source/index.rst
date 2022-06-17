@@ -13,6 +13,7 @@ Welcome to |flashx|'s documentation!
    :maxdepth: 2
    :caption: Contents
 
+   disclaimers	     
    intro
    quickstart
    arch

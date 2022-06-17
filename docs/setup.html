@@ -40,6 +40,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="disclaimers.html">Current Status and Disclaimers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
@@ -800,7 +801,7 @@ initial values specified in its Config file override other values.</p></li>
 </li>
 </ul>
 <p>by looking for a directory <code class="docutils literal notranslate"><span class="pre">sites/&lt;hostname&gt;</span></code> where <code class="docutils literal notranslate"><span class="pre">&lt;hostname&gt;</span></code> is
-the hostname of the machine on which Flash-X is running. <a class="footnote-reference brackets" href="#id25" id="id7">1</a> Failing
+the hostname of the machine on which Flash-X is running. <a class="footnote-reference brackets" href="#id23" id="id7">1</a> Failing
 this, it looks in <code class="docutils literal notranslate"><span class="pre">sites/Prototypes/</span></code> for a directory with the same
 name as the output of the <code class="docutils literal notranslate"><span class="pre">uname</span></code> command. The site and operating
 system type can be overridden with the <code class="docutils literal notranslate"><span class="pre">-site</span></code> and <code class="docutils literal notranslate"><span class="pre">-ostype</span></code>
@@ -946,8 +947,8 @@ to “hdf5/parallel”, is as simple as changing the definition of the
 <p>Some of the more commonly used shortcuts are described below:</p>
 <div class="center docutils container">
 <div class="docutils container" id="tab-setup-shortcuts">
-<table class="docutils align-default" id="id30">
-<caption><span class="caption-text">Shortcuts for often-used options</span><a class="headerlink" href="#id30" title="Permalink to this table"></a></caption>
+<table class="docutils align-default" id="id25">
+<caption><span class="caption-text">Shortcuts for often-used options</span><a class="headerlink" href="#id25" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 19%" />
 <col style="width: 81%" />
@@ -998,7 +999,7 @@ call like</p>
 <div class="codeseg docutils container">
 <p>./setup -a Sod Foo=Bar Baz=True</p>
 </div>
-<p>sets the variable “Foo” to string “Bar” and “Baz” to boolean True <a class="footnote-reference brackets" href="#id29" id="id20">5</a>.
+<p>sets the variable “Foo” to string “Bar” and “Baz” to boolean True <a class="footnote-reference brackets" href="#id24" id="id20">2</a>.
 <code class="docutils literal notranslate"><span class="pre">setup</span></code> can conditionally include and exclude parts of the <code class="docutils literal notranslate"><span class="pre">Config</span></code>
 file it reads based on the values of these variables. For example, the
 <code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/Config</span></code> file contains</p>
@@ -1230,54 +1231,17 @@ There is no guarantee that the program will work! I strongly recommend
 that you stop using this Flash-X application - you should build a MPI-2
 library with thread support and then rebuild Flash-X.</p>
 <p>We record extra version and runtime information in the Flash-X log file
-for a threaded application. Table <a class="reference external" href="#tab:flash_openmp_logs">1.4</a> shows
-log file entries from a threaded Flash-X application along with example
-safe and unsafe values. All cells colored red show unsafe values.</p>
-<div class="center docutils container">
-<div class="docutils container" id="tab-flash-openmp-logs">
-<p>Flash-X applications</p>
-<blockquote>
-<div></div></blockquote>
-</div>
-</div>
-<p>The Flash-X applications in Table <a class="reference external" href="#tab:flash_openmp_logs">1.4</a> are
-unsafe because</p>
-<ol class="arabic">
-<li><p>we are using an MPI-1 implementation.</p></li>
-<li><p>we are using an MPI-2 implementation which is not built with thread
-support - the “MPI thread support in <a href="#id23"><span class="problematic" id="id24">|</span></a>openmp|I” Flash tip may help.</p></li>
-<li><p>we are using a compiler that does not define the macro <code class="docutils literal notranslate"><span class="pre">_OPENMP</span></code>
-when it compiles source files with OpenMP support (see OpenMP
-standard). I have noticed that Absoft 64-bit Pro Fortran 11.1.3 for
-Linux x86_64 does not define this macro. We use this macro in
-<code class="docutils literal notranslate"><span class="pre">Driver_initParallel.F90</span></code> to conditionally initialize MPI with
-<code class="docutils literal notranslate"><span class="pre">MPI_Init_thread</span></code>. If you find that <code class="docutils literal notranslate"><span class="pre">_OPENMP</span></code> is not defined you
-should define it in your <code class="docutils literal notranslate"><span class="pre">Makefile.h</span></code> in a manner similar to the
-following:</p>
-<div class="codeseg docutils container">
-<p>OPENMP_FORTRAN = -openmp -D_OPENMP=200805</p>
-</div>
-</li>
-</ol>
+for a threaded application.</p>
 <p>You should not setup a Flash-X application with both <code class="docutils literal notranslate"><span class="pre">threadBlockList</span></code>
 and <code class="docutils literal notranslate"><span class="pre">threadWithinBlock</span></code> equal to <code class="docutils literal notranslate"><span class="pre">True</span></code> - nested OpenMP parallelism
 is not supported. For further information about Flash-X multithreaded
 applications please refer to Chapter
 <a class="reference external" href="#Chp:Multithreaded|flashx|">[Chp:Multithreaded|flashx|]</a>.</p>
 <dl class="footnote brackets">
-<dt class="label" id="id25"><span class="brackets"><a class="fn-backref" href="#id7">1</a></span></dt>
+<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id7">1</a></span></dt>
 <dd><p>if a machine has multiple hostnames, setup tries them all</p>
 </dd>
-<dt class="label" id="id26"><span class="brackets">2</span></dt>
-<dd><p>Formerly, (in Flash2 it was located in the FLASH root directory</p>
-</dd>
-<dt class="label" id="id27"><span class="brackets">3</span></dt>
-<dd><p>Formerly, (in Flash2) it was located in the FLASH root directory</p>
-</dd>
-<dt class="label" id="id28"><span class="brackets">4</span></dt>
-<dd><p>Formerly, (in Flash2) it was located in the FLASH root directory</p>
-</dd>
-<dt class="label" id="id29"><span class="brackets"><a class="fn-backref" href="#id20">5</a></span></dt>
+<dt class="label" id="id24"><span class="brackets"><a class="fn-backref" href="#id20">2</a></span></dt>
 <dd><p>All non-integral values not equal to True/False/Yes/No/On/Off are
 considered to be string values</p>
 </dd>

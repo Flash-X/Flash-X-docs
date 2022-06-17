@@ -914,7 +914,7 @@ call like
 
    ./setup -a Sod Foo=Bar Baz=True
 
-sets the variable “Foo" to string “Bar" and “Baz" to boolean True [5]_.
+sets the variable “Foo" to string “Bar" and “Baz" to boolean True [2]_.
 ``setup`` can conditionally include and exclude parts of the ``Config``
 file it reads based on the values of these variables. For example, the
 ``IO/IOMain/hdf5/Config`` file contains
@@ -1066,7 +1066,7 @@ simulation-specific code.
 |                                  | returns the *uname* of the       |
 |                                  | system used to setup the problem |
 +----------------------------------+----------------------------------+
-| \*[1ex]                          | contains code which returns      |
+|``setup_call.F90``      | contains code which returns      |
 |                                  | build statistics including the   |
 |                                  | actual ``setup`` call as well as |
 |                                  | the compiler flags used for the  |
@@ -1232,67 +1232,8 @@ that you stop using this |flashx| application - you should build a MPI-2
 library with thread support and then rebuild |flashx|.
 
 We record extra version and runtime information in the |flashx| log file
-for a threaded application. Table `1.4 <#tab:flash_openmp_logs>`__ shows
-log file entries from a threaded |flashx| application along with example
-safe and unsafe values. All cells colored red show unsafe values.
-
-.. container:: center
-
-   .. container::
-      :name: tab:flash_openmp_logs
-
-      .. table:: Log file entries showing safe and unsafe threaded
-      |flashx| applications
-
-         +-------------+----------+-------------+-------------+-------------+
-         | **Log file  | **safe** | **unsafe    | **unsafe    | **unsafe    |
-         | stamp**     |          | (1)**       | (2)**       | (3)**       |
-         +=============+==========+=============+=============+=============+
-         | Number of   | 1        | 1           | 1           | 1           |
-         | MPI tasks:  |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | MPI         | 2        | 1           | 2           | 2           |
-         | version:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | MPI         | 2        | 2           | 1           | 2           |
-         | subversion: |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | MPI thread  | T        | F           | F           | F           |
-         | support:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | |openmp|      | 2        | 2           | 2           | 2           |
-         | threads/MPI |          |             |             |             |
-         | task:       |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | |openmp|      | 200805   | 200505      | 200505      | 200805      |
-         | version:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-         | Is          | T        | T           | T           | F           |
-         | “\_OPENMP”  |          |             |             |             |
-         | macro       |          |             |             |             |
-         | defined:    |          |             |             |             |
-         +-------------+----------+-------------+-------------+-------------+
-
-The |flashx| applications in Table `1.4 <#tab:flash_openmp_logs>`__ are
-unsafe because
-
-#. we are using an MPI-1 implementation.
-
-#. we are using an MPI-2 implementation which is not built with thread
-   support - the “MPI thread support in |openmp|I” Flash tip may help.
-
-#. we are using a compiler that does not define the macro ``_OPENMP``
-   when it compiles source files with |openmp| support (see |openmp|
-   standard). I have noticed that Absoft 64-bit Pro Fortran 11.1.3 for
-   Linux x86_64 does not define this macro. We use this macro in
-   ``Driver_initParallel.F90`` to conditionally initialize MPI with
-   ``MPI_Init_thread``. If you find that ``_OPENMP`` is not defined you
-   should define it in your ``Makefile.h`` in a manner similar to the
-   following:
-
-   .. container:: codeseg
-
-      OPENMP_FORTRAN = -openmp -D_OPENMP=200805
+for a threaded application. 
+	 
 
 You should not setup a |flashx| application with both ``threadBlockList``
 and ``threadWithinBlock`` equal to ``True`` - nested |openmp| parallelism
@@ -1304,14 +1245,5 @@ applications please refer to Chapter
    if a machine has multiple hostnames, setup tries them all
 
 .. [2]
-   Formerly, (in Flash2 it was located in the |flash| root directory
-
-.. [3]
-   Formerly, (in Flash2) it was located in the |flash| root directory
-
-.. [4]
-   Formerly, (in Flash2) it was located in the |flash| root directory
-
-.. [5]
    All non-integral values not equal to True/False/Yes/No/On/Off are
    considered to be string values

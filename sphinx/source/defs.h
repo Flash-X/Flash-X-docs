@@ -6,3 +6,4 @@
 .. |openmp| replace:: OpenMP
 .. |openacc| replace:: OpenAcc
 .. |spark| replace:: Spark
+
