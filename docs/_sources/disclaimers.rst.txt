@@ -13,48 +13,59 @@ are listed in below.
 
 **Infrastructure**
 
-*Setup tool*    -- Tom Klosterman / Klaus Weide -- may be out of date
 
-*Grid*            --  Klaus Weide / Tom Klosterman -- likely to be
-current
++------------+------------------------------+----------------------+
+| Setup tool | Tom Klosterman / Klaus Weide | may be out of date   |
++------------+------------------------------+----------------------+
+| Grid       | Klaus Weide / Tom Klosterman | likely to be current |
++------------+------------------------------+----------------------+
+| I/O        | Rajeev Jain                  | current              |
++------------+------------------------------+----------------------+
 
-
-*I/O*               -- Rajeev Jain     -- current
 
 
 **Physics**
 
-*Unsplit Hydro*   -- Klaus Weide  -- current
 
-*Incompressible Hydro* -- Akash Dhruv -- may be out of date 
-
-*Spark*   -- Sean Couch / Anshu Dubey -- may be out of date
-
-*Gravity* -- Sean Couch -- current
-
-*Burn* -- Austin Harris -- current except Xnet which is not included
-yet
-
-*Eos* -- Austin Harris / Sean Couch -- current, Weaklib is a
-submodule, not described here
-
-*Thornado* -- Eirik Endeve -- submodule, not described here
-
-*Particles*  -- Anshu Dubey -- current, tracers only
-
++---------------+------------------------------+-------------------------------+
+| Unsplit Hydro | Klaus Weide                  | current                       |
++---------------+------------------------------+-------------------------------+
+| INS           | Akash Dhruv                  | may be out of date            |
++---------------+------------------------------+-------------------------------+
+| Spark         | Sean Couch / Anshu Dubey     | may be out of date            |
++---------------+------------------------------+-------------------------------+
+| Gravity       | Sean Couch                   | current                       |
++---------------+------------------------------+-------------------------------+
+|               | Austin Harris                | current except Xnet           |
+| Burn          |                              | which is not included yet     | 
++---------------+------------------------------+-------------------------------+
+| Eos           | Austin Harris / Sean Couch   | current, except Weaklib       |
++---------------+------------------------------+-------------------------------+
+| Thornado      | Eirik Endeve                 | submodule, not described here |
++---------------+------------------------------+-------------------------------+
+| Particles     | Anshu Dubey                  | current, tracers only         |
++---------------+------------------------------+-------------------------------+
 
 
 **Contact**
 
-  Akash Dhruv - adhruv@anl.gov
-  Anshu Dubey - adubey@anl.gov
-  Sean Couch   - scouch@msu.edu
-  Eirik Endeve - endevee@ornl.gov
-  Austin Harris - harrisja@ornl.gov
-  Rajeev Jain - rajeeja@anl.gov
-  Jared O'Neal - joneal@anl.gov
-  Klaus Weide - kweide@uchicago.edu
-
++----------------+---------------------+
+|  Akash Dhruv   | adhruv@anl.gov      |
++----------------+---------------------+
+|  Anshu Dubey   | adubey@anl.gov      |
++----------------+---------------------+
+|  Sean Couch    | scouch@msu.edu      |
++----------------+---------------------+
+|  Eirik Endeve  | endevee@ornl.gov    |
++----------------+---------------------+
+|  Austin Harris | harrisja@ornl.gov   |
++----------------+---------------------+
+|  Rajeev Jain   | rajeeja@anl.gov     |
++----------------+---------------------+
+|  Jared O'Neal  | joneal@anl.gov      |
++----------------+---------------------+
+|  Klaus Weide   | kweide@uchicago.edu |
++----------------+---------------------+
 
 
 
