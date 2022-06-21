@@ -20,8 +20,10 @@ jobs:
           pip3 install --upgrade pip
           pip3 install sphinx
           pip3 install sphinx-rtd-theme
-    - name: Run test
+    - name: Update documentation
       run: |
+          git checkout gh_pages
+          git merge origin/main
           cd sphinx && make html
     - name: Commit files
       run: |
