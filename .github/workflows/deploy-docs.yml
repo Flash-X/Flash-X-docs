@@ -22,13 +22,13 @@ jobs:
           pip3 install sphinx-rtd-theme
     - name: Update documentation
       run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git checkout gh_pages
           git merge origin/main
           cd sphinx && make html
     - name: Commit files
       run: |
-        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
         git commit -m "Update gh pages" -a
     - name: Push changes
       uses: ad-m/github-push-action@master
