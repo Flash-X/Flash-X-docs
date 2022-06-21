@@ -9,6 +9,8 @@ The ``IncompNS`` unit solves incompressible Navier-Stokes equations in
 two or three spatial dimensions. The currently released implementation
 allows for both constant and variable density throughout the simulation domain.
 
+Add a test line here
+
 Multistep and Runge-Kutta explicit projection schemes are used for time
 integration. These methods are described in Armfield & Street 2002, Yang
 & Balaras 2006, and Vanella *et al.* 2010. Implementations using a
