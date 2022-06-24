@@ -11,3 +11,4 @@ This chapter covers related tools.
     :caption: Contents
 
     sfocu
+    flashxtest

@@ -26,7 +26,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git checkout gh_pages
           git merge origin/main
-          cd sphinx && make html
+          cd sphinx && make github
     - name: Commit files
       run: |
         git commit -m "Update gh pages" -a
