@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FlashXTest &mdash; Flash-X 0.0.0 documentation</title>
+  <title>Flash-X Testing Framework (FlashXTest) &mdash; Flash-X 0.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -51,7 +51,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="tools.html">Tools</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="sfocu.html">VisIt</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sfocu.html#serial-flashx-output-comparison-utility-sfocu">Serial Flash-X Output Comparison Utility (<code class="docutils literal notranslate"><span class="pre">sfocu</span></code>)</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">FlashXTest</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Flash-X Testing Framework (FlashXTest)</a></li>
 </ul>
 </li>
 </ul>
@@ -71,7 +71,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="tools.html">Tools</a> &raquo;</li>
-      <li>FlashXTest</li>
+      <li>Flash-X Testing Framework (FlashXTest)</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/flashxtest.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -81,9 +81,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="flashxtest">
-<span id="chp-flashxtest"></span><h1>FlashXTest<a class="headerlink" href="#flashxtest" title="Permalink to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">flashxtest</span> <span class="pre">--help</span></code></p>
+  <section id="flash-x-testing-framework-flashxtest">
+<span id="chp-flashxtest"></span><h1>Flash-X Testing Framework (FlashXTest)<a class="headerlink" href="#flash-x-testing-framework-flashxtest" title="Permalink to this heading"></a></h1>
+<p>Testing and maintainence of Flash-X source code is implemented using the <code class="docutils literal notranslate"><span class="pre">FlashXTest</span></code> python and command line utility. The utility can be installed directly from its <a class="reference external" href="https://github.com/Flash-X/Flash-X-Test">repository</a>.</p>
+<p>After cloning the repository type,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">setup</span> <span class="n">develop</span>
+</pre></div>
+</div>
+<p>in the root folder and it will install <code class="docutils literal notranslate"><span class="pre">FlashXTest</span></code> in your python environment and copy the command line script to your <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code>. <code class="docutils literal notranslate"><span class="pre">FlashXTest</span></code> won’t mainpulate your environment <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable so you may have to manually update your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> in <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code> by adding</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$PATH:~/.local/bin&quot;</span>
+</pre></div>
+</div>
+<p>Once this is done you can type <code class="docutils literal notranslate"><span class="pre">flashxtest</span> <span class="pre">--help</span></code> in your terminal and should be able to see following</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">flashxtest</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span> <span class="n">COMMAND</span> <span class="p">[</span><span class="n">ARGS</span><span class="p">]</span><span class="o">...</span>
 
   <span class="n">Python</span> <span class="n">CLI</span> <span class="k">for</span> <span class="n">Flash</span><span class="o">-</span><span class="n">X</span> <span class="n">Testing</span> <span class="n">Utility</span>
@@ -99,6 +108,42 @@
   <span class="n">view</span>    <span class="n">Launch</span> <span class="n">webviewer</span>
 </pre></div>
 </div>
+<p>To setup your local testing infrastructure either create an empty folder in your desired location or go directly to your <code class="docutils literal notranslate"><span class="pre">Flash-X</span></code> root directory and run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">flashxtest</span> <span class="n">init</span> <span class="o">-</span><span class="n">z</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">Flash</span><span class="o">-</span><span class="n">X</span><span class="o">&gt;</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">site</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This will create a <code class="docutils literal notranslate"><span class="pre">config</span></code> file and a <code class="docutils literal notranslate"><span class="pre">/.fxt</span></code> folder which will be used to manage your test configuration.</p>
+<p>Test information should be provided in individual <code class="docutils literal notranslate"><span class="pre">Simulation/SimulationMain</span></code> directories. Each simulation directory should contain a <code class="docutils literal notranslate"><span class="pre">tests</span></code> folder which contains a <code class="docutils literal notranslate"><span class="pre">test.toml</span></code> configuration file and <code class="docutils literal notranslate"><span class="pre">*.par</span></code> files pertaining to individual tests. Here is an example of a sample <code class="docutils literal notranslate"><span class="pre">test.toml</span></code> located in <code class="docutils literal notranslate"><span class="pre">Simulation/SimulationMain/incompFlow/DeformingBubble/tests</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># TOML file for DeformingBubble test</span>
+<span class="c1"># TODO: handle string replacement feature used in xml files</span>
+
+<span class="p">[</span><span class="n">default</span><span class="p">]</span>
+    <span class="n">testNode</span> <span class="o">=</span> <span class="s2">&quot;UnitTest/incompFlow/DeformingBubble/2D/AMReX&quot;</span>
+    <span class="n">setupOptions</span> <span class="o">=</span> <span class="s2">&quot;-auto -2d -nxb=16 -nyb=16 +amrex +parallelIO&quot;</span>
+    <span class="n">numProcs</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="p">[</span><span class="n">user</span><span class="o">-</span><span class="n">test</span><span class="p">]</span>
+    <span class="n">testNode</span> <span class="o">=</span> <span class="s2">&quot;UnitTest/incompFlow/DeformingBubble/2D/pm4dev&quot;</span>
+    <span class="n">setupOptions</span> <span class="o">=</span> <span class="s2">&quot;-auto -2d -nxb=16 -nyb=16 --index-reorder +pm4dev -gridinterpolation=native +serialIO&quot;</span>
+    <span class="n">numProcs</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">parFile</span> <span class="o">=</span> <span class="s2">&quot;test_user.par&quot;</span>
+</pre></div>
+</div>
+<p>The keys <code class="docutils literal notranslate"><span class="pre">default</span></code> and <code class="docutils literal notranslate"><span class="pre">user-test</span></code> provide configuration of two seprate tests for this particular simulation. To add one of the tests in your local testing suite type</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">flashxtest</span> <span class="n">add</span> <span class="n">incompFlow</span><span class="o">/</span><span class="n">DeformingBubble</span> <span class="o">-</span><span class="n">t</span> <span class="o">&lt;</span><span class="n">test</span><span class="o">-</span><span class="n">key</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This will create a <code class="docutils literal notranslate"><span class="pre">testInfo.xml</span></code> which will translate the information under <code class="docutils literal notranslate"><span class="pre">&lt;test-key&gt;</span></code> into an <code class="docutils literal notranslate"><span class="pre">xml</span></code> node. A <code class="docutils literal notranslate"><span class="pre">jobFile</span></code> will also be created which will contain the value of <code class="docutils literal notranslate"><span class="pre">testNode</span></code> provided in <code class="docutils literal notranslate"><span class="pre">test.toml</span></code>. Add more tests by repeating the <code class="docutils literal notranslate"><span class="pre">flashxtest</span> <span class="pre">add</span></code> command. An already populated set of <code class="docutils literal notranslate"><span class="pre">testInfo.xml</span></code> and <code class="docutils literal notranslate"><span class="pre">jobFile</span></code> is available in the <code class="docutils literal notranslate"><span class="pre">Tests</span></code> folder of <code class="docutils literal notranslate"><span class="pre">FlashXTest</span></code> <a class="reference external" href="https://github.com/Flash-X/Flash-X-Test">repository</a>, and contains all the tests that currently run by the maintainers.</p>
+<p>To deploy a test run, type</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">flashxtest</span> <span class="n">run</span>
+</pre></div>
+</div>
+<p>in the directory containing your <code class="docutils literal notranslate"><span class="pre">config</span></code>, <code class="docutils literal notranslate"><span class="pre">testInfo.xml</span></code>, and <code class="docutils literal notranslate"><span class="pre">jobFile</span></code>. The <code class="docutils literal notranslate"><span class="pre">flashxtest</span> <span class="pre">run</span></code> command will query all the nodes provided in <code class="docutils literal notranslate"><span class="pre">jobFile</span></code> against <code class="docutils literal notranslate"><span class="pre">testInfo.xml</span></code> and will run tests based on listed configuration.</p>
+<p>There maybe situations where breaking up the <code class="docutils literal notranslate"><span class="pre">jobFile</span></code> is desired to organize test deployment. This is easily handled by the <code class="docutils literal notranslate"><span class="pre">flashxtest</span> <span class="pre">run</span></code> command. Simply breakup the <code class="docutils literal notranslate"><span class="pre">jobFile</span></code> to mulitple files with your desired naming convention and type</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">flashxtest</span> <span class="n">run</span> <span class="o">&lt;</span><span class="n">filename1</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">filename2</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">filename3</span><span class="o">&gt;</span> <span class="o">....</span>
+</pre></div>
+</div>
+<p><em>This project is currently under development. Please file bugs/issues at: https://github.com/Flash-X/Flash-X-Test</em></p>
 </section>
 
 
