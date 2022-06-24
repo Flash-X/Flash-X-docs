@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VisIt &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="FlashXTest" href="flashxtest.html" />
+    <link rel="prev" title="Tools" href="tools.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="disclaimers.html">Current Status and Disclaimers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tools.html">Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">VisIt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#serial-flashx-output-comparison-utility-sfocu">Serial Flash-X Output Comparison Utility (<code class="docutils literal notranslate"><span class="pre">sfocu</span></code>)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#building-sfocu">Building <code class="docutils literal notranslate"><span class="pre">sfocu</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-sfocu">Using <code class="docutils literal notranslate"><span class="pre">sfocu</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="flashxtest.html">FlashXTest</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tools.html">Tools</a> &raquo;</li>
+      <li>VisIt</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/sfocu.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="visit">
+<span id="sec-visit"></span><h1>VisIt<a class="headerlink" href="#visit" title="Permalink to this heading"></a></h1>
+<p>The developers of <code class="docutils literal notranslate"><span class="pre">|flashx|</span></code> also highly recommend VisIt, a free
+parallel interactive visualization package provided by Lawrence
+Livermore National Laboratory (see <a class="reference external" href="https://wci.llnl.gov/codes/visit/">https://wci.llnl.gov/codes/visit/</a>).
+VisIt runs on Unix and PC platforms, and can handle small desktop-size
+datasets as well as very large parallel datasets in the terascale range.
+VisIt provides a native reader to import <code class="docutils literal notranslate"><span class="pre">|flashx|2.5</span></code> and Flash-X.
+Version 1.10 and higher natively support Flash-X. For VisIt versions 1.8
+or less, Flash-X support can be obtained by installing a tarball patch
+available at
+<a class="reference external" href="http://flash.uchicago.edu/site/flashcode/user_support/visit/">http://flash.uchicago.edu/site/flashcode/user_support/visit/</a>. Full
+instructions are also available at that site.</p>
+</section>
+<section id="serial-flashx-output-comparison-utility-sfocu">
+<span id="chp-sfocu"></span><h1>Serial Flash-X Output Comparison Utility (<code class="docutils literal notranslate"><span class="pre">sfocu</span></code>)<a class="headerlink" href="#serial-flashx-output-comparison-utility-sfocu" title="Permalink to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">Sfocu</span></code> (Serial Flash Output Comparison Utility) is mainly used as
+part of an automated testing suite called <code class="docutils literal notranslate"><span class="pre">flashTest</span></code> and was
+introduced in Flash-X version 2.0 as a replacement for focu.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sfocu</span></code> is a serial utility which examines two Flash-X checkpoint
+files and decides whether or not they are “equal” to ensure that any
+changes made to Flash-X do not adversely affect subsequent simulation
+output. By “equal”, we mean that</p>
+<ul class="simple">
+<li><p>The leaf-block structure matches – each leaf block must have the same
+position and size in both datasets.</p></li>
+<li><p>The data arrays in the leaf blocks (<code class="docutils literal notranslate"><span class="pre">dens</span></code>, <code class="docutils literal notranslate"><span class="pre">pres</span></code>…) are
+identical.</p></li>
+<li><p>The number of particles are the same, and all floating point particle
+attributes are identical.</p></li>
+</ul>
+<p>Thus, <code class="docutils literal notranslate"><span class="pre">sfocu</span></code> ignores information such as the particular numbering of
+the blocks and particles, the timestamp, the build information, and so
+on.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sfocu</span></code> can read <code class="docutils literal notranslate"><span class="pre">HDF5</span></code> and <code class="docutils literal notranslate"><span class="pre">PnetCDF</span></code> Flash-X checkpoint files.
+Although <code class="docutils literal notranslate"><span class="pre">sfocu</span></code> is a serial program, it is able to do comparisons on
+the output of large parallel simulations. <code class="docutils literal notranslate"><span class="pre">Sfocu</span></code> has been used on
+irix, linux, AIX and OSF1.</p>
+<section id="building-sfocu">
+<span id="sec-building-sfocu"></span><h2>Building <code class="docutils literal notranslate"><span class="pre">sfocu</span></code><a class="headerlink" href="#building-sfocu" title="Permalink to this heading"></a></h2>
+<p>The process is entirely manual, although Makefiles for certain machines
+have been provided. There are a few compile-time options which you set
+via the following preprocessor definitions in the Makefile (in the
+<code class="docutils literal notranslate"><span class="pre">CDEFINES</span></code> macro):</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NO_HDF5</span></code></dt><dd><p>build without HDF5 support</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_NCDF</span></code></dt><dd><p>build without PnetCDF support</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NEED_MPI</span></code></dt><dd><p>certain parallel versions of HDF5 and all versions of PnetCDF need to
+be linked with the MPI library. This adds the necessary <code class="docutils literal notranslate"><span class="pre">MPI_Init</span></code>
+and <code class="docutils literal notranslate"><span class="pre">MPI_Finalize</span></code> calls to <code class="docutils literal notranslate"><span class="pre">sfocu</span></code>. There is no advantage to
+running <code class="docutils literal notranslate"><span class="pre">sfocu</span></code> on more than one processor; it will only give you
+multiple copies of the same report.</p>
+</dd>
+</dl>
+</section>
+<section id="using-sfocu">
+<span id="sec-using-sfocu"></span><h2>Using <code class="docutils literal notranslate"><span class="pre">sfocu</span></code><a class="headerlink" href="#using-sfocu" title="Permalink to this heading"></a></h2>
+<p>The basic and most common usage is to run the command
+<code class="docutils literal notranslate"><span class="pre">sfocu</span> <span class="pre">&lt;file1&gt;</span> <span class="pre">&lt;file2&gt;</span></code>. The option <code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">&lt;dist&gt;</span></code> allows a distance
+tolerance in comparing bounding boxes of blocks in two different files
+to determine which are the same (which have data to compare to one
+another). You might need to widen your terminal to view the output,
+since it can be over 80 columns. Sample output follows:</p>
+<blockquote>
+<div><div class="tiny docutils container">
+<div class="samepage docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">A</span><span class="p">:</span> <span class="mi">2006</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">25</span><span class="o">/</span><span class="n">sod_2d_45deg_4lev_ncmpi_chk_0001</span>
+<span class="n">B</span><span class="p">:</span> <span class="mi">2005</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span><span class="o">/</span><span class="n">sod_2d_45deg_4lev_ncmpi_chk_0001</span>
+<span class="n">Min</span> <span class="n">Error</span><span class="p">:</span> <span class="n">inf</span><span class="p">(</span><span class="mi">2</span><span class="o">|</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="o">|</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="o">|</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">|</span><span class="p">,</span> <span class="mf">1e-99</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">Max</span> <span class="n">Error</span><span class="p">:</span> <span class="n">sup</span><span class="p">(</span><span class="mi">2</span><span class="o">|</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="o">|</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="o">|</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">|</span><span class="p">,</span> <span class="mf">1e-99</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">Abs</span> <span class="n">Error</span><span class="p">:</span> <span class="n">sup</span><span class="o">|</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="o">|</span>
+<span class="n">Mag</span> <span class="n">Error</span><span class="p">:</span> <span class="n">sup</span><span class="o">|</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="o">|</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">sup</span><span class="o">|</span><span class="n">a</span><span class="o">|</span><span class="p">,</span> <span class="n">sup</span><span class="o">|</span><span class="n">b</span><span class="o">|</span><span class="p">,</span> <span class="mf">1e-99</span><span class="p">)</span>
+<span class="n">Block</span> <span class="n">shapes</span> <span class="k">for</span> <span class="n">both</span> <span class="n">files</span> <span class="n">are</span><span class="p">:</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">Mag</span><span class="o">-</span><span class="n">error</span> <span class="n">tolerance</span><span class="p">:</span> <span class="mf">1e-12</span>
+<span class="n">Total</span> <span class="n">leaf</span> <span class="n">blocks</span> <span class="n">compared</span><span class="p">:</span> <span class="mi">541</span> <span class="p">(</span><span class="nb">all</span> <span class="n">other</span> <span class="n">blocks</span> <span class="n">are</span> <span class="n">ignored</span><span class="p">)</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+<span class="n">Var</span>  <span class="o">|</span> <span class="n">Bad</span> <span class="n">Blocks</span> <span class="o">|</span> <span class="n">Min</span> <span class="n">Error</span> <span class="o">||</span>             <span class="n">Max</span> <span class="n">Error</span>             <span class="o">||</span>             <span class="n">Abs</span> <span class="n">Error</span>             <span class="o">|</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+     <span class="o">|</span>            <span class="o">|</span>           <span class="o">||</span>   <span class="n">Error</span>   <span class="o">|</span>     <span class="n">A</span>     <span class="o">|</span>     <span class="n">B</span>     <span class="o">||</span>   <span class="n">Error</span>   <span class="o">|</span>     <span class="n">A</span>     <span class="o">|</span>     <span class="n">B</span>     <span class="o">|</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+<span class="n">dens</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mf">1.098e-11</span> <span class="o">|</span>  <span class="mf">0.424</span>    <span class="o">|</span>  <span class="mf">0.424</span>    <span class="o">||</span> <span class="mf">4.661e-12</span> <span class="o">|</span>  <span class="mf">0.424</span>    <span class="o">|</span>  <span class="mf">0.424</span>    <span class="o">|</span>
+<span class="n">eint</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mf">1.1e-11</span>   <span class="o">|</span>  <span class="mf">1.78</span>     <span class="o">|</span>  <span class="mf">1.78</span>     <span class="o">||</span> <span class="mf">1.956e-11</span> <span class="o">|</span>  <span class="mf">1.78</span>     <span class="o">|</span>  <span class="mf">1.78</span>     <span class="o">|</span>
+<span class="n">ener</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mf">8.847e-12</span> <span class="o">|</span>  <span class="mf">2.21</span>     <span class="o">|</span>  <span class="mf">2.21</span>     <span class="o">||</span> <span class="mf">1.956e-11</span> <span class="o">|</span>  <span class="mf">2.21</span>     <span class="o">|</span>  <span class="mf">2.21</span>     <span class="o">|</span>
+<span class="n">gamc</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>
+<span class="n">game</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>
+<span class="n">pres</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mf">1.838e-14</span> <span class="o">|</span>  <span class="mf">0.302</span>    <span class="o">|</span>  <span class="mf">0.302</span>    <span class="o">||</span> <span class="mf">1.221e-14</span> <span class="o">|</span>  <span class="mf">0.982</span>    <span class="o">|</span>  <span class="mf">0.982</span>    <span class="o">|</span>
+<span class="n">temp</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mf">1.1e-11</span>   <span class="o">|</span>  <span class="mf">8.56e-09</span> <span class="o">|</span>  <span class="mf">8.56e-09</span> <span class="o">||</span> <span class="mf">9.41e-20</span>  <span class="o">|</span>  <span class="mf">8.56e-09</span> <span class="o">|</span>  <span class="mf">8.56e-09</span> <span class="o">|</span>
+<span class="n">velx</span> <span class="o">|</span> <span class="mi">516</span>        <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mf">5.985</span>     <span class="o">|</span>  <span class="mf">5.62e-17</span> <span class="o">|</span> <span class="o">-</span><span class="mf">1.13e-16</span> <span class="o">||</span> <span class="mf">2.887e-14</span> <span class="o">|</span>  <span class="mf">0.657</span>    <span class="o">|</span>  <span class="mf">0.657</span>    <span class="o">|</span>
+<span class="n">vely</span> <span class="o">|</span> <span class="mi">516</span>        <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mi">2</span>         <span class="o">|</span>  <span class="mf">1e-89</span>    <span class="o">|</span> <span class="o">-</span><span class="mf">4.27e-73</span> <span class="o">||</span> <span class="mf">1.814e-14</span> <span class="o">|</span>  <span class="mf">0.102</span>    <span class="o">|</span>  <span class="mf">0.102</span>    <span class="o">|</span>
+<span class="n">velz</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>
+<span class="n">mfrc</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">||</span> <span class="mi">0</span>         <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+<span class="n">Var</span>  <span class="o">|</span> <span class="n">Bad</span> <span class="n">Blocks</span> <span class="o">|</span> <span class="n">Mag</span> <span class="n">Error</span> <span class="o">||</span>                  <span class="n">A</span>                <span class="o">||</span>                  <span class="n">B</span>                <span class="o">|</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+     <span class="o">|</span>            <span class="o">|</span>           <span class="o">||</span>    <span class="n">Sum</span>    <span class="o">|</span>    <span class="n">Max</span>    <span class="o">|</span>    <span class="n">Min</span>    <span class="o">||</span>    <span class="n">Sum</span>    <span class="o">|</span>    <span class="n">Max</span>    <span class="o">|</span>    <span class="n">Min</span>    <span class="o">|</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+<span class="n">dens</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mf">4.661e-12</span> <span class="o">||</span>  <span class="mf">1.36e+04</span> <span class="o">|</span>  <span class="mi">1</span>        <span class="o">|</span>  <span class="mf">0.125</span>    <span class="o">||</span>  <span class="mf">1.36e+04</span> <span class="o">|</span>  <span class="mi">1</span>        <span class="o">|</span>  <span class="mf">0.125</span>    <span class="o">|</span>
+<span class="n">eint</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mf">6.678e-12</span> <span class="o">||</span>  <span class="mf">7.3e+04</span>  <span class="o">|</span>  <span class="mf">2.93</span>     <span class="o">|</span>  <span class="mf">1.61</span>     <span class="o">||</span>  <span class="mf">7.3e+04</span>  <span class="o">|</span>  <span class="mf">2.93</span>     <span class="o">|</span>  <span class="mf">1.61</span>     <span class="o">|</span>
+<span class="n">ener</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mf">5.858e-12</span> <span class="o">||</span>  <span class="mf">8.43e+04</span> <span class="o">|</span>  <span class="mf">3.34</span>     <span class="o">|</span>  <span class="mi">2</span>        <span class="o">||</span>  <span class="mf">8.43e+04</span> <span class="o">|</span>  <span class="mf">3.34</span>     <span class="o">|</span>  <span class="mi">2</span>        <span class="o">|</span>
+<span class="n">gamc</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span>  <span class="mf">4.85e+04</span> <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">||</span>  <span class="mf">4.85e+04</span> <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">|</span>
+<span class="n">game</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span>  <span class="mf">4.85e+04</span> <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">||</span>  <span class="mf">4.85e+04</span> <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">|</span>  <span class="mf">1.4</span>      <span class="o">|</span>
+<span class="n">pres</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mf">1.221e-14</span> <span class="o">||</span>  <span class="mf">1.13e+04</span> <span class="o">|</span>  <span class="mi">1</span>        <span class="o">|</span>  <span class="mf">0.1</span>      <span class="o">||</span>  <span class="mf">1.13e+04</span> <span class="o">|</span>  <span class="mi">1</span>        <span class="o">|</span>  <span class="mf">0.1</span>      <span class="o">|</span>
+<span class="n">temp</span> <span class="o">|</span> <span class="mi">502</span>        <span class="o">|</span> <span class="mf">6.678e-12</span> <span class="o">||</span>  <span class="mf">0.000351</span> <span class="o">|</span>  <span class="mf">1.41e-08</span> <span class="o">|</span>  <span class="mf">7.75e-09</span> <span class="o">||</span>  <span class="mf">0.000351</span> <span class="o">|</span>  <span class="mf">1.41e-08</span> <span class="o">|</span>  <span class="mf">7.75e-09</span> <span class="o">|</span>
+<span class="n">velx</span> <span class="o">|</span> <span class="mi">516</span>        <span class="o">|</span> <span class="mf">3.45e-14</span>  <span class="o">||</span>  <span class="mf">1.79e+04</span> <span class="o">|</span>  <span class="mf">0.837</span>    <span class="o">|</span> <span class="o">-</span><span class="mf">6.09e-06</span> <span class="o">||</span>  <span class="mf">1.79e+04</span> <span class="o">|</span>  <span class="mf">0.837</span>    <span class="o">|</span> <span class="o">-</span><span class="mf">6.09e-06</span> <span class="o">|</span>
+<span class="n">vely</span> <span class="o">|</span> <span class="mi">516</span>        <span class="o">|</span> <span class="mf">2.166e-14</span> <span class="o">||</span>  <span class="mf">1.79e+04</span> <span class="o">|</span>  <span class="mf">0.838</span>    <span class="o">|</span> <span class="o">-</span><span class="mf">1.96e-06</span> <span class="o">||</span>  <span class="mf">1.79e+04</span> <span class="o">|</span>  <span class="mf">0.838</span>    <span class="o">|</span> <span class="o">-</span><span class="mf">1.96e-06</span> <span class="o">|</span>
+<span class="n">velz</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">||</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>  <span class="mi">0</span>        <span class="o">|</span>
+<span class="n">mfrc</span> <span class="o">|</span> <span class="mi">0</span>          <span class="o">|</span> <span class="mi">0</span>         <span class="o">||</span>  <span class="mf">3.46e+04</span> <span class="o">|</span>  <span class="mi">1</span>        <span class="o">|</span>  <span class="mi">1</span>        <span class="o">||</span>  <span class="mf">3.46e+04</span> <span class="o">|</span>  <span class="mi">1</span>        <span class="o">|</span>  <span class="mi">1</span>        <span class="o">|</span>
+<span class="o">-----+------------+-----------++-----------+-----------+-----------++-----------+-----------+-----------+</span>
+<span class="n">FAILURE</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div></blockquote>
+<p>“Bad Blocks” is the number of leaf blocks where the data was found to
+differ between datasets. Four different error measures (min/max/abs/mag)
+are defined in the output above. In addition, the last six columns
+report the sum, maximum and minimum of the variables in the two files.
+Note that the sum is physically meaningless, since it is not
+volume-weighted. Finally, the last line permits other programs to parse
+the <code class="docutils literal notranslate"><span class="pre">sfocu</span></code> output easily: when the files are identical, the line will
+instead read <code class="docutils literal notranslate"><span class="pre">SUCCESS</span></code>.</p>
+<p>It is possible for <code class="docutils literal notranslate"><span class="pre">sfocu</span></code> to miss machine-precision variations in the
+data on certain machines because of compiler or library issues, although
+this has only been observed on one platform, where the compiler produced
+code that ignored IEEE rules until the right flag was found.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tools.html" class="btn btn-neutral float-left" title="Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="flashxtest.html" class="btn btn-neutral float-right" title="FlashXTest" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
