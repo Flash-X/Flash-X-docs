@@ -29,6 +29,7 @@ jobs:
           cd sphinx && make github
     - name: Commit files
       run: |
+        git add docs/*
         git commit -m "Update gh pages" -a
     - name: Push changes
       uses: ad-m/github-push-action@master
