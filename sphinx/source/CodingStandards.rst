@@ -73,19 +73,59 @@ reside under different subdirectories of the subunit. This
 division into alternative implementations can be applied to arbitrary
 depth in the directory structure, the only constraint is that when a directory
 is included in the application every file (not subdirectories) in that
-directory is included. Generally, the alternative implementations are
+directory is included.  The figure below illustrates the unit
+structure with the example of **Particles** unit. This unit has three
+subunits, each subunit supports two alternative implementations of the
+full subunit. The **MeshOwned** implementation assumes that the data
+structure is owned by the mesh, while the **ParticlesOwned**
+implementation assumes that the data structure is owned by the
+Particles unit. Currently *MeshOwned* implementation works with
+*AMReX* while *ParticlesOwned* implementation works with
+*Paramesh*. In future *ParticlesOwned* method will also be compatible
+with *AMReX*. Here time integration of particles is implemented in
+*ParticlesMain*, with three different implementations for
+*ParticlesOwned* version. Note that **passive** is an organizational
+directory here because **active** particles will be brought over from
+|flash| in future. Different time integration schemes relevant to
+active particles will be clustered under the corresponding
+organizational directory. The figure is does not show all the
+directories present in the unit for clarity of presentation.
+
+.. container:: center
+
+   .. figure:: unitexample.png
+      :alt: unitE
+      :name: Fig:unit
+      :width: 5in
+
+      Organization of Particles unit as an example of unit structure
+      with subunits.
+
+
+Generally, the alternative implementations are
 mutually exclusive, however, in certain circumstances more than one
 may need to be included. For example if work is to be divided between
 CPU and GPU from the same unit, both variants will need to be
-included. The mechanism described in architecture chapter explains how
+included. The mechanism described in **Architecture** chapter explains how
 this is done.
 
-
+Placement of functions in the directories affects how inheritance
+works. A common rule of thumb is, if there are multiple alternative
+implementations beneath a directory *foo* with some common
+functions then those common functions should be placed in *foo*. For
+example in the *EOS* unit, the *Helmholtz* implementation has two
+variants, *Ye* and *SpeciesBased*. The files that contain common
+implementations are kept in *Helmholtz* directory, while files that
+have code unique to each variant reside in the respective
+subdirectories. Following the inheritance rules implemented by the
+*Setup* tool, all files in *Helmholtz* will be inherited by, and
+therefore included with whichever variant is included.  
 
 .. _`Sec:API`:
 
  Unit API and Local API
 ------------------
+
 
 
 .. _`Sec:CodeDuplication`:

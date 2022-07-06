@@ -10,11 +10,7 @@ This chapter documents instructions for code developers.
     :maxdepth: 1
     :caption: Contents
 
-    CodingStandards
-    NamingConventions 
-    ConvertingFromFLASH4
-    AddingUnits
-    AddingSimulations
-    AddingTests
+   namingConventions
+   CodingStandards
         
     

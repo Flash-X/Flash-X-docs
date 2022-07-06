@@ -5,6 +5,10 @@
 Current Status and Disclaimers 
 ============
 
+The *Developer's Guide* included at the end is work in progress. It is
+incomplete, but the information included is valid. Please check back
+frequently for updates if you are developing code for |flashx|
+
 Some portions of |flashx| are undergoing rapid development because of
 which their description in the users's guide may become out of date
 periodically. The status of all major components, and persons who
