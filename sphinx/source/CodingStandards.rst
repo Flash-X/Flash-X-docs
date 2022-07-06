@@ -121,23 +121,76 @@ subdirectories. Following the inheritance rules implemented by the
 *Setup* tool, all files in *Helmholtz* will be inherited by, and
 therefore included with whichever variant is included.  
 
+
 .. _`Sec:API`:
 
- Unit API and Local API
-------------------
+Application Programming Interface (API)
+--------------------------------
+
+A unit's API is the set of interfaces through which other units can
+interact with it. Every interface in the API has a null implementation
+that resides in the top level namespace directory for the unit. There
+is no limit on the number of interfaces a unit's API can have. A good
+rule of thumb is to expose only the functionality that other units
+really need to access, and keep everything else private. The Makefile
+snippet in the top level unit directory includes the names of all API
+member files. Files that have the null implementations of the
+interfaces also provide documentation about the use of the interface,
+which can be viewed on the API pages of the |flashx| website.
+
+In addition to unit level API, there is a provision for local API in
+every unit. A unit needs to have a subdirectory named *localAPI* under
+the top level unit directory only if it has more than one subunit, and
+at least one of the subunits has interfaces that are private to the
+unit but not to the subunit. For example *Grid* unit calls
+*gr_initSolvers* from its own initialization routine. However,
+*gr_initSolvers* interface resides in *GridSolvers*
+subunit. *localAPI* subdirectory contains null implementations of all
+such interfaces, and the accompanying Makefile snippet includes the 
+names of all the files present in the subdirectory.  Thus if a subunit
+is excluded in an application instance its null implementation gets
+included. The *Config* file of the unit must use the keyword
+*CHILDORDER* to specify that *localAPI* must be scanned before any
+other subdirectory to correctly implement the inheritance. 
 
 
+.. _`Sec:GoodPractices`:
 
-.. _`Sec:CodeDuplication`:
+Good Practices for Maintenance
+-------------------------
 
-Avoiding Code Duplication
-----------------------
+**Use macros to avoid code duplication**
 
+For maintenance and extensibility it is important to minimize code
+duplication. In |flash| it wasn't always possible because the
+granularity of alternative implementations was at the level of a
+function/subroutine. However, introduction of *macros* has made it
+possible to minimize code duplication, and they should be used
+as often as needed. It is critical to follow naming conventions in
+defining macros to avoid possibility of naming conflict because their
+scoping cannot be enforced otherwise. 
 
-.. _`Sec:Libraries`:
+**Use easy to search and replace names**
 
-Internal Vs External Libraries
------------------------
+Since naming conventions are not fully finalized it is safer to adopt
+some local convention in private functions that is easy to search and
+replace with scripts in case there is a need to change.
+
+**Add inline comments about design choices**
+
+They come in handy for those who were not the original developers of
+the code to understand and maintain it. They are also useful for
+refactoring if needed.
+
+**Use keyword UNOFFICIAL for not ready code**
+
+There is a provision to add new code to the main branch of the
+repository before it is blessed for production. Such code should have
+keyword *UNOFFICIAL* in its *Config* file, so that the *Setup* tool
+knows to abort if the corresponding code is included in an
+application. *Setup* command line option -with-unofficial overrides
+the abort.
+
 
 
 
