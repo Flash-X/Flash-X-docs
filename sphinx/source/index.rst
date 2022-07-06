@@ -25,7 +25,6 @@ Welcome to |flashx|'s documentation!
    tools
 
 
-
 Indices and tables
 ==================
 
