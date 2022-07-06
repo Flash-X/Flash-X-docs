@@ -5,7 +5,20 @@
 Current Status and Disclaimers 
 ============
 
-Some portions of |flashx| are undergoing rapid development because of
+The *Developer's Guide* included at the end is work in progress. It is
+incomplete, but the information that is included is valid. Please check back
+frequently for updates if you are developing code for |flashx|
+
+Maintaining a large and complex code like |flashx| is
+challenging. This is especially true because a great deal of
+performance portability layer is currently in the process of being
+hardened for production use and not all of its interfaces are
+finalized. Therefore, it is extremely important for the developers to
+read through the section on **Good Practices for Maintenance** to
+ensure that their contributions will not need large amounts of
+refactoring later. 
+
+Additionally, some portions of |flashx| are undergoing rapid development because of
 which their description in the users's guide may become out of date
 periodically. The status of all major components, and persons who
 can give most up-to-date information about the corresponding component
@@ -43,7 +56,7 @@ are listed in below.
 +---------------+------------------------------+-------------------------------+
 | Thornado      | Eirik Endeve                 | submodule, not described here |
 +---------------+------------------------------+-------------------------------+
-| Particles     | Anshu Dubey                  | current, tracers only         |
+| Particles     | Anshu Dubey                  | mostly current, tracers only         |
 +---------------+------------------------------+-------------------------------+
 
 

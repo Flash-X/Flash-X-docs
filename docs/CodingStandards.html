@@ -133,22 +133,103 @@ reside under different subdirectories of the subunit. This
 division into alternative implementations can be applied to arbitrary
 depth in the directory structure, the only constraint is that when a directory
 is included in the application every file (not subdirectories) in that
-directory is included. Generally, the alternative implementations are
+directory is included.  The figure below illustrates the unit
+structure with the example of <strong>Particles</strong> unit. This unit has three
+subunits, each subunit supports two alternative implementations of the
+full subunit. The <strong>MeshOwned</strong> implementation assumes that the data
+structure is owned by the mesh, while the <strong>ParticlesOwned</strong>
+implementation assumes that the data structure is owned by the
+Particles unit. Currently <em>MeshOwned</em> implementation works with
+<em>AMReX</em> while <em>ParticlesOwned</em> implementation works with
+<em>Paramesh</em>. In future <em>ParticlesOwned</em> method will also be compatible
+with <em>AMReX</em>. Here time integration of particles is implemented in
+<em>ParticlesMain</em>, with three different implementations for
+<em>ParticlesOwned</em> version. Note that <strong>passive</strong> is an organizational
+directory here because <strong>active</strong> particles will be brought over from
+FLASH in future. Different time integration schemes relevant to
+active particles will be clustered under the corresponding
+organizational directory. The figure is does not show all the
+directories present in the unit for clarity of presentation.</p>
+<div class="center docutils container">
+<figure class="align-default" id="fig-unit">
+<a class="reference internal image-reference" href="_images/unitexample.png"><img alt="unitE" src="_images/unitexample.png" style="width: 5in;" /></a>
+<figcaption>
+<p><span class="caption-text">Organization of Particles unit as an example of unit structure
+with subunits.</span><a class="headerlink" href="#fig-unit" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<p>Generally, the alternative implementations are
 mutually exclusive, however, in certain circumstances more than one
 may need to be included. For example if work is to be divided between
 CPU and GPU from the same unit, both variants will need to be
-included. The mechanism described in architecture chapter explains how
+included. The mechanism described in <strong>Architecture</strong> chapter explains how
 this is done.</p>
-<blockquote id="sec-api">
-<div><p>Unit API and Local API</p>
-</div></blockquote>
-<hr class="docutils" />
+<p>Placement of functions in the directories affects how inheritance
+works. A common rule of thumb is, if there are multiple alternative
+implementations beneath a directory <em>foo</em> with some common
+functions then those common functions should be placed in <em>foo</em>. For
+example in the <em>EOS</em> unit, the <em>Helmholtz</em> implementation has two
+variants, <em>Ye</em> and <em>SpeciesBased</em>. The files that contain common
+implementations are kept in <em>Helmholtz</em> directory, while files that
+have code unique to each variant reside in the respective
+subdirectories. Following the inheritance rules implemented by the
+<em>Setup</em> tool, all files in <em>Helmholtz</em> will be inherited by, and
+therefore included with whichever variant is included.</p>
 </section>
-<section id="avoiding-code-duplication">
-<span id="sec-codeduplication"></span><h2>Avoiding Code Duplication<a class="headerlink" href="#avoiding-code-duplication" title="Permalink to this heading"></a></h2>
+<section id="application-programming-interface-api">
+<span id="sec-api"></span><h2>Application Programming Interface (API)<a class="headerlink" href="#application-programming-interface-api" title="Permalink to this heading"></a></h2>
+<p>A unit’s API is the set of interfaces through which other units can
+interact with it. Every interface in the API has a null implementation
+that resides in the top level namespace directory for the unit. There
+is no limit on the number of interfaces a unit’s API can have. A good
+rule of thumb is to expose only the functionality that other units
+really need to access, and keep everything else private. The Makefile
+snippet in the top level unit directory includes the names of all API
+member files. Files that have the null implementations of the
+interfaces also provide documentation about the use of the interface,
+which can be viewed on the API pages of the Flash-X website.</p>
+<p>In addition to unit level API, there is a provision for local API in
+every unit. A unit needs to have a subdirectory named <em>localAPI</em> under
+the top level unit directory only if it has more than one subunit, and
+at least one of the subunits has interfaces that are private to the
+unit but not to the subunit. For example <em>Grid</em> unit calls
+<em>gr_initSolvers</em> from its own initialization routine. However,
+<em>gr_initSolvers</em> interface resides in <em>GridSolvers</em>
+subunit. <em>localAPI</em> subdirectory contains null implementations of all
+such interfaces, and the accompanying Makefile snippet includes the
+names of all the files present in the subdirectory.  Thus if a subunit
+is excluded in an application instance its null implementation gets
+included. The <em>Config</em> file of the unit must use the keyword
+<em>CHILDORDER</em> to specify that <em>localAPI</em> must be scanned before any
+other subdirectory to correctly implement the inheritance.</p>
 </section>
-<section id="internal-vs-external-libraries">
-<span id="sec-libraries"></span><h2>Internal Vs External Libraries<a class="headerlink" href="#internal-vs-external-libraries" title="Permalink to this heading"></a></h2>
+<section id="good-practices-for-maintenance">
+<span id="sec-goodpractices"></span><h2>Good Practices for Maintenance<a class="headerlink" href="#good-practices-for-maintenance" title="Permalink to this heading"></a></h2>
+<p><strong>Use macros to avoid code duplication</strong></p>
+<p>For maintenance and extensibility it is important to minimize code
+duplication. In FLASH it wasn’t always possible because the
+granularity of alternative implementations was at the level of a
+function/subroutine. However, introduction of <em>macros</em> has made it
+possible to minimize code duplication, and they should be used
+as often as needed. It is critical to follow naming conventions in
+defining macros to avoid possibility of naming conflict because their
+scoping cannot be enforced otherwise.</p>
+<p><strong>Use easy to search and replace names</strong></p>
+<p>Since naming conventions are not fully finalized it is safer to adopt
+some local convention in private functions that is easy to search and
+replace with scripts in case there is a need to change.</p>
+<p><strong>Add inline comments about design choices</strong></p>
+<p>They come in handy for those who were not the original developers of
+the code to understand and maintain it. They are also useful for
+refactoring if needed.</p>
+<p><strong>Use keyword UNOFFICIAL for not ready code</strong></p>
+<p>There is a provision to add new code to the main branch of the
+repository before it is blessed for production. Such code should have
+keyword <em>UNOFFICIAL</em> in its <em>Config</em> file, so that the <em>Setup</em> tool
+knows to abort if the corresponding code is included in an
+application. <em>Setup</em> command line option -with-unofficial overrides
+the abort.</p>
 </section>
 </section>
 

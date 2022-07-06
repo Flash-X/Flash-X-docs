@@ -124,25 +124,36 @@ specific directives keyworks.
  each implementation gets its interface and routine/function name
  appended with the corresponding variant name. For example, one may
  want to use both CPU and GPU to  compute. A component that has valid
- implementations for both can specify
+ implementations for both can specify variants as shown below. 
 
   .. container:: codeseg
 
-      VARIANT Inhost Offload Null
+      VARIANTS CPU GPU
 
-Then if the setup options specify inclusion of both implementations,
- the names of the relevant files and function/subroutine interfaces are
+ Then if the setup options specify inclusion of both implementations,  the
+ names of the relevant files and function/subroutine interfaces are
  modified to have unique names. If, on the other hand, only one of the
  implementations is to be included, the default is Null and all the
- names remain unmodified.
+ names remain unmodified.       
 
- -  | ``SUGGEST`` *component component  ...*
+
+-  | ``SUGGEST`` *component component  ...*
    | Unlike ``REQUIRES``, this keyword suggests that the current component be
      used along with one of the specified component. The setup script will
      print details of the suggestions which have been ignored. This is
      useful in catching inadvertently omitted code components before the run
      starts, thus avoiding a waste of computing resources.
 
+-  | ``UNOFFICIAL`` 
+   | This keyword suggests that the current component is
+     not fully supported. The setup script will abort if a component
+     with this keyword in included. It can be overridden as follows:
+
+  .. container:: codeseg
+
+      --with-unofficial= *component*
+     
+     
 -  | ``PARAMETER`` *name type [``CONSTANT``] default* [*range-spec*]
    | Specifies a runtime parameter. Parameter names are unique up to 20
      characters and may not contain spaces. Admissible types include

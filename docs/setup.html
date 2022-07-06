@@ -224,35 +224,41 @@ locations in the source tree.</p>
 each implementation gets its interface and routine/function name
 appended with the corresponding variant name. For example, one may
 want to use both CPU and GPU to  compute. A component that has valid
-implementations for both can specify</p>
+implementations for both can specify variants as shown below.</p>
 <blockquote>
 <div><div class="codeseg docutils container">
-<p>VARIANT Inhost Offload Null</p>
+<p>VARIANTS CPU GPU</p>
 </div>
 </div></blockquote>
-</div></blockquote>
-<dl>
-<dt>Then if the setup options specify inclusion of both implementations,</dt><dd><p>the names of the relevant files and function/subroutine interfaces are
+<p>Then if the setup options specify inclusion of both implementations,  the
+names of the relevant files and function/subroutine interfaces are
 modified to have unique names. If, on the other hand, only one of the
 implementations is to be included, the default is Null and all the
 names remain unmodified.</p>
+</div></blockquote>
 <ul>
 <li><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">SUGGEST</span></code> <em>component component  …</em></div>
-</div>
-</li>
-</ul>
-<blockquote>
-<div><div class="line-block">
 <div class="line">Unlike <code class="docutils literal notranslate"><span class="pre">REQUIRES</span></code>, this keyword suggests that the current component be
 used along with one of the specified component. The setup script will
 print details of the suggestions which have been ignored. This is
 useful in catching inadvertently omitted code components before the run
 starts, thus avoiding a waste of computing resources.</div>
 </div>
+</li>
+<li><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">UNOFFICIAL</span></code></div>
+<div class="line">This keyword suggests that the current component is
+not fully supported. The setup script will abort if a component
+with this keyword in included. It can be overridden as follows:</div>
+</div>
+</li>
+</ul>
+<blockquote>
+<div><div class="codeseg docutils container">
+<p>–with-unofficial= <em>component</em></p>
+</div>
 </div></blockquote>
-</dd>
-</dl>
 <ul>
 <li><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">PARAMETER</span></code> <em>name type [``CONSTANT``] default</em> [<em>range-spec</em>]</div>
