@@ -23,6 +23,7 @@ Welcome to |flashx|'s documentation!
    physics
    monitor
    tools
+   developer_section
 
 
 Indices and tables
