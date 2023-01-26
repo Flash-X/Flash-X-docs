@@ -761,7 +761,7 @@ To link the compression library to \flashx, one needs to add either \code{+hdf5s
 \code{+hdf5sz3} or \code{+hdf5zfp} to the setup command (it is advisible to not enable 
 more than 1 option at the same time, as it may cause issues during runtime).
 
-To enable compression for a \flashx problem, a user needs to specify the compression parameters.
+To enable compression in checkpoint files for a \flashx problem, a user needs to specify the compression parameters.
 Currently the following options are supported in the \code{flash.par} file, more details
 about which compression option to choose can be found in the ZFP and SZ documentation.
 
@@ -788,6 +788,12 @@ Parameter           & Type        & Default value & Description \\
 \end{longtable}
 \end{center}
 
+Note: The above table shows variables names to enable compression in checkpoint files only.
+To enable compression in plot files, the variables can be appended with \_plt. For example, to enable compression 
+in checkpoint and plot files using ZFP for a simulation, specify the following lines in the parfile:
+
+\code{zfp\_accuracy=0.0001}
+\code{zfp\_accuracy\_plt=0.0001}
 
 
 \section{Restarts and Runtime Parameters}\label{Sec:runtime parameters}
