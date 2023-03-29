@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Particles Unit &mdash; Flash-X 0.0.0 documentation</title>
@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Flash-X
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Flash-X
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -92,9 +96,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="physics.html">Physics Units</a> &raquo;</li>
-      <li>Particles Unit</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="physics.html">Physics Units</a></li>
+      <li class="breadcrumb-item active">Particles Unit</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/Particles.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -176,7 +180,7 @@ problems, separately for each particle, where the velocities
 <span class="math notranslate nohighlight">\({\bf v}_i\)</span> are given at certain discrete points in time by the
 state of the hydrodynamic velocity field at those times. The time step
 is thus externally given and cannot be arbitrarily chosen by a particle
-motion ODE solver <a class="footnote-reference brackets" href="#id3" id="id1">1</a>. Statements about the order of a method in this
+motion ODE solver <a class="footnote-reference brackets" href="#id3" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. Statements about the order of a method in this
 context should be understood as referring to the same method if it were
 applied in a hypothetical simulation where evaluations of velocities
 <span class="math notranslate nohighlight">\({\bf v}_i\)</span> could be performed at arbitrary times (and with
@@ -236,7 +240,7 @@ is also known as Heun’s Method:</p>
 <p>Here <span class="math notranslate nohighlight">\({\bf v}({\bf x},t)\)</span> denotes evaluation (interpolation) of
 the fluid velocity field at position <span class="math notranslate nohighlight">\(\bf x\)</span> and time
 <span class="math notranslate nohighlight">\(t\)</span>; <span class="math notranslate nohighlight">\({\bf v}_i^{*,n+1}\)</span> and <span class="math notranslate nohighlight">\({\bf x}_i^{*,n+1}\)</span>
-are intermediate results  <a class="footnote-reference brackets" href="#id4" id="id2">2</a>; and
+are intermediate results  <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>; and
 <span class="math notranslate nohighlight">\({\bf v}_i^n = {\bf v}({\bf x}_i^{n},t^{n})\)</span> is the velocity of
 the particle, obtained using particle-mesh interpolation from the
 grid at <span class="math notranslate nohighlight">\(t=t^n\)</span> as usual.</p>
@@ -827,16 +831,18 @@ writing individual particle trajectories to disk at every timestep.</p>
 be used to dump particle output to a plain text file. An example of
 usage can be found in <code class="docutils literal notranslate"><span class="pre">Particles/Particles_unitTest</span></code>. Output from this
 routine can be read using the fidlr routine <code class="docutils literal notranslate"><span class="pre">particles_dump.pro</span></code>.</p>
-<dl class="footnote brackets">
-<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>Even though it is possible to do so, see
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id3" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Even though it is possible to do so, see
 <code class="docutils literal notranslate"><span class="pre">Particles/Particles_computeDt</span></code>, one does not in general wish to
 let particles integration dictate the time step of the simulation.</p>
-</dd>
-<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
-<dd><p>They can be considered “predicted” positions and velocities.</p>
-</dd>
-</dl>
+</aside>
+<aside class="footnote brackets" id="id4" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>They can be considered “predicted” positions and velocities.</p>
+</aside>
+</aside>
 </section>
 </section>
 </section>

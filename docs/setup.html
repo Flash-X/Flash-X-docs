@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Flash-X configuration &mdash; Flash-X 0.0.0 documentation</title>
@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Flash-X
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Flash-X
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -84,8 +88,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>The Flash-X configuration</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The Flash-X configuration</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/setup.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -809,7 +813,7 @@ initial values specified in its Config file override other values.</p></li>
 </li>
 </ul>
 <p>by looking for a directory <code class="docutils literal notranslate"><span class="pre">sites/&lt;hostname&gt;</span></code> where <code class="docutils literal notranslate"><span class="pre">&lt;hostname&gt;</span></code> is
-the hostname of the machine on which Flash-X is running. <a class="footnote-reference brackets" href="#id23" id="id7">1</a> Failing
+the hostname of the machine on which Flash-X is running. <a class="footnote-reference brackets" href="#id23" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> Failing
 this, it looks in <code class="docutils literal notranslate"><span class="pre">sites/Prototypes/</span></code> for a directory with the same
 name as the output of the <code class="docutils literal notranslate"><span class="pre">uname</span></code> command. The site and operating
 system type can be overridden with the <code class="docutils literal notranslate"><span class="pre">-site</span></code> and <code class="docutils literal notranslate"><span class="pre">-ostype</span></code>
@@ -957,10 +961,6 @@ to “hdf5/parallel”, is as simple as changing the definition of the
 <div class="docutils container" id="tab-setup-shortcuts">
 <table class="docutils align-default" id="id25">
 <caption><span class="caption-text">Shortcuts for often-used options</span><a class="headerlink" href="#id25" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 19%" />
-<col style="width: 81%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Shortcut</p></th>
 <th class="head"><p>Description</p></th>
@@ -1007,7 +1007,7 @@ call like</p>
 <div class="codeseg docutils container">
 <p>./setup -a Sod Foo=Bar Baz=True</p>
 </div>
-<p>sets the variable “Foo” to string “Bar” and “Baz” to boolean True <a class="footnote-reference brackets" href="#id24" id="id20">2</a>.
+<p>sets the variable “Foo” to string “Bar” and “Baz” to boolean True <a class="footnote-reference brackets" href="#id24" id="id20" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.
 <code class="docutils literal notranslate"><span class="pre">setup</span></code> can conditionally include and exclude parts of the <code class="docutils literal notranslate"><span class="pre">Config</span></code>
 file it reads based on the values of these variables. For example, the
 <code class="docutils literal notranslate"><span class="pre">IO/IOMain/hdf5/Config</span></code> file contains</p>
@@ -1093,10 +1093,6 @@ useful information,</p></li>
 <p>These files are generated before compilation by <code class="docutils literal notranslate"><span class="pre">setup</span></code>. Each of these
 files begins with the prefix <code class="docutils literal notranslate"><span class="pre">setup_</span></code> for easy identification.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 31%" />
-<col style="width: 69%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">setup_call</span></code></p></td>
 <td><p>contains the options with which <code class="docutils literal notranslate"><span class="pre">setup</span></code> was
@@ -1138,10 +1134,6 @@ with their descriptions.</p></td>
 <p>These routines are generated by the setup call and provide
 simulation-specific code.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">setup_buildstamp.F90</span></code></p></td>
 <td><p>contains code for the subroutine
@@ -1310,15 +1302,17 @@ and <code class="docutils literal notranslate"><span class="pre">threadWithinBlo
 is not supported. For further information about Flash-X multithreaded
 applications please refer to Chapter
 <a class="reference external" href="#Chp:Multithreaded|flashx|">[Chp:Multithreaded|flashx|]</a>.</p>
-<dl class="footnote brackets">
-<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id7">1</a></span></dt>
-<dd><p>if a machine has multiple hostnames, setup tries them all</p>
-</dd>
-<dt class="label" id="id24"><span class="brackets"><a class="fn-backref" href="#id20">2</a></span></dt>
-<dd><p>All non-integral values not equal to True/False/Yes/No/On/Off are
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id23" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">1</a><span class="fn-bracket">]</span></span>
+<p>if a machine has multiple hostnames, setup tries them all</p>
+</aside>
+<aside class="footnote brackets" id="id24" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id20">2</a><span class="fn-bracket">]</span></span>
+<p>All non-integral values not equal to True/False/Yes/No/On/Off are
 considered to be string values</p>
-</dd>
-</dl>
+</aside>
+</aside>
 </section>
 </section>
 </section>

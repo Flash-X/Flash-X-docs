@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Configuration Toolchain &mdash; Flash-X 0.0.0 documentation</title>
@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -27,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Flash-X
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Flash-X
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -65,8 +69,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>The Configuration Toolchain</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The Configuration Toolchain</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/macroprocessor.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -102,7 +106,7 @@ simulation.</p></li>
 Here we describe its usage.</p>
 <p>The script determines site-dependent configuration information by
 looking for a directory where is the hostname of the machine on which
-Flash-X is running. <a class="footnote-reference brackets" href="#id4" id="id1">1</a> Failing this, it looks in for a directory with
+Flash-X is running. <a class="footnote-reference brackets" href="#id4" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> Failing this, it looks in for a directory with
 the same name as the output of the command. The site and operating
 system type can be overridden with the and command-line options to the
 command. Only one of these options can be used at one time. The
@@ -171,10 +175,6 @@ be found in alongside more detailed descriptions of these options.</p>
 <div class="docutils container" id="tbl-commonsetupargs">
 <table class="docutils align-default" id="id9">
 <caption><span class="caption-text">List of Commonly Used Setup Arguments</span><a class="headerlink" href="#id9" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 19%" />
-<col style="width: 81%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Argument</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
@@ -255,10 +255,6 @@ be found in alongside more detailed descriptions of these options.</p>
 <section id="comprehensive-list-of-setup-arguments">
 <span id="sec-listsetupargs"></span><h2>Comprehensive List of Setup Arguments<a class="headerlink" href="#comprehensive-list-of-setup-arguments" title="Permalink to this heading"></a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td></td>
 <td></td>
@@ -278,7 +274,7 @@ verbosity) are . The default is
 <tr class="row-even"><td><p>*[1ex]</p></td>
 <td><p>Normally, requires that the user
 supply a plain text file called
-(in the directory  <a class="footnote-reference brackets" href="#id7" id="id2">4</a>) that
+(in the directory  <a class="footnote-reference brackets" href="#id7" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>) that
 specifies the units to include.
 A sample file appears in . Each
 line is either a comment
@@ -464,10 +460,6 @@ physics/Eos/EosMain/Gamma INCLUDE
 physics/Hydro/HydroMain/split/PPM/PPMKernel</p>
 </div>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 13%" />
-<col style="width: 87%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td></td>
 <td></td>
@@ -538,10 +530,6 @@ only appropriate for Cartesian geometries.</p></li>
 </table>
 <div class="docutils container" id="setupclf-particlemethods">
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td></td>
 <td></td>
@@ -1488,10 +1476,6 @@ thus making equivalent to . Thus changing the default IO to
 <div class="docutils container" id="tab-setup-shortcuts">
 <table class="docutils align-default" id="id10">
 <caption><span class="caption-text">Shortcuts for often-used options</span><a class="headerlink" href="#id10" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 19%" />
-<col style="width: 81%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Shortcut</p></th>
 <th class="head"><p>Description</p></th>
@@ -1542,10 +1526,6 @@ thus making equivalent to . Thus changing the default IO to
 <div class="docutils container" id="tab-setup-shortcuts-hedp">
 <table class="docutils align-default" id="id11">
 <caption><span class="caption-text">Shortcuts for HEDP options</span><a class="headerlink" href="#id11" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 14%" />
-<col style="width: 86%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Shortcut</p></th>
 <th class="head"><p>Description</p></th>
@@ -1579,7 +1559,7 @@ string-valued, integer-valued, or boolean. A call like</p>
 <div class="codeseg docutils container">
 <p>./setup -a Sod Foo=Bar Baz=True</p>
 </div>
-<p>sets the variable “Foo” to string “Bar” and “Baz” to boolean True <a class="footnote-reference brackets" href="#id8" id="id3">5</a>.
+<p>sets the variable “Foo” to string “Bar” and “Baz” to boolean True <a class="footnote-reference brackets" href="#id8" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>.
 can conditionally include and exclude parts of the file it reads based
 on the values of these variables. For example, the file contains</p>
 <div class="shrink docutils container">
@@ -2452,13 +2432,6 @@ safe and unsafe values. All cells colored red show unsafe values.</p>
 <p>Flash-X applications</p>
 <blockquote>
 <div><table class="docutils align-default">
-<colgroup>
-<col style="width: 21%" />
-<col style="width: 16%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Log file
 stamp</strong></p></th>
@@ -2550,24 +2523,29 @@ define it in your in a manner similar to the following:</p>
 nested OpenMP parallelism is not supported. For further information
 about Flash-X multithreaded applications please refer to Chapter
 <a class="reference external" href="#Chp:MultithreadedFlash-X">[Chp:MultithreadedFlash-X]</a>.</p>
-<dl class="footnote brackets">
-<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>if a machine has multiple hostnames, setup tries them all</p>
-</dd>
-<dt class="label" id="id5"><span class="brackets">2</span></dt>
-<dd><p>Formerly, (in Flash-X2) it was located in the Flash-X root directory</p>
-</dd>
-<dt class="label" id="id6"><span class="brackets">3</span></dt>
-<dd><p>Formerly, (in Flash-X2) it was located in the Flash-X root directory</p>
-</dd>
-<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id2">4</a></span></dt>
-<dd><p>Formerly, (in Flash-X2) it was located in the Flash-X root directory</p>
-</dd>
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">5</a></span></dt>
-<dd><p>All non-integral values not equal to True/False/Yes/No/On/Off are
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id4" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>if a machine has multiple hostnames, setup tries them all</p>
+</aside>
+<aside class="footnote brackets" id="id5" role="note">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<p>Formerly, (in Flash-X2) it was located in the Flash-X root directory</p>
+</aside>
+<aside class="footnote brackets" id="id6" role="note">
+<span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
+<p>Formerly, (in Flash-X2) it was located in the Flash-X root directory</p>
+</aside>
+<aside class="footnote brackets" id="id7" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">4</a><span class="fn-bracket">]</span></span>
+<p>Formerly, (in Flash-X2) it was located in the Flash-X root directory</p>
+</aside>
+<aside class="footnote brackets" id="id8" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">5</a><span class="fn-bracket">]</span></span>
+<p>All non-integral values not equal to True/False/Yes/No/On/Off are
 considered to be string values</p>
-</dd>
-</dl>
+</aside>
+</aside>
 </section>
 </section>
 
