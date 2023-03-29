@@ -730,6 +730,71 @@ file.\\
 \end{center}
 
 
+\subsection{HDF5 Asynchronous I/O}
+\flashx supports (parallel) asynchronous I/O for writing plot files and checkpoint files, 
+which allows overlapping the I/O and computation to reduce the overall execution time.
+To utilize this feature, HDF5 version 1.13 or later is required, together with the
+HDF5 asynchronous I/O VOL connector and the Argobots threading library. The installation
+instructions for these libraries can be found at \url{https://github.com/hpc-io/vol-async}.
+Note that HDF5 must be compiled with parallel and threadsafe support, and async VOL must
+be compiled with \code{ENABLE\_WRITE\_MEMCPY} flag.
+
+When setting up a \flashx case, the user needs to add \code{+parallelIO +hdf5AsyncIO} to 
+the setup command.
+
+At runtime, the user also needs to set a few environment variables to enable asynchronous 
+I/O, including \code{HDF5\_PLUGIN\_PATH}, \code{HDF5\_VOL\_CONNECTOR}, see 
+\url{https://github.com/hpc-io/vol-async}. Additionally, \code{MPI\_THREAD\_MULTIPLE} 
+is required, some Cray systems may also require setting \code{MPICH\_MAX\_THREAD\_SAFETY=multiple}.
+It is also advisible to set \code{HDF5\_ASYNC\_EXE\_FCLOSE=1} for best performance.
+
+\subsection{HDF5 Compression with SZ and ZFP}
+The HDF5 output for checkpoint and plot files can be compressed when \flashx is 
+linked with the SZ/SZ3 or ZFP (lossy) compression library.
+Installation instructions can be found at \url{https://github.com/szcompressor/SZ}
+for SZ, \url{https://github.com/szcompressor/SZ3} for SZ3, and H5Z-SZ 
+(HDF5 compression filter for SZ), and \url{https://github.com/LLNL/zfp}, 
+\url{https://github.com/LLNL/H5Z-ZFP} for ZFP and H5Z-ZFP libraries.
+Note that when compiling ZFP, \code{BIT\_STREAM\_WORD\_SIZE} must be set to \code{8}.
+
+To link the compression library to \flashx, one needs to add either \code{+hdf5sz}, 
+\code{+hdf5sz3} or \code{+hdf5zfp} to the setup command (it is advisible to not enable 
+more than 1 option at the same time, as it may cause issues during runtime).
+
+To enable compression in checkpoint files for a \flashx problem, a user needs to specify the compression parameters.
+Currently the following options are supported in the \code{flash.par} file, more details
+about which compression option to choose can be found in the ZFP and SZ documentation.
+
+\begin{center}
+\begin{longtable}{lllp{2.6in}}
+\caption[parameters]{Compression parameters.} \\
+\label{Tab:compression parameters}
+Parameter           & Type        & Default value & Description \\
+\hline
+\code{zfp\_accuracy}            & \code{REAL}    & \code{0}     & ZFP accuracy mode, lossy compression  \\
+\code{zfp\_rate}                & \code{REAL}    & \code{0}     & ZFP rate mode, lossy compression  \\
+\code{zfp\_precision}           & \code{REAL}    & \code{0}     & ZFP precision mode, lossy compression  \\
+\code{zfp\_reversible}          & \code{REAL}    & \code{0}     & ZFP reversible mode, lossless compression  \\
+\code{sz\_abs\_error}           & \code{REAL}    & \code{0}     & SZ/SZ3 absolute error mode, lossy compression  \\
+\code{sz\_rel\_error}           & \code{REAL}    & \code{0}     & SZ/SZ3 relative error mode, lossy compression  \\
+\code{sz\_pw\_rel\_error}       & \code{REAL}    & \code{0}     & SZ point-wise relative error mode, lossy compression  \\
+\code{sz\_psnr}                 & \code{REAL}    & \code{0}     & SZ/SZ3 peak signal-to-noise ratio mode, lossy compression  \\
+\code{sz\_norm}                 & \code{REAL}    & \code{0}     & SZ/SZ3 mean square error mode, lossy compression  \\
+\code{sz\_abs\_and\_rel\_error} & \code{BOOLEAN} & \code{FALSE} & SZ3 absolute and/or relative mode, only active when 
+                                                                  both \code{sz\_abs\_error} and \code{sz\_rel\_error} 
+                                                                  are specified, lossy compression  \\
+
+\hline
+\end{longtable}
+\end{center}
+
+Note: The above table shows variables names to enable compression in checkpoint files only.
+To enable compression in plot files, the variables can be appended with \_plt. For example, to enable compression 
+in checkpoint and plot files using ZFP for a simulation, specify the following lines in the parfile:
+
+\code{zfp\_accuracy=0.0001}
+\code{zfp\_accuracy\_plt=0.0001}
+
 
 \section{Restarts and Runtime Parameters}\label{Sec:runtime parameters}
 
