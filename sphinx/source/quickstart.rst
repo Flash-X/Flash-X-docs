@@ -25,7 +25,7 @@ You should verify that you have the following:
 
 -  To use |amrex|  for AMR, it must be installed. |amrex|  requires
    a different version each for 1, 2 or 3 dimensional application
-   configurations. (for details see .....). |paramesh| is included in the
+   configurations. (for details see https://amrex-codes.github.io/amrex/docs_html/). |paramesh| is included in the
    source code.
 
 -  |amrex| is compatible with PETSc and Hypre math libraries, and
