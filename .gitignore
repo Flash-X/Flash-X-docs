@@ -1,0 +1,11 @@
+# no reason ppl should have AWS or ENV vars here but just in case
+# WARNING: non-exhaustive list...
+*.ppm
+*.ppk
+.env
+*.env
+*.env.local
+
+env-FLASH-X-DOCS # my virtualenv with sphinx_rtd_theme installed
+build # generated from `make html` in sphinx directory.
+
