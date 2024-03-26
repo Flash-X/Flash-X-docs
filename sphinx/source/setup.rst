@@ -831,7 +831,8 @@ it hasn't already been done so by an earlier invocation.
 library specified by one the Config files traversed by the setup
 tool. 
 
-*-mconly* forces the setup tool to only run the macro processor.
+*-mconly* forces the setup tool to only run the macro processor. Processed files
+are saved to the object directory.
 
 
 .. _`Sec:SetupShortcuts`:
