@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coding Standards &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -91,7 +93,7 @@
            <div itemprop="articleBody">
              
   <section id="coding-standards">
-<span id="chp-codingstandards"></span><h1>Coding Standards<a class="headerlink" href="#coding-standards" title="Permalink to this heading"></a></h1>
+<span id="chp-codingstandards"></span><h1>Coding Standards<a class="headerlink" href="#coding-standards" title="Link to this heading"></a></h1>
 <p>A Flash-X unit is expected to be fully encapsulated, with all of its
 data being private to it. The only global data accessible to a unit is
 in the form of included <em>foo.h</em>  files, two of which are available to
@@ -131,7 +133,7 @@ framework through SCRATCH keyword in Config file, or the data
 structure should be declared as allocatable in the <em>Unitname_data.F90</em>
 file with appropriate comments as described above.</p>
 <section id="structure-of-a-unit">
-<span id="sec-unitstructure"></span><h2>Structure of a Unit<a class="headerlink" href="#structure-of-a-unit" title="Permalink to this heading"></a></h2>
+<span id="sec-unitstructure"></span><h2>Structure of a Unit<a class="headerlink" href="#structure-of-a-unit" title="Link to this heading"></a></h2>
 <p>Each unit has its own top level directory <em>Unitname</em> where
 capitalization of the first letter indicates that the directory name
 is a namespace. A unit can have subunits that show up as
@@ -171,7 +173,7 @@ directories present in the unit for clarity of presentation.</p>
 <a class="reference internal image-reference" href="_images/unitexample.png"><img alt="unitE" src="_images/unitexample.png" style="width: 5in;" /></a>
 <figcaption>
 <p><span class="caption-text">Organization of Particles unit as an example of unit structure
-with subunits.</span><a class="headerlink" href="#fig-unit" title="Permalink to this image"></a></p>
+with subunits.</span><a class="headerlink" href="#fig-unit" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
@@ -194,7 +196,7 @@ subdirectories. Following the inheritance rules implemented by the
 therefore included with whichever variant is included.</p>
 </section>
 <section id="application-programming-interface-api">
-<span id="sec-api"></span><h2>Application Programming Interface (API)<a class="headerlink" href="#application-programming-interface-api" title="Permalink to this heading"></a></h2>
+<span id="sec-api"></span><h2>Application Programming Interface (API)<a class="headerlink" href="#application-programming-interface-api" title="Link to this heading"></a></h2>
 <p>A unit’s API is the set of interfaces through which other units can
 interact with it. Every interface in the API has a null implementation
 that resides in the top level namespace directory for the unit. There
@@ -221,7 +223,7 @@ included. The <em>Config</em> file of the unit must use the keyword
 other subdirectory to correctly implement the inheritance.</p>
 </section>
 <section id="good-practices-for-maintenance">
-<span id="sec-goodpractices"></span><h2>Good Practices for Maintenance<a class="headerlink" href="#good-practices-for-maintenance" title="Permalink to this heading"></a></h2>
+<span id="sec-goodpractices"></span><h2>Good Practices for Maintenance<a class="headerlink" href="#good-practices-for-maintenance" title="Link to this heading"></a></h2>
 <p><strong>Use macros to avoid code duplication</strong></p>
 <p>For maintenance and extensibility it is important to minimize code
 duplication. In FLASH it wasn’t always possible because the

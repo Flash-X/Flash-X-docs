@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Particles Unit &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -109,7 +111,7 @@
            <div itemprop="articleBody">
              
   <section id="particles-unit">
-<span id="chp-particles"></span><h1>Particles Unit<a class="headerlink" href="#particles-unit" title="Permalink to this heading"></a></h1>
+<span id="chp-particles"></span><h1>Particles Unit<a class="headerlink" href="#particles-unit" title="Link to this heading"></a></h1>
 <p>The support for particles in Flash-X will eventually be in two flavors,
 <em>active</em> and <em>passive</em>. This version only supports passive particles.
 Passive particles acquire their kinematic information (velocities)
@@ -150,7 +152,7 @@ mapping is described in . An introduction to the particle techniques
 used in Flash-X is given by R. W. Hockney and J. W. Eastwood in
 <em>Computer Simulation using Particles</em> (Taylor and Francis, 1988).</p>
 <section id="time-integration">
-<span id="sec-particles-integration"></span><h2>Time Integration<a class="headerlink" href="#time-integration" title="Permalink to this heading"></a></h2>
+<span id="sec-particles-integration"></span><h2>Time Integration<a class="headerlink" href="#time-integration" title="Link to this heading"></a></h2>
 <p>The passive particles have many different time integration schemes
 available. The subroutine <code class="docutils literal notranslate"><span class="pre">Particles/Particles_advance</span></code> handles the
 movement of particles through space and time. Because Flash-X will have
@@ -166,7 +168,7 @@ type of particle. See the <code class="docutils literal notranslate"><span class
 mapping from <code class="docutils literal notranslate"><span class="pre">ADVMETHOD</span></code> keyword to <code class="docutils literal notranslate"><span class="pre">pt_advanceMETHOD</span></code> subroutine
 call.</p>
 <section id="passive-particles">
-<span id="sec-passive-partices-integration"></span><h3>Passive Particles<a class="headerlink" href="#passive-particles" title="Permalink to this heading"></a></h3>
+<span id="sec-passive-partices-integration"></span><h3>Passive Particles<a class="headerlink" href="#passive-particles" title="Link to this heading"></a></h3>
 <p>Passive particles may be moved using one of several different methods
 available in Flash-X. With the exception of <strong>Midpoint</strong>, they are all
 single-step schemes. The methods are either first-order or second-order
@@ -416,7 +418,7 @@ convergence behavior, see .</p>
 </section>
 </section>
 <section id="mesh-particle-mapping">
-<span id="sec-particles-mapping"></span><h2>Mesh/Particle Mapping<a class="headerlink" href="#mesh-particle-mapping" title="Permalink to this heading"></a></h2>
+<span id="sec-particles-mapping"></span><h2>Mesh/Particle Mapping<a class="headerlink" href="#mesh-particle-mapping" title="Link to this heading"></a></h2>
 <p>Particles behave in a fundamentally different way than grid-based
 quantities. Lagrangian, or passive particles are essentially independent
 of the grid mesh and move along with the velocity field. Active
@@ -441,7 +443,7 @@ properties are defined in the routines <code class="docutils literal notranslate
 <code class="docutils literal notranslate"><span class="pre">MAPMETHOD</span></code> in the Simulation <code class="docutils literal notranslate"><span class="pre">Config</span></code> file for each type of
 particle. See for more details.</p>
 <section id="quadratic-mesh-mapping">
-<h3>Quadratic Mesh Mapping<a class="headerlink" href="#quadratic-mesh-mapping" title="Permalink to this heading"></a></h3>
+<h3>Quadratic Mesh Mapping<a class="headerlink" href="#quadratic-mesh-mapping" title="Link to this heading"></a></h3>
 <p>The quadratic mapping package defines an interpolation back and forth to
 the mesh which is second order. This implementation is primarily meant
 to be used with passive tracer particles.</p>
@@ -632,7 +634,7 @@ f_{i+1,j} \\ f_{i,j+1}
 \end{array} \right]  \; . &amp;\end{aligned}\end{split}\]</div>
 </section>
 <section id="cloud-in-cell-mapping">
-<span id="sec-cic"></span><h3>Cloud in Cell Mapping<a class="headerlink" href="#cloud-in-cell-mapping" title="Permalink to this heading"></a></h3>
+<span id="sec-cic"></span><h3>Cloud in Cell Mapping<a class="headerlink" href="#cloud-in-cell-mapping" title="Link to this heading"></a></h3>
 <p>Other interpolation routines can be defined that take into account the
 actual quantities defined on the grid. These “mesh-based” algorithms are
 represented in Flash-X by the Cloud-in-Cell mapping, where the
@@ -653,7 +655,7 @@ Simulation <code class="docutils literal notranslate"><span class="pre">Config</
 </section>
 </section>
 <section id="using-the-particles-unit">
-<span id="sec-particlesusing"></span><h2>Using the Particles Unit<a class="headerlink" href="#using-the-particles-unit" title="Permalink to this heading"></a></h2>
+<span id="sec-particlesusing"></span><h2>Using the Particles Unit<a class="headerlink" href="#using-the-particles-unit" title="Link to this heading"></a></h2>
 <p>The Particles unit encompasses nearly all aspects of Lagrangian
 particles. The exceptions are input/output the movement of related data
 structures between different blocks as the particles move from one block
@@ -763,7 +765,7 @@ will abort if the criterion is too demanding. To overcome the abort,
 specify a less demanding criterion, or increase the value of
 <code class="docutils literal notranslate"><span class="pre">lrefine_max</span></code>.</p>
 <section id="particles-runtime-parameters">
-<span id="sec-particles-runtime-parameters"></span><h3>Particles Runtime Parameters<a class="headerlink" href="#particles-runtime-parameters" title="Permalink to this heading"></a></h3>
+<span id="sec-particles-runtime-parameters"></span><h3>Particles Runtime Parameters<a class="headerlink" href="#particles-runtime-parameters" title="Link to this heading"></a></h3>
 <p>There are several general runtime parameters applicable to the
 <code class="docutils literal notranslate"><span class="pre">Particles</span></code> unit, which affect every implementation. The variable
 <code class="docutils literal notranslate"><span class="pre">Particles/useParticles</span></code> obviously must be set equal to <code class="docutils literal notranslate"><span class="pre">.true.</span></code> to
@@ -779,7 +781,7 @@ of particle properties to special particle files is controlled by
 runtime parameters found in the <code class="docutils literal notranslate"><span class="pre">IO</span></code> unit. See for more details.</p>
 </section>
 <section id="particle-attributes">
-<span id="sec-particle-properties"></span><h3>Particle Attributes<a class="headerlink" href="#particle-attributes" title="Permalink to this heading"></a></h3>
+<span id="sec-particle-properties"></span><h3>Particle Attributes<a class="headerlink" href="#particle-attributes" title="Link to this heading"></a></h3>
 <p>By default, particles are defined to have eight real properties or
 attributes: 3 positions in x,y,z; 3 velocities in x,y,z; the current
 block identification number; and a tag which uniquely identifies the
@@ -818,7 +820,7 @@ calculate the values of the specified attributes from the corresponding
 mesh quantities before they are output.</p>
 </section>
 <section id="particle-i-o">
-<span id="sec-particles-io"></span><h3>Particle I/O<a class="headerlink" href="#particle-i-o" title="Permalink to this heading"></a></h3>
+<span id="sec-particles-io"></span><h3>Particle I/O<a class="headerlink" href="#particle-i-o" title="Link to this heading"></a></h3>
 <p>Particle data are written to and read from checkpoint files by the I/O
 modules (). For more information on the format of particle data written
 to output files, see and .</p>
@@ -832,13 +834,13 @@ be used to dump particle output to a plain text file. An example of
 usage can be found in <code class="docutils literal notranslate"><span class="pre">Particles/Particles_unitTest</span></code>. Output from this
 routine can be read using the fidlr routine <code class="docutils literal notranslate"><span class="pre">particles_dump.pro</span></code>.</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id3" role="note">
+<aside class="footnote brackets" id="id3" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>Even though it is possible to do so, see
 <code class="docutils literal notranslate"><span class="pre">Particles/Particles_computeDt</span></code>, one does not in general wish to
 let particles integration dictate the time step of the simulation.</p>
 </aside>
-<aside class="footnote brackets" id="id4" role="note">
+<aside class="footnote brackets" id="id4" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
 <p>They can be considered “predicted” positions and velocities.</p>
 </aside>

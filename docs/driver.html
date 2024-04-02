@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Driver Unit &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -99,7 +101,7 @@
            <div itemprop="articleBody">
              
   <section id="driver-unit">
-<span id="chp-driver-unit"></span><h1>Driver Unit<a class="headerlink" href="#driver-unit" title="Permalink to this heading"></a></h1>
+<span id="chp-driver-unit"></span><h1>Driver Unit<a class="headerlink" href="#driver-unit" title="Link to this heading"></a></h1>
 <p>The <em>Driver</em> unit controls the initialization and evolution of Flash-X
 simulations. In addition, at the highest level, the Driver unit
 organizes the interaction between units. Initialization can be from
@@ -107,7 +109,7 @@ scratch or from a stored checkpoint file. It also implements methods
 for advancing the solution, and calls the <em>IO</em> unit at the end of
 every timestep to produce checkpoint files, plot files, or other output.</p>
 <section id="driver-routines">
-<span id="id1"></span><h2>Driver Routines<a class="headerlink" href="#driver-routines" title="Permalink to this heading"></a></h2>
+<span id="id1"></span><h2>Driver Routines<a class="headerlink" href="#driver-routines" title="Link to this heading"></a></h2>
 <p>The most important routines in the <em>Driver</em> API are those that
 initialize, evolve, and finalize the Flash-X program. The file
 <em>main.F90</em> contains the main Flash-X program (equivalent to
@@ -131,7 +133,7 @@ are located in the <em>Driver/DriverMain</em> unit implementation directory,
 with a few specialized ones in
 <em>Driver/DriverMain/Unsplit</em>.</p>
 <section id="driver-initall">
-<h3><em>Driver_initAll</em><a class="headerlink" href="#driver-initall" title="Permalink to this heading"></a></h3>
+<h3><em>Driver_initAll</em><a class="headerlink" href="#driver-initall" title="Link to this heading"></a></h3>
 <p>The first of these routines is <em>Driver/Driver_initParallel</em>, which
 initializes the parallel environment for the simulation. New in Flash-X
 is an ability to replicate the mesh where more than one copy of the
@@ -155,7 +157,7 @@ initialization is different depending on whether the run is from scratch
 or being restarted from a checkpoint file.</p>
 </section>
 <section id="driver-evolveall">
-<h3><em>Driver_evolveAll</em><a class="headerlink" href="#driver-evolveall" title="Permalink to this heading"></a></h3>
+<h3><em>Driver_evolveAll</em><a class="headerlink" href="#driver-evolveall" title="Link to this heading"></a></h3>
 <p>The next routine is <em>Driver/Driver_evolveAll</em> which controls the
 timestepping of the simulation, as well as the normal termination of
 Flash-X based on time. Driver_evolveAll checks the parameters
@@ -171,20 +173,20 @@ solution vectors by one timestep. At the end of one loop of timestep
 advancement, the condition for updating the adaptive mesh refinement
 pattern is tested and applied.</p>
 <section id="runtime-parameters">
-<h4>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h4>
+<h4>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h4>
 <p>The Driver unit supplies certain runtime parameters regardless of
 which type of driver is chosen. These are described in the online
 Driver/Runtime Parameters Documentation page.</p>
 </section>
 </section>
 <section id="driver-finalizeall">
-<h3>Driver_finalizeAll<a class="headerlink" href="#driver-finalizeall" title="Permalink to this heading"></a></h3>
+<h3>Driver_finalizeAll<a class="headerlink" href="#driver-finalizeall" title="Link to this heading"></a></h3>
 <p>Finally, the the Driver unit calls <em>Driver/Driver_finalizeAll</em>
 which calls the finalize routines for each unit. Typically this involves
 deallocating memory and any other necessary cleanup.</p>
 </section>
 <section id="driver-accessor-functions">
-<h3>Driver accessor functions<a class="headerlink" href="#driver-accessor-functions" title="Permalink to this heading"></a></h3>
+<h3>Driver accessor functions<a class="headerlink" href="#driver-accessor-functions" title="Link to this heading"></a></h3>
 <p>Driver unit also provides a number of accessor
 functions to get data stored in the Driver unit, for example
 <em>Driver/Driver_getDt</em>, <em>Driver/Driver_getNStep</em>,
@@ -197,7 +199,7 @@ worry about any name mangling. Both of these routines print an error
 message and call <em>MPI_Abort</em>.</p>
 </section>
 <section id="time-step-limiting">
-<h3>Time Step Limiting<a class="headerlink" href="#time-step-limiting" title="Permalink to this heading"></a></h3>
+<h3>Time Step Limiting<a class="headerlink" href="#time-step-limiting" title="Link to this heading"></a></h3>
 <p>The Driver unit is responsible for determining the time step
 <span class="math notranslate nohighlight">\(\Delta t\)</span> that is used to advance the solution from time
 <span class="math notranslate nohighlight">\(t=t^{n-1}\)</span> to <span class="math notranslate nohighlight">\(t^n\)</span>. At startup, a tentative
@@ -227,7 +229,7 @@ depends on the state of density, pressure, and velocities (and possibly
 additional variables) in the cells of the domain, as well as on the
 runtime parameter <em>Hydro/cfl</em>.</p>
 <section id="generic-time-step-limiting-for-positive-definiteness">
-<span id="sec-dr-posdef"></span><h4>Generic time step limiting for positive definiteness<a class="headerlink" href="#generic-time-step-limiting-for-positive-definiteness" title="Permalink to this heading"></a></h4>
+<span id="sec-dr-posdef"></span><h4>Generic time step limiting for positive definiteness<a class="headerlink" href="#generic-time-step-limiting-for-positive-definiteness" title="Link to this heading"></a></h4>
 <p>A generic method for limiting time steps, based on a requirement that
 certain (user-specified) variables should never become negative, has
 been added in Flash-X. To understand the basic idea, think of each

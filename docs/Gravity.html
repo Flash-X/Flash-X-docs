@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gravity Unit &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -112,9 +114,9 @@
            <div itemprop="articleBody">
              
   <section id="gravity-unit">
-<span id="chp-gravity"></span><h1>Gravity Unit<a class="headerlink" href="#gravity-unit" title="Permalink to this heading"></a></h1>
+<span id="chp-gravity"></span><h1>Gravity Unit<a class="headerlink" href="#gravity-unit" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Gravity</span></code> unit supplied with Flash-X computes gravitational source
 terms for the code. These source terms can take the form of the
 gravitational potential <span class="math notranslate nohighlight">\(\phi({\bf x})\)</span> or the gravitational
@@ -130,7 +132,7 @@ computed from the gas density via the Poisson equation,</p>
 either periodic or isolated boundary conditions can be applied.</p>
 </section>
 <section id="externally-applied-fields">
-<span id="sec-gravityexternal"></span><h2>Externally Applied Fields<a class="headerlink" href="#externally-applied-fields" title="Permalink to this heading"></a></h2>
+<span id="sec-gravityexternal"></span><h2>Externally Applied Fields<a class="headerlink" href="#externally-applied-fields" title="Link to this heading"></a></h2>
 <p>The Flash-X distribution includes three externally applied gravitational
 fields, along with a placeholder module for you to create your own. Each
 provides the acceleration vector <span class="math notranslate nohighlight">\({\bf g}({\bf x})\)</span> directly,
@@ -140,14 +142,14 @@ the exception of <code class="docutils literal notranslate"><span class="pre">Us
 <code class="docutils literal notranslate"><span class="pre">Gravity</span></code> implementation, no additional storage in <code class="docutils literal notranslate"><span class="pre">unk</span></code> for holding
 gravitational potential or accelerations is needed or defined.</p>
 <section id="constant-gravitational-field">
-<h3>Constant Gravitational Field<a class="headerlink" href="#constant-gravitational-field" title="Permalink to this heading"></a></h3>
+<h3>Constant Gravitational Field<a class="headerlink" href="#constant-gravitational-field" title="Link to this heading"></a></h3>
 <p>This implementation creates a spatially and temporally constant field
 parallel to one of the coordinate axes. The magnitude and direction of
 the field can be set at runtime. This unit is called
 <code class="docutils literal notranslate"><span class="pre">Gravity/GravityMain/Constant</span></code>.</p>
 </section>
 <section id="plane-parallel-gravitational-field">
-<h3>Plane-parallel Gravitational field<a class="headerlink" href="#plane-parallel-gravitational-field" title="Permalink to this heading"></a></h3>
+<h3>Plane-parallel Gravitational field<a class="headerlink" href="#plane-parallel-gravitational-field" title="Link to this heading"></a></h3>
 <p>This <code class="docutils literal notranslate"><span class="pre">PlanePar</span></code> version implements a time-constant gravitational field
 that is parallel to one of the coordinate axes and falls off with the
 square of the distance from a fixed location. The field is assumed to be
@@ -166,7 +168,7 @@ axis as the inverse distance squared. Its magnitude and direction are
 independent of the other two coordinates.</p>
 </section>
 <section id="gravitational-field-of-a-point-mass">
-<h3>Gravitational Field of a Point Mass<a class="headerlink" href="#gravitational-field-of-a-point-mass" title="Permalink to this heading"></a></h3>
+<h3>Gravitational Field of a Point Mass<a class="headerlink" href="#gravitational-field-of-a-point-mass" title="Link to this heading"></a></h3>
 <p>This <code class="docutils literal notranslate"><span class="pre">PointMass</span></code> implementation describes the gravitational field due
 to a point mass at a fixed location. A finite softening length may
 optionally be applied. The acceleration falls off with the square of the
@@ -174,7 +176,7 @@ distance from a given point. The acceleration vector is everywhere
 directed toward this point.</p>
 </section>
 <section id="user-defined-gravitational-field">
-<h3>User-Defined Gravitational Field<a class="headerlink" href="#user-defined-gravitational-field" title="Permalink to this heading"></a></h3>
+<h3>User-Defined Gravitational Field<a class="headerlink" href="#user-defined-gravitational-field" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">UserDefined</span></code> implementation is a placeholder module for the user
 to create their own external gravitational field. All of the subroutines
 in this module are stubs, and the user may copy these stubs to their
@@ -186,7 +188,7 @@ gravitational field is time-varying, you may also want to set
 </section>
 </section>
 <section id="self-gravity">
-<span id="sec-gravityselfgravity"></span><h2>Self-gravity<a class="headerlink" href="#self-gravity" title="Permalink to this heading"></a></h2>
+<span id="sec-gravityselfgravity"></span><h2>Self-gravity<a class="headerlink" href="#self-gravity" title="Link to this heading"></a></h2>
 <p>The self-consistent gravity algorithm supplied with Flash-X computes the
 Newtonian gravitational field produced by the matter. The produced
 potential function satisfies Poisson’s equation
@@ -227,7 +229,7 @@ conditions.</p>
 general mass distributions and can solve problems with both isolated and
 periodic boundary conditions set independently in individual directions.</p>
 <section id="coupling-gravity-with-hydrodynamics">
-<h3>Coupling Gravity with Hydrodynamics<a class="headerlink" href="#coupling-gravity-with-hydrodynamics" title="Permalink to this heading"></a></h3>
+<h3>Coupling Gravity with Hydrodynamics<a class="headerlink" href="#coupling-gravity-with-hydrodynamics" title="Link to this heading"></a></h3>
 <p>The gravitational field couples to the Euler equations only through the
 momentum and energy equations. If we define the total energy density as</p>
 <div class="math notranslate nohighlight">
@@ -285,7 +287,7 @@ interpolant on the <span class="math notranslate nohighlight">\(X\)</span> side 
 between cells <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(i+1\)</span> during the timestep.</p>
 </section>
 <section id="tree-gravity">
-<h3>Tree Gravity<a class="headerlink" href="#tree-gravity" title="Permalink to this heading"></a></h3>
+<h3>Tree Gravity<a class="headerlink" href="#tree-gravity" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">Tree</span></code> implementation of the gravity unit in
 <code class="docutils literal notranslate"><span class="pre">physics/Gravity/GravityMain/Poisson/BHTree</span></code> is meant to be used
 together with the tree solver implementation
@@ -402,7 +404,7 @@ time the gravitational acceleration is calculated (in subroutine
 </section>
 </section>
 <section id="usage">
-<span id="sec-gravity-usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
+<span id="sec-gravity-usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <p>To include the effects of gravity in your Flash-X executable, include
 the option</p>
 <blockquote>
@@ -428,7 +430,7 @@ and others as needed, will be automatically defined in <code class="docutils lit
 in those cases. See <code class="docutils literal notranslate"><span class="pre">physics/Gravity/Gravity_potentialListOfBlocks</span></code>
 for more information.</p>
 <section id="tree-gravity-unit-usage">
-<span id="sec-gravitybhtreeusing"></span><h3>Tree Gravity Unit Usage<a class="headerlink" href="#tree-gravity-unit-usage" title="Permalink to this heading"></a></h3>
+<span id="sec-gravitybhtreeusing"></span><h3>Tree Gravity Unit Usage<a class="headerlink" href="#tree-gravity-unit-usage" title="Link to this heading"></a></h3>
 <p>Calculation of gravitational potential can be enabled by compiling in
 this unit and setting the runtime parameter <code class="docutils literal notranslate"><span class="pre">Gravity/useGravity</span></code> true.
 The constant of gravity can be set independently by runtime parameter
@@ -833,7 +835,7 @@ field</p></td>
 </section>
 </section>
 <section id="unit-tests">
-<span id="sec-gravityunittests"></span><h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading"></a></h2>
+<span id="sec-gravityunittests"></span><h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Link to this heading"></a></h2>
 <p>There are two unit tests for the gravity unit. <code class="docutils literal notranslate"><span class="pre">Poisson3</span></code> is
 essentially the Maclaurin spheroid problem described in . Because an
 analytical solution exists, the accuracy of the gravitational solver can

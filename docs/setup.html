@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Flash-X configuration &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -100,7 +102,7 @@
            <div itemprop="articleBody">
              
   <section id="the-flashx-configuration">
-<h1>The Flash-X configuration<a class="headerlink" href="#the-flashx-configuration" title="Permalink to this heading"></a></h1>
+<h1>The Flash-X configuration<a class="headerlink" href="#the-flashx-configuration" title="Link to this heading"></a></h1>
 <p>The configuration toolchain effectively implements the Flash-X
 software architecture. The encapsulation and inheritance of the code
 is implemented and enforced by this tool. It relies upon Flash-X’s
@@ -159,7 +161,7 @@ PARAMETER indexed_parameter_4  REAL 0.
 PARAMETER indexed_parameter_5 REAL 0.</p>
 </div>
 <section id="config-file-keywords-and-syntax">
-<span id="sec-dscl-keywords"></span><h2>Config file Keywords and syntax<a class="headerlink" href="#config-file-keywords-and-syntax" title="Permalink to this heading"></a></h2>
+<span id="sec-dscl-keywords"></span><h2>Config file Keywords and syntax<a class="headerlink" href="#config-file-keywords-and-syntax" title="Link to this heading"></a></h2>
 <p>The syntax of the configuration directives is described here.
 Arbitrarily many spaces and/or tabs may be used, but all keywords must
 be in uppercase. Lines not matching an ad missible pattern will raise an
@@ -718,7 +720,7 @@ variables specified in the <code class="docutils literal notranslate"><span clas
 </ul>
 </section>
 <section id="the-setup-tool">
-<span id="sec-the-setup-tool"></span><h2>The Setup Tool<a class="headerlink" href="#the-setup-tool" title="Permalink to this heading"></a></h2>
+<span id="sec-the-setup-tool"></span><h2>The Setup Tool<a class="headerlink" href="#the-setup-tool" title="Link to this heading"></a></h2>
 <p>The setup tool parses and interprets the Config files to assemble an
 application instance in the specified object directory. It has three
 primary actions to perform.</p>
@@ -824,7 +826,7 @@ command names, compiler flags, library paths, and any replacement or
 additional source files needed to compile Flash-X for that specific
 machine and machine type.</p>
 <section id="setup-arguments">
-<span id="sec-listsetupargs"></span><h3>Setup Arguments<a class="headerlink" href="#setup-arguments" title="Permalink to this heading"></a></h3>
+<span id="sec-listsetupargs"></span><h3>Setup Arguments<a class="headerlink" href="#setup-arguments" title="Link to this heading"></a></h3>
 <p>The setup script accepts a large number of command line arguments which
 affect the simulation in various ways. These arguments are divided into
 three categories:</p>
@@ -918,7 +920,7 @@ library specified by one the Config files traversed by the setup
 tool.</p>
 </section>
 <section id="using-shortcuts">
-<span id="sec-setupshortcuts"></span><h3>Using Shortcuts<a class="headerlink" href="#using-shortcuts" title="Permalink to this heading"></a></h3>
+<span id="sec-setupshortcuts"></span><h3>Using Shortcuts<a class="headerlink" href="#using-shortcuts" title="Link to this heading"></a></h3>
 <p>Apart from the various setup options the <code class="docutils literal notranslate"><span class="pre">setup</span></code> script also allows
 you to use shortcuts for frequently used combinations of options. For
 example, instead of typing in</p>
@@ -960,7 +962,7 @@ to “hdf5/parallel”, is as simple as changing the definition of the
 <div class="center docutils container">
 <div class="docutils container" id="tab-setup-shortcuts">
 <table class="docutils align-default" id="id25">
-<caption><span class="caption-text">Shortcuts for often-used options</span><a class="headerlink" href="#id25" title="Permalink to this table"></a></caption>
+<caption><span class="caption-text">Shortcuts for often-used options</span><a class="headerlink" href="#id25" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Shortcut</p></th>
 <th class="head"><p>Description</p></th>
@@ -1000,7 +1002,7 @@ to “hdf5/parallel”, is as simple as changing the definition of the
 </div>
 </section>
 <section id="setup-variables-and-preprocessing-config-files">
-<span id="sec-setupvariables"></span><h3>Setup Variables and Preprocessing <code class="docutils literal notranslate"><span class="pre">Config</span></code> Files<a class="headerlink" href="#setup-variables-and-preprocessing-config-files" title="Permalink to this heading"></a></h3>
+<span id="sec-setupvariables"></span><h3>Setup Variables and Preprocessing <code class="docutils literal notranslate"><span class="pre">Config</span></code> Files<a class="headerlink" href="#setup-variables-and-preprocessing-config-files" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">setup</span></code> allows you to assign values to “Setup Variables”. These
 variables can be string-valued, integer-valued, or boolean. A <code class="docutils literal notranslate"><span class="pre">setup</span></code>
 call like</p>
@@ -1047,7 +1049,7 @@ with the appropriate dimensionality (see for example
 <code class="docutils literal notranslate"><span class="pre">Simulation/SimulationMain/unitTest/Eos/Config</span></code>).</p>
 </section>
 <section id="creating-a-site-specific-makefile">
-<span id="sec-setupmakefile"></span><h3>Creating a Site-specific <code class="docutils literal notranslate"><span class="pre">Makefile</span></code><a class="headerlink" href="#creating-a-site-specific-makefile" title="Permalink to this heading"></a></h3>
+<span id="sec-setupmakefile"></span><h3>Creating a Site-specific <code class="docutils literal notranslate"><span class="pre">Makefile</span></code><a class="headerlink" href="#creating-a-site-specific-makefile" title="Link to this heading"></a></h3>
 <p>If <code class="docutils literal notranslate"><span class="pre">setup</span></code> does not find your hostname in the <code class="docutils literal notranslate"><span class="pre">sites/</span></code> directory it
 picks a default <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> based on the operating system. This
 <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> is not always correct but can be used as a template to
@@ -1077,7 +1079,7 @@ type, and assumes that Fortran <code class="docutils literal notranslate"><span 
 </div>
 </section>
 <section id="files-created-during-the-setup-process">
-<h3>Files Created During the <code class="docutils literal notranslate"><span class="pre">setup</span></code> Process<a class="headerlink" href="#files-created-during-the-setup-process" title="Permalink to this heading"></a></h3>
+<h3>Files Created During the <code class="docutils literal notranslate"><span class="pre">setup</span></code> Process<a class="headerlink" href="#files-created-during-the-setup-process" title="Link to this heading"></a></h3>
 <p>The setup tool generates many files in the directory. They fall into
 three major categories:</p>
 <ul class="simple">
@@ -1089,7 +1091,7 @@ useful information,</p></li>
 </section>
 </section>
 <section id="informational-files">
-<h2>Informational files<a class="headerlink" href="#informational-files" title="Permalink to this heading"></a></h2>
+<h2>Informational files<a class="headerlink" href="#informational-files" title="Link to this heading"></a></h2>
 <p>These files are generated before compilation by <code class="docutils literal notranslate"><span class="pre">setup</span></code>. Each of these
 files begins with the prefix <code class="docutils literal notranslate"><span class="pre">setup_</span></code> for easy identification.</p>
 <table class="docutils align-default">
@@ -1130,7 +1132,7 @@ with their descriptions.</p></td>
 </table>
 </section>
 <section id="code-generated-by-the-setup-call">
-<h2>Code generated by the <code class="docutils literal notranslate"><span class="pre">setup</span></code> call<a class="headerlink" href="#code-generated-by-the-setup-call" title="Permalink to this heading"></a></h2>
+<h2>Code generated by the <code class="docutils literal notranslate"><span class="pre">setup</span></code> call<a class="headerlink" href="#code-generated-by-the-setup-call" title="Link to this heading"></a></h2>
 <p>These routines are generated by the setup call and provide
 simulation-specific code.</p>
 <table class="docutils align-default">
@@ -1205,7 +1207,7 @@ simulation.</p></td>
 </table>
 </section>
 <section id="makefiles-generated-by-setup">
-<span id="sec-unitmakefiles"></span><h2>Makefiles generated by <code class="docutils literal notranslate"><span class="pre">setup</span></code><a class="headerlink" href="#makefiles-generated-by-setup" title="Permalink to this heading"></a></h2>
+<span id="sec-unitmakefiles"></span><h2>Makefiles generated by <code class="docutils literal notranslate"><span class="pre">setup</span></code><a class="headerlink" href="#makefiles-generated-by-setup" title="Link to this heading"></a></h2>
 <p>Apart from the master <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>, <code class="docutils literal notranslate"><span class="pre">setup</span></code> generates a makefile for
 each unit, which is “included” in the master <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>. This is true
 even if the unit is not included in the application. These unit
@@ -1234,7 +1236,7 @@ concatenated. The makefiles inside the units contain lines of the form:</p>
 example above. Dependency on data modules files <em>need not be specified</em>
 since the setup process determines this requirement automatically.</p>
 <section id="setup-a-hybrid-mpi-openmp-flashx-application">
-<span id="sec-hybridsetup"></span><h3>Setup a hybrid MPI+|openmp| Flash-X application<a class="headerlink" href="#setup-a-hybrid-mpi-openmp-flashx-application" title="Permalink to this heading"></a></h3>
+<span id="sec-hybridsetup"></span><h3>Setup a hybrid MPI+|openmp| Flash-X application<a class="headerlink" href="#setup-a-hybrid-mpi-openmp-flashx-application" title="Link to this heading"></a></h3>
 <p>The Flash-X multithreading requires a MPI-2 installation built with
 thread support (building with an MPI-1 installation or an MPI-2
 installation without thread support is possible but strongly
@@ -1303,11 +1305,11 @@ is not supported. For further information about Flash-X multithreaded
 applications please refer to Chapter
 <a class="reference external" href="#Chp:Multithreaded|flashx|">[Chp:Multithreaded|flashx|]</a>.</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id23" role="note">
+<aside class="footnote brackets" id="id23" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">1</a><span class="fn-bracket">]</span></span>
 <p>if a machine has multiple hostnames, setup tries them all</p>
 </aside>
-<aside class="footnote brackets" id="id24" role="note">
+<aside class="footnote brackets" id="id24" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id20">2</a><span class="fn-bracket">]</span></span>
 <p>All non-integral values not equal to True/False/Yes/No/On/Off are
 considered to be string values</p>

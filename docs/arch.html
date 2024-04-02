@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Overview of Flash-X architecture &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -87,7 +89,7 @@
            <div itemprop="articleBody">
              
   <section id="overview-of-flashx-architecture">
-<span id="chp-architecture"></span><h1>Overview of Flash-X architecture<a class="headerlink" href="#overview-of-flashx-architecture" title="Permalink to this heading"></a></h1>
+<span id="chp-architecture"></span><h1>Overview of Flash-X architecture<a class="headerlink" href="#overview-of-flashx-architecture" title="Link to this heading"></a></h1>
 <p>Flash-X is a component based software system where different
 permutations and combinations of various components generate different
 applications. Some aspects of Flash-X architecture are adapted from
@@ -221,7 +223,7 @@ interface with the executor. We believe that this model of combination
 of program synthesis with orthogonal composition concepts will have
 longevity because of its ability to adapt to new systems incrementally.</p>
 <section id="flashx-inheritance">
-<span id="sec-inheritance"></span><h2>Flash-X Inheritance<a class="headerlink" href="#flashx-inheritance" title="Permalink to this heading"></a></h2>
+<span id="sec-inheritance"></span><h2>Flash-X Inheritance<a class="headerlink" href="#flashx-inheritance" title="Link to this heading"></a></h2>
 <p>Flash-X inheritance is implemented through the Unix directory structure
 and the setup tool. When the <code class="docutils literal notranslate"><span class="pre">setup</span></code> tool parses the source tree, it
 treats each child or subdirectory as inheriting all of the Config and
@@ -236,7 +238,7 @@ Figures.</p>
 <div><figure class="align-default" id="fig-highlevel-flowchart">
 <a class="reference internal image-reference" href="_images/overview_flowchart.png"><img alt="overall_flowchart" src="_images/overview_flowchart.png" style="width: 4in;" /></a>
 <figcaption>
-<p><span class="caption-text">Overview of the control flow during configuration</span><a class="headerlink" href="#fig-highlevel-flowchart" title="Permalink to this image"></a></p>
+<p><span class="caption-text">Overview of the control flow during configuration</span><a class="headerlink" href="#fig-highlevel-flowchart" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div></blockquote>
@@ -244,7 +246,7 @@ Figures.</p>
 <figure class="align-default" id="fig-high-inheritance">
 <a class="reference internal image-reference" href="_images/overall_inheritance.png"><img alt="overall_inheritance" src="_images/overall_inheritance.png" style="width: 4in;" /></a>
 <figcaption>
-<p><span class="caption-text">Overview of the inheritance in various components of the code</span><a class="headerlink" href="#fig-high-inheritance" title="Permalink to this image"></a></p>
+<p><span class="caption-text">Overview of the inheritance in various components of the code</span><a class="headerlink" href="#fig-high-inheritance" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
@@ -252,7 +254,7 @@ Figures.</p>
 <figure class="align-default" id="fig-keys-rp">
 <a class="reference internal image-reference" href="_images/keys_rp_inheritance.png"><img alt="Inheritance as it applied to keys defining macros and runtime parameters" src="_images/keys_rp_inheritance.png" style="width: 4in;" /></a>
 <figcaption>
-<p><span class="caption-text">Overview of the control flow during configuration</span><a class="headerlink" href="#fig-keys-rp" title="Permalink to this image"></a></p>
+<p><span class="caption-text">Overview of the control flow during configuration</span><a class="headerlink" href="#fig-keys-rp" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
@@ -260,7 +262,7 @@ Figures.</p>
 <figure class="align-default" id="fig-file-generation">
 <a class="reference internal image-reference" href="_images/file_generation.png"><img alt="Step_file_generation" src="_images/file_generation.png" style="width: 4in;" /></a>
 <figcaption>
-<p><span class="caption-text">Steps in arbitration on files to be included/generated</span><a class="headerlink" href="#fig-file-generation" title="Permalink to this image"></a></p>
+<p><span class="caption-text">Steps in arbitration on files to be included/generated</span><a class="headerlink" href="#fig-file-generation" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
@@ -272,7 +274,7 @@ convention that allows clear distinction between organizational and
 namespace directories. See for naming conventions.</p>
 </section>
 <section id="unit-test-framework">
-<h2>Unit Test Framework<a class="headerlink" href="#unit-test-framework" title="Permalink to this heading"></a></h2>
+<h2>Unit Test Framework<a class="headerlink" href="#unit-test-framework" title="Link to this heading"></a></h2>
 <p>In keeping with good software practice, Flash-X incorporates a unit test
 framework that allows for rigorous testing and easy isolation of errors.
 The components of the unit test show up in two different places in the

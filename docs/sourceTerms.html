@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Local Source Terms &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -102,14 +104,14 @@
            <div itemprop="articleBody">
              
   <section id="local-source-terms">
-<span id="sec-source-terms"></span><h1>Local Source Terms<a class="headerlink" href="#local-source-terms" title="Permalink to this heading"></a></h1>
+<span id="sec-source-terms"></span><h1>Local Source Terms<a class="headerlink" href="#local-source-terms" title="Link to this heading"></a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">physics/sourceTerms</span></code> organizational directory contains several
 units that implement forcing terms. The <code class="docutils literal notranslate"><span class="pre">Burn</span></code>, <code class="docutils literal notranslate"><span class="pre">Stir</span></code>, <code class="docutils literal notranslate"><span class="pre">Ionize</span></code>,
 and <code class="docutils literal notranslate"><span class="pre">Diffuse</span></code> units contain implementations in Flash-X. Two other
 units, <code class="docutils literal notranslate"><span class="pre">Cool</span></code> and <code class="docutils literal notranslate"><span class="pre">Heat</span></code>, contain only stub level routines in their
 API.</p>
 <section id="burn-unit">
-<span id="sec-burn"></span><h2>Burn Unit<a class="headerlink" href="#burn-unit" title="Permalink to this heading"></a></h2>
+<span id="sec-burn"></span><h2>Burn Unit<a class="headerlink" href="#burn-unit" title="Link to this heading"></a></h2>
 <p>The nuclear burning implementation of the <code class="docutils literal notranslate"><span class="pre">Burn</span></code> unit uses a
 sparse-matrix semi-implicit ordinary differential equation (ODE) solver
 to calculate the nuclear burning rate and to update the fluid variables
@@ -125,7 +127,7 @@ a helper routine
 <code class="docutils literal notranslate"><span class="pre">Simulation/Simulation_initSpecies</span></code>) which provides the properties of
 ions included in the burning network.</p>
 <section id="algorithms">
-<h3>Algorithms<a class="headerlink" href="#algorithms" title="Permalink to this heading"></a></h3>
+<h3>Algorithms<a class="headerlink" href="#algorithms" title="Link to this heading"></a></h3>
 <p> Modeling thermonuclear flashes typically requires the energy generation
 rate due to nuclear burning over a large range of temperatures,
 densities and compositions. The average energy generated or lost over a
@@ -172,7 +174,7 @@ linear algebra packages (MA28 and GIFT) that are provided with the
 Flash-X code.</p>
 </section>
 <section id="reaction-networks">
-<h3>Reaction networks<a class="headerlink" href="#reaction-networks" title="Permalink to this heading"></a></h3>
+<h3>Reaction networks<a class="headerlink" href="#reaction-networks" title="Link to this heading"></a></h3>
 <p>We begin by describing the equations solved by the nuclear burning unit.
 We consider material that may be described by a density <span class="math notranslate nohighlight">\(\rho\)</span> and
 a single temperature <span class="math notranslate nohighlight">\(T\)</span> and contains a number of isotopes
@@ -357,7 +359,7 @@ the <span class="math notranslate nohighlight">\((i, j,
 a_{i,j}\)</span>) coordinate system and typically uses 70<span class="math notranslate nohighlight">\(-\)</span>90% less
 storage than storing the full dense matrix.</p>
 <section id="two-time-integration-methods">
-<h4>Two time integration methods<a class="headerlink" href="#two-time-integration-methods" title="Permalink to this heading"></a></h4>
+<h4>Two time integration methods<a class="headerlink" href="#two-time-integration-methods" title="Link to this heading"></a></h4>
 <p>One of the time integration methods used by Flash-X for evolving the
 reaction networks is a 4th-order accurate Kaps-Rentrop, or Rosenbrock
 method. In essence, this method is an implicit Runge-Kutta algorithm.
@@ -462,7 +464,7 @@ order Kaps-Rentrop / Rosenbrock scheme.</p>
 </section>
 </section>
 <section id="detecting-shocks">
-<h3>Detecting shocks<a class="headerlink" href="#detecting-shocks" title="Permalink to this heading"></a></h3>
+<h3>Detecting shocks<a class="headerlink" href="#detecting-shocks" title="Link to this heading"></a></h3>
 <p>For most astrophysical detonations, the shock structure is so thin that
 there is insufficient time for burning to take place within the shock.
 However, since numerical shock structures tend to be much wider than
@@ -486,7 +488,7 @@ guard cell call is done for the burners only if we are detecting shocks
 (<em>i.e.</em> <code class="docutils literal notranslate"><span class="pre">useShockBurning</span> <span class="pre">=</span> <span class="pre">.false.</span></code>).</p>
 </section>
 <section id="energy-generation-rates-and-reaction-rates">
-<h3>Energy generation rates and reaction rates<a class="headerlink" href="#energy-generation-rates-and-reaction-rates" title="Permalink to this heading"></a></h3>
+<h3>Energy generation rates and reaction rates<a class="headerlink" href="#energy-generation-rates-and-reaction-rates" title="Link to this heading"></a></h3>
 <p>The instantaneous energy generation rate is given by the sum</p>
 <div class="math notranslate nohighlight">
 \[\dot {\epsilon}_{\rm nuc} = N_A \ \sum_i \ {dY_{i}\over dt} \ .\]</div>
@@ -525,7 +527,7 @@ Wallace <em>et al.</em> (1982) and decreases in the energy generation rate
 Itoh <em>et al.</em> (1996) are included in Flash-X.</p>
 </section>
 <section id="temperature-based-timestep-limiting">
-<h3>Temperature-based timestep limiting<a class="headerlink" href="#temperature-based-timestep-limiting" title="Permalink to this heading"></a></h3>
+<h3>Temperature-based timestep limiting<a class="headerlink" href="#temperature-based-timestep-limiting" title="Link to this heading"></a></h3>
 <p>When using explicit hydrodynamics methods, a timestep limiter must be
 used to ensure the stability of the numerical solution. The standard CFL
 limiter is always used when an explicit hydrodynamics unit is included

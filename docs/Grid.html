@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Grid Unit &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -129,9 +131,9 @@
            <div itemprop="articleBody">
              
   <section id="grid-unit">
-<span id="chp-grid-unit"></span><h1>Grid Unit<a class="headerlink" href="#grid-unit" title="Permalink to this heading"></a></h1>
+<span id="chp-grid-unit"></span><h1>Grid Unit<a class="headerlink" href="#grid-unit" title="Link to this heading"></a></h1>
 <section id="overview">
-<span id="sec-gridintroduction"></span><h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
+<span id="sec-gridintroduction"></span><h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>The <em>Grid</em> unit has four subunits: <em>GridMain</em> is responsible for
 maintaining the Eulerian grid used to discretize the spatial dimensions
 of a simulation; <em>GridParticles</em> manages the data movement of
@@ -168,7 +170,7 @@ facilitates the ability of Flash-X to use multiple mesh packages.</p>
 <figure class="align-default" id="fig-block">
 <a class="reference internal image-reference" href="_images/Grid_single_block.png"><img alt="Grid_block" src="_images/Grid_single_block.png" style="width: 3in;" /></a>
 <figcaption>
-<p><span class="caption-text">One block with its surrounding halo of guardcells</span><a class="headerlink" href="#fig-block" title="Permalink to this image"></a></p>
+<p><span class="caption-text">One block with its surrounding halo of guardcells</span><a class="headerlink" href="#fig-block" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
@@ -203,7 +205,7 @@ is being used. Please see for more information. Also see for
 shortcuts useful for the Grid unit.</p>
 </section>
 <section id="gridmain-data-structures">
-<h2><em>GridMain</em> Data Structures<a class="headerlink" href="#gridmain-data-structures" title="Permalink to this heading"></a></h2>
+<h2><em>GridMain</em> Data Structures<a class="headerlink" href="#gridmain-data-structures" title="Link to this heading"></a></h2>
 <p>The Grid unit is the most extensive infrastructure unit in the
 Flash-X code, and it owns data that most other units wish to fetch and
 modify. Since the data layout in this unit has implications on the
@@ -236,7 +238,7 @@ meaning of the optional <em>TYPE</em> attribute that can be specified as part
 of a <em>VARIABLE</em> definition read by the setup tool.</p>
 </section>
 <section id="computational-domain">
-<span id="sec-computational-domain"></span><h2>Computational Domain<a class="headerlink" href="#computational-domain" title="Permalink to this heading"></a></h2>
+<span id="sec-computational-domain"></span><h2>Computational Domain<a class="headerlink" href="#computational-domain" title="Link to this heading"></a></h2>
 <p>The size of the computational domain in physical units is specified at
 runtime through the (<em>xmin</em>, <em>xmax</em>) (<em>ymin</em>,
 <em>ymax</em>) (<em>zmin</em>, <em>zmax</em>) runtime parameters. When
@@ -248,7 +250,7 @@ domain at problem initialization through the initialization routines
 of the selected AMR package.</p>
 </section>
 <section id="boundary-conditions">
-<span id="sec-bndrycond"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this heading"></a></h2>
+<span id="sec-bndrycond"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Link to this heading"></a></h2>
 <p>Much of the Flash-X code within the Grid unit that deals with
 implementing boundary conditions has been organized into a separate
 subunit, <em>GridBoundaryConditions</em>. Note that the following aspects are
@@ -271,7 +273,7 @@ generally only make sense if all domain boundaries are to be treated as
 periodic. (All relevant runtime parameters <em>xl_boundary_type</em>
 <em>etc.</em> need to be set to <em>“periodic”</em> in that case.)</p>
 <section id="boundary-condition-types">
-<h3>Boundary Condition Types<a class="headerlink" href="#boundary-condition-types" title="Permalink to this heading"></a></h3>
+<h3>Boundary Condition Types<a class="headerlink" href="#boundary-condition-types" title="Link to this heading"></a></h3>
 <p>Boundary conditions are determined by the physical problem. Within
 Flash-X, the parallel structure of blocks means that each processor
 works independently. If a block is on a physical boundary, the guard
@@ -315,7 +317,7 @@ remarks), or are for special uses within the Grid unit.</p>
 </div>
 </section>
 <section id="boundary-conditions-at-obstacles">
-<h3>Boundary Conditions at Obstacles<a class="headerlink" href="#boundary-conditions-at-obstacles" title="Permalink to this heading"></a></h3>
+<h3>Boundary Conditions at Obstacles<a class="headerlink" href="#boundary-conditions-at-obstacles" title="Link to this heading"></a></h3>
 <p>The initial coarse grid of root blocks can be modified by removing
 certain blocks. This is done by providing a non-trivial implementation
 of Simulation/Simulation_defineDomain. Effectively this creates
@@ -328,7 +330,7 @@ Simulation/Simulation_defineDomain for more details and some
 caveats.</p>
 </section>
 <section id="implementing-boundary-conditions">
-<h3>Implementing Boundary Conditions<a class="headerlink" href="#implementing-boundary-conditions" title="Permalink to this heading"></a></h3>
+<h3>Implementing Boundary Conditions<a class="headerlink" href="#implementing-boundary-conditions" title="Link to this heading"></a></h3>
 <p>Users may need to implement boundary conditions beyond those provided
 with Flash-X, and the GridBoundaryConditions subunit provides
 several ways to achieve this. Users can provide an implementation for
@@ -401,7 +403,7 @@ deeper in the Grid unit.</p>
 </section>
 </section>
 <section id="uniform-grid">
-<span id="sec-grid-ug"></span><h2>Uniform Grid<a class="headerlink" href="#uniform-grid" title="Permalink to this heading"></a></h2>
+<span id="sec-grid-ug"></span><h2>Uniform Grid<a class="headerlink" href="#uniform-grid" title="Link to this heading"></a></h2>
 <p>The Uniform Grid has the same resolution in all the blocks throughout
 the domain, and each processor has exactly one block. The uniform grid
 can operate in either of two modes: fixed block size (FIXEDBLOCKSIZE)
@@ -410,7 +412,7 @@ fixed block size grid is statically defined at compile time and can
 therefore take advantage of compile-time optimizations. The non-fixed
 block size version uses dynamic memory allocation of grid variables.</p>
 <section id="fixedblocksize-mode">
-<h3>FIXEDBLOCKSIZE Mode<a class="headerlink" href="#fixedblocksize-mode" title="Permalink to this heading"></a></h3>
+<h3>FIXEDBLOCKSIZE Mode<a class="headerlink" href="#fixedblocksize-mode" title="Link to this heading"></a></h3>
 <p><em>FIXEDBLOCKSIZE</em> mode, also called static mode, is the default for the
 uniform grid. In this mode, the block size is specified at compile time
 as NXB<span class="math notranslate nohighlight">\(\times\)</span>NYB<span class="math notranslate nohighlight">\(\times\)</span>NZB. These
@@ -466,7 +468,7 @@ sets it to false. Users should exercise care if they wish to override
 the defaults via their flash.par file.</p>
 </section>
 <section id="nonfixedblocksize-mode">
-<span id="sec-nonfixedblocksize"></span><h3>NONFIXEDBLOCKSIZE mode<a class="headerlink" href="#nonfixedblocksize-mode" title="Permalink to this heading"></a></h3>
+<span id="sec-nonfixedblocksize"></span><h3>NONFIXEDBLOCKSIZE mode<a class="headerlink" href="#nonfixedblocksize-mode" title="Link to this heading"></a></h3>
 <p>To run an application in “NONFIXEDBLOCKSIZE” mode the “-nofbs”
 option must be used when invoking the setup tool; For example:</p>
 <div class="codeseg docutils container">
@@ -505,7 +507,7 @@ domain size the same.</p>
 </section>
 </section>
 <section id="adaptive-mesh-refinement-amr-grid">
-<span id="sec-grid-amr"></span><h2>Adaptive Mesh Refinement (AMR) Grid<a class="headerlink" href="#adaptive-mesh-refinement-amr-grid" title="Permalink to this heading"></a></h2>
+<span id="sec-grid-amr"></span><h2>Adaptive Mesh Refinement (AMR) Grid<a class="headerlink" href="#adaptive-mesh-refinement-amr-grid" title="Link to this heading"></a></h2>
 <p>Flash-X uses block-structured AMR where the fundamental data
 structure is a block of cells arranged in a logically Cartesian
 fashion. “Logically Cartesian” implies that each cell can be specified
@@ -573,7 +575,7 @@ computed.</p>
 <div class="center docutils container">
 </div>
 <section id="grid-interpolation-and-averaging">
-<span id="sec-amr-data-struct"></span><h3>Grid Interpolation (and Averaging)<a class="headerlink" href="#grid-interpolation-and-averaging" title="Permalink to this heading"></a></h3>
+<span id="sec-amr-data-struct"></span><h3>Grid Interpolation (and Averaging)<a class="headerlink" href="#grid-interpolation-and-averaging" title="Link to this heading"></a></h3>
 <p>The adaptive grid requires data <strong>interpolation</strong> or <strong>averaging</strong> when
 the refinement level (<em>i.e.</em>, mesh resolution) changes in space or in
 time.  <a href="#id6"><span class="problematic" id="id1">[3]_</span></a> If during guardcell filling a block’s neighbor has a coarser
@@ -599,7 +601,7 @@ allows to choose between two interpolation schemes:</p>
 </ol>
 <p>The choice is made at setup time.</p>
 <section id="interpolation-for-mass-specific-solution-variables">
-<span id="sec-interpmassspecific"></span><h4>Interpolation for mass-specific solution variables<a class="headerlink" href="#interpolation-for-mass-specific-solution-variables" title="Permalink to this heading"></a></h4>
+<span id="sec-interpmassspecific"></span><h4>Interpolation for mass-specific solution variables<a class="headerlink" href="#interpolation-for-mass-specific-solution-variables" title="Link to this heading"></a></h4>
 <p>To accurately preserve the total amount of conserved quantities, the
 interpolation routines have to be applied to solution data in
 <strong>conserved</strong>, <em>i.e.</em>, volume-specific, form. However, many variables
@@ -644,9 +646,9 @@ or restriction.</p>
 </section>
 </section>
 <section id="refinement">
-<span id="sec-refinement"></span><h3>Refinement<a class="headerlink" href="#refinement" title="Permalink to this heading"></a></h3>
+<span id="sec-refinement"></span><h3>Refinement<a class="headerlink" href="#refinement" title="Link to this heading"></a></h3>
 <section id="refinement-criteria">
-<h4>Refinement Criteria<a class="headerlink" href="#refinement-criteria" title="Permalink to this heading"></a></h4>
+<h4>Refinement Criteria<a class="headerlink" href="#refinement-criteria" title="Link to this heading"></a></h4>
 <p>The refinement criterion used by Flash-X is adapted from Löhner
 (1987). Löhner’s error estimator was originally developed for finite
 element applications and has the advantage that it uses a mostly local
@@ -762,7 +764,7 @@ refinement criterion by setting refine_on_particle_count to
 true and setting max_particles_per_blk to the desired count.</p>
 </section>
 <section id="refinement-processing">
-<h4>Refinement Processing<a class="headerlink" href="#refinement-processing" title="Permalink to this heading"></a></h4>
+<h4>Refinement Processing<a class="headerlink" href="#refinement-processing" title="Link to this heading"></a></h4>
 <p>Each processor decides when to refine or derefine its blocks by
 computing a user-defined error estimator for each block. Refinement
 involves creation of either zero or <span class="math notranslate nohighlight">\(2^d\)</span> refined child blocks,
@@ -777,7 +779,7 @@ treecode. An example of a Morton curve is shown in .</p>
 <figure class="align-default" id="fig-f3">
 <a class="reference internal image-reference" href="_images/Grid_f3.png"><img alt="Morton space-filling curve for adaptive mesh grids." src="_images/Grid_f3.png" style="width: 3in;" /></a>
 <figcaption>
-<p><span class="caption-text">Morton space-filling curve for adaptive mesh grids.</span><a class="headerlink" href="#fig-f3" title="Permalink to this image"></a></p>
+<p><span class="caption-text">Morton space-filling curve for adaptive mesh grids.</span><a class="headerlink" href="#fig-f3" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
@@ -792,7 +794,7 @@ processor. By default, all leaf-blocks are weighted twice as heavily as
 all other blocks in the simulation.</p>
 </section>
 <section id="specialized-refinement-routines">
-<span id="sec-markreflib"></span><h4>Specialized Refinement Routines<a class="headerlink" href="#specialized-refinement-routines" title="Permalink to this heading"></a></h4>
+<span id="sec-markreflib"></span><h4>Specialized Refinement Routines<a class="headerlink" href="#specialized-refinement-routines" title="Link to this heading"></a></h4>
 <p>Sometimes, it may be desirable to refine a particular region of the grid
 independent of the second derivative of the variables. This criterion
 might be, for example, to better resolve the flow at the boundaries of
@@ -814,7 +816,7 @@ the file  Grid_markRefineDerefine.F90 should be placed in the
 </section>
 </section>
 <section id="gridmain-usage">
-<span id="sec-usage"></span><h2>GridMain Usage<a class="headerlink" href="#gridmain-usage" title="Permalink to this heading"></a></h2>
+<span id="sec-usage"></span><h2>GridMain Usage<a class="headerlink" href="#gridmain-usage" title="Link to this heading"></a></h2>
 <p>The <em>Grid</em>  unit has the largest API of all units, since it is the
 custodian of the bulk of the simulation data, and is responsible for
 most of the code housekeeping.
@@ -861,7 +863,7 @@ to their requirements in their Simulation setup directory.</p>
 </div>
 </section>
 <section id="gridparticles">
-<span id="sec-gridparticles"></span><h2>GridParticles<a class="headerlink" href="#gridparticles" title="Permalink to this heading"></a></h2>
+<span id="sec-gridparticles"></span><h2>GridParticles<a class="headerlink" href="#gridparticles" title="Link to this heading"></a></h2>
 <p>Flash-X is primarily an Eulerian code, however, there is support for
 tracing the flow using Lagrangian particles. In Flash-X we have
 generalized the interfaces in the Lagrangian framework of the Grid unit
@@ -893,13 +895,13 @@ maps the mass of the particles onto the specified mesh variable in
 appropriate cells. The next sections describe the algorithms for moving
 and mapping particles data.</p>
 <section id="gridparticlesmove">
-<span id="sec-gridparticlesmove"></span><h3>GridParticlesMove<a class="headerlink" href="#gridparticlesmove" title="Permalink to this heading"></a></h3>
+<span id="sec-gridparticlesmove"></span><h3>GridParticlesMove<a class="headerlink" href="#gridparticlesmove" title="Link to this heading"></a></h3>
 <p>Particles move between blocks under two circumstances. One is when
 time integration moves their physical location out of the current
 block, which is application to both UG and AMR, and the second is
 during refinement of the grid in AMR.</p>
 <section id="directional-move">
-<span id="sec-ug-algorithm"></span><h4>Directional Move<a class="headerlink" href="#directional-move" title="Permalink to this heading"></a></h4>
+<span id="sec-ug-algorithm"></span><h4>Directional Move<a class="headerlink" href="#directional-move" title="Link to this heading"></a></h4>
 <p>The Directional Move algorithm for moving particles in a Uniform Grid
 minimizes the number of communication steps instead of minimizing the
 volume of data moved. Its implementation has the following steps:</p>
@@ -924,13 +926,13 @@ destination.</p>
 <figure class="align-default" id="fig-ugmoveparticle">
 <a class="reference internal image-reference" href="_images/Grid_ugMoveParticle.png"><img alt="Moving one particle to a neighbor on the corner." src="_images/Grid_ugMoveParticle.png" style="width: 3in;" /></a>
 <figcaption>
-<p><span class="caption-text">Moving one particle to a neighbor on the corner.</span><a class="headerlink" href="#fig-ugmoveparticle" title="Permalink to this image"></a></p>
+<p><span class="caption-text">Moving one particle to a neighbor on the corner.</span><a class="headerlink" href="#fig-ugmoveparticle" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
 </section>
 <section id="amr-algorithm">
-<span id="sec-amr-algorithm"></span><h4>AMR Algorithm<a class="headerlink" href="#amr-algorithm" title="Permalink to this heading"></a></h4>
+<span id="sec-amr-algorithm"></span><h4>AMR Algorithm<a class="headerlink" href="#amr-algorithm" title="Link to this heading"></a></h4>
 <p>When using AMReX one can opt to use its native particles support, in
 which case the handling of particles is largely transparent to
 Flash-X. Alternatively, one can use a point-to-point algorithm which
@@ -952,12 +954,12 @@ destinations using synchronous mode of communition.</p>
 </section>
 </section>
 <section id="gridsolvers">
-<span id="sec-solvers"></span><h2>GridSolvers<a class="headerlink" href="#gridsolvers" title="Permalink to this heading"></a></h2>
+<span id="sec-solvers"></span><h2>GridSolvers<a class="headerlink" href="#gridsolvers" title="Link to this heading"></a></h2>
 <p>The GridSolvers unit groups together subunits that are used to solve
 particular types of differential equations.
 .. <span class="target" id="sec-gridsolverspoisson">Sec:GridSolversPoisson</span>:</p>
 <section id="poisson-equation">
-<h3>Poisson equation<a class="headerlink" href="#poisson-equation" title="Permalink to this heading"></a></h3>
+<h3>Poisson equation<a class="headerlink" href="#poisson-equation" title="Link to this heading"></a></h3>
 <p>The GridSolvers subunit contains several different algorithms for
 solving the general Poisson equation for a potential <span class="math notranslate nohighlight">\(\phi({\bf
 x})\)</span> given a source <span class="math notranslate nohighlight">\(\rho({\bf x})\)</span></p>
@@ -970,7 +972,7 @@ example, when the gravitational Poisson equation is being solved,
 gravitational potential, and <span class="math notranslate nohighlight">\(\alpha = 4\pi G\)</span>, where <span class="math notranslate nohighlight">\(G\)</span> is
 Newton’s gravitational constant.</p>
 <section id="multipole-poisson-solver">
-<span id="sec-gridsolversmultipoleimproved"></span><h4>Multipole Poisson solver<a class="headerlink" href="#multipole-poisson-solver" title="Permalink to this heading"></a></h4>
+<span id="sec-gridsolversmultipoleimproved"></span><h4>Multipole Poisson solver<a class="headerlink" href="#multipole-poisson-solver" title="Link to this heading"></a></h4>
 <p>The multipole Poisson solver is based on a multipolar expansion of the
 source (mass for gravity, for example) distribution around a
 conveniently chosen center of expansion. The angular number <span class="math notranslate nohighlight">\(L\)</span>
@@ -1400,7 +1402,7 @@ geometries, should they ever be needed by some applications, can be done
 rapidly.</p>
 </section>
 <section id="multigrid">
-<h4>Multigrid<a class="headerlink" href="#multigrid" title="Permalink to this heading"></a></h4>
+<h4>Multigrid<a class="headerlink" href="#multigrid" title="Link to this heading"></a></h4>
 <p>The <em>Grid/GridSolvers/Multigrid</em> module is appropriate for general
 source distributions. It solves Poisson’s equation for 1, 2, and 3
 dimensional problems with Cartesian geometries. It only supports the
@@ -1416,7 +1418,7 @@ detail). It may be included by setup or Config by including:</p>
 </section>
 </section>
 <section id="hypre">
-<h3>HYPRE<a class="headerlink" href="#hypre" title="Permalink to this heading"></a></h3>
+<h3>HYPRE<a class="headerlink" href="#hypre" title="Link to this heading"></a></h3>
 <div class="line-block">
 <div class="line">As a part of implicit time advancement we end up with a system of
 equations that needs to be solved at every time step. In Flash-X the
@@ -1508,7 +1510,7 @@ HYPRE and UNK can be updated.</div>
 </section>
 </section>
 <section id="grid-geometry">
-<span id="sec-grid-geometry"></span><h2>Grid Geometry<a class="headerlink" href="#grid-geometry" title="Permalink to this heading"></a></h2>
+<span id="sec-grid-geometry"></span><h2>Grid Geometry<a class="headerlink" href="#grid-geometry" title="Link to this heading"></a></h2>
 <p>Flash-X can use various kinds of coordinates (“<strong>geometries</strong>”) for
 modeling physical problems. The available geometries represent different
 (orthogonal) curvilinear coordinate systems.</p>
@@ -1539,7 +1541,7 @@ methods, so the interpolation must also be conservative in the given
 geometry. The default mesh refinement criteria of Flash-X also currently
 take geometry into account, see above.</p>
 <section id="understanding-1d-2d-and-curvilinear-coordinates">
-<h3>Understanding 1D, 2D, and Curvilinear Coordinates<a class="headerlink" href="#understanding-1d-2d-and-curvilinear-coordinates" title="Permalink to this heading"></a></h3>
+<h3>Understanding 1D, 2D, and Curvilinear Coordinates<a class="headerlink" href="#understanding-1d-2d-and-curvilinear-coordinates" title="Link to this heading"></a></h3>
 <p>In the context of Flash-X, curvilinear coordinates are most useful with
 1-d or 2-d simulations, and this is how they are commonly used. But what
 does it mean to apply curvilinear coordinates in this way? And what does
@@ -1602,7 +1604,7 @@ geometry into account in order to accurately determine the areas of the
 cell faces where fine and coarse cells touch. By way of example, an
 illustration is provided below in the section on cylindrical geometry.</p>
 <section id="extensive-quantities-in-reduced-dimensionality">
-<span id="sec-extqinrd"></span><h4>Extensive Quantities in Reduced Dimensionality<a class="headerlink" href="#extensive-quantities-in-reduced-dimensionality" title="Permalink to this heading"></a></h4>
+<span id="sec-extqinrd"></span><h4>Extensive Quantities in Reduced Dimensionality<a class="headerlink" href="#extensive-quantities-in-reduced-dimensionality" title="Link to this heading"></a></h4>
 <p>The considerations above lead to some consequences for the understanding
 of extensive quantities, like mass or energies, that may not be obvious.</p>
 <p>The following discussion applies to geometries with omitted dimensions
@@ -1644,7 +1646,7 @@ integrals over 1 length unit in the missing Cartesian directions).</p>
 </section>
 </section>
 <section id="choosing-a-geometry">
-<h3>Choosing a Geometry<a class="headerlink" href="#choosing-a-geometry" title="Permalink to this heading"></a></h3>
+<h3>Choosing a Geometry<a class="headerlink" href="#choosing-a-geometry" title="Link to this heading"></a></h3>
 <p>The user chooses a geometry by setting the geometry runtime
 parameter in flash.par. The default is <em>cartesian</em> (unless
 overridden in a simulation’s Config file). Depending on the Grid
@@ -1666,7 +1668,7 @@ the divergence terms. Next we describe how user code can use the runtime
 parameter’s value.</p>
 </section>
 <section id="getting-geometry-information-in-program-code">
-<h3>Getting Geometry Information in Program Code<a class="headerlink" href="#getting-geometry-information-in-program-code" title="Permalink to this heading"></a></h3>
+<h3>Getting Geometry Information in Program Code<a class="headerlink" href="#getting-geometry-information-in-program-code" title="Link to this heading"></a></h3>
 <p>The Grid unit provides an accessor Grid_getGeometry
 property that returns the geometry as an integer, which can be compared
 to the symbols {CARTESIAN, SPHERICAL, CYLINDRICAL, POLAR} defined in
@@ -1708,7 +1710,7 @@ for <span class="math notranslate nohighlight">\(X\)</span>, <span class="math n
 angles to (arc) lengths.</p>
 </section>
 <section id="available-geometries">
-<h3>Available Geometries<a class="headerlink" href="#available-geometries" title="Permalink to this heading"></a></h3>
+<h3>Available Geometries<a class="headerlink" href="#available-geometries" title="Link to this heading"></a></h3>
 <p>Currently, all of Flash-X’s physics support one-, two-, and (with a few
 exceptions explicitly stated in the appropriate chapters)
 three-dimensional Cartesian grids. Some units, including the Flash-X
@@ -1723,7 +1725,7 @@ stand for the values of the <span class="math notranslate nohighlight">\(r\)</sp
 (<em>i.e.</em>, <span class="math notranslate nohighlight">\(r_l &lt; r_r\)</span> is always true), and
 <span class="math notranslate nohighlight">\(\Delta r = r_r-r_l\)</span>; and similar for the other coordinates.</p>
 <section id="cartesian-geometry">
-<h4>Cartesian geometry<a class="headerlink" href="#cartesian-geometry" title="Permalink to this heading"></a></h4>
+<h4>Cartesian geometry<a class="headerlink" href="#cartesian-geometry" title="Link to this heading"></a></h4>
 <p>Flash-X uses Cartesian (plane-parallel) geometry by default. This is
 equivalent to specifying</p>
 <div class="codeseg docutils container">
@@ -1750,7 +1752,7 @@ equivalent to specifying</p>
 </div>
 </section>
 <section id="cylindrical-geometry">
-<h4>Cylindrical geometry<a class="headerlink" href="#cylindrical-geometry" title="Permalink to this heading"></a></h4>
+<h4>Cylindrical geometry<a class="headerlink" href="#cylindrical-geometry" title="Link to this heading"></a></h4>
 <p>To run Flash-X with cylindrical coordinates, the geometry parameter
 must be set thus:</p>
 <div class="codeseg docutils container">
@@ -1801,7 +1803,7 @@ independent of the height, <span class="math notranslate nohighlight">\(z\)</spa
 taken as the average of the flux densities in the adjacent finer cells.</p>
 </section>
 <section id="spherical-geometry">
-<h4>Spherical geometry<a class="headerlink" href="#spherical-geometry" title="Permalink to this heading"></a></h4>
+<h4>Spherical geometry<a class="headerlink" href="#spherical-geometry" title="Link to this heading"></a></h4>
 <p>One or two dimensional spherical problems can be performed by specifying</p>
 <div class="codeseg docutils container">
 <p>geometry = “spherical”</p>
@@ -1835,7 +1837,7 @@ frac{1}{3} (r_r^3 - r_l^3) (cos(theta_l) - cos(theta_r))</p>
 left-hand boundary type should be reflecting.</p>
 </section>
 <section id="polar-geometry">
-<h4>Polar geometry<a class="headerlink" href="#polar-geometry" title="Permalink to this heading"></a></h4>
+<h4>Polar geometry<a class="headerlink" href="#polar-geometry" title="Link to this heading"></a></h4>
 <p>Polar geometry is a 2-D subset of 3-D cylindrical configuration without
 the “z” coordinate. Such geometry is natural for studying objects like
 accretion disks. This geometry can be selected by specifying</p>

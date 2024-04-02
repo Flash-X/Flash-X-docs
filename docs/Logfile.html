@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Logfile Unit &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -94,7 +96,7 @@
            <div itemprop="articleBody">
              
   <section id="logfile-unit">
-<span id="chp-logfile-unit"></span><h1>Logfile Unit<a class="headerlink" href="#logfile-unit" title="Permalink to this heading"></a></h1>
+<span id="chp-logfile-unit"></span><h1>Logfile Unit<a class="headerlink" href="#logfile-unit" title="Link to this heading"></a></h1>
 <p>Flash-X supplies the <code class="docutils literal notranslate"><span class="pre">Logfile</span></code> unit to manage an output log during a
 Flash-X simulation. The logfile contains various types of useful
 information, warnings, and error messages produced by a Flash-X run.
@@ -129,7 +131,7 @@ runtime parameter <code class="docutils literal notranslate"><span class="pre">L
 <p># names of files basenm = “<a href="#id3"><span class="problematic" id="id4">cellular_</span></a>” log_file = “cellular.log”</p>
 </div>
 <section id="meta-data">
-<h2>Meta Data<a class="headerlink" href="#meta-data" title="Permalink to this heading"></a></h2>
+<h2>Meta Data<a class="headerlink" href="#meta-data" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">logfile</span></code> stores meta data about a given run including the time
 and date of the run, the number of MPI tasks, dimensionality, compiler
 flags and other information about the run. The snippet below is an
@@ -137,7 +139,7 @@ example from a <code class="docutils literal notranslate"><span class="pre">logf
 information:</p>
 </section>
 <section id="runtime-parameters-physical-constants-and-multispecies-data">
-<h2>Runtime Parameters, Physical Constants, and Multispecies Data<a class="headerlink" href="#runtime-parameters-physical-constants-and-multispecies-data" title="Permalink to this heading"></a></h2>
+<h2>Runtime Parameters, Physical Constants, and Multispecies Data<a class="headerlink" href="#runtime-parameters-physical-constants-and-multispecies-data" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">logfile</span></code> also records which units were included in a simulation,
 the runtime parameters, physical constants, and any species and their
 properties from the <code class="docutils literal notranslate"><span class="pre">Multispecies</span></code> unit. The Flash-X logfile keeps
@@ -189,7 +191,7 @@ Neutral Negative bind Ener Gamma ar36 12 3.60E+01 1.80E+01 -9.99E+02
 </div>
 </section>
 <section id="accessor-functions-and-timestep-data">
-<h2>Accessor Functions and Timestep Data<a class="headerlink" href="#accessor-functions-and-timestep-data" title="Permalink to this heading"></a></h2>
+<h2>Accessor Functions and Timestep Data<a class="headerlink" href="#accessor-functions-and-timestep-data" title="Link to this heading"></a></h2>
 <p>Other units within Flash-X may make calls to write information, or
 stamp, the logfile. For example, the <code class="docutils literal notranslate"><span class="pre">Driver</span></code> unit calls the API
 routine <code class="docutils literal notranslate"><span class="pre">monitors/Logfile/Logfile_stamp</span></code> after each timestep. The
@@ -236,7 +238,7 @@ name=sod_hdf5_plt_cnt_0002 [ 04-19-2006 16:41.06 ]
 </div>
 </section>
 <section id="performance-data">
-<span id="sec-logfileperformance"></span><h2>Performance Data<a class="headerlink" href="#performance-data" title="Permalink to this heading"></a></h2>
+<span id="sec-logfileperformance"></span><h2>Performance Data<a class="headerlink" href="#performance-data" title="Link to this heading"></a></h2>
 <p>Finally, the <code class="docutils literal notranslate"><span class="pre">logfile</span></code> records performance data for the simulation.
 The <code class="docutils literal notranslate"><span class="pre">Timers</span></code> unit (see ) is responsible for storing, collecting and
 interpreting the performance data. The <code class="docutils literal notranslate"><span class="pre">Timers</span></code> unit calls the API
@@ -268,7 +270,7 @@ amr_refine_derefine 0.003 10 0.000 0.011 updateData 0.002 10 0.000
 </div>
 </section>
 <section id="example-usage">
-<h2>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this heading"></a></h2>
+<h2>Example Usage<a class="headerlink" href="#example-usage" title="Link to this heading"></a></h2>
 <p>An example program using the Logfile unit might appear as follows:</p>
 <div class="codeseg docutils container">
 <p>program testLogfile</p>

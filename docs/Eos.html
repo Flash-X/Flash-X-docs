@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Equation of State Unit &mdash; Flash-X 0.0.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -104,9 +106,9 @@
            <div itemprop="articleBody">
              
   <section id="equation-of-state-unit">
-<span id="chp-eos-unit"></span><h1>Equation of State Unit<a class="headerlink" href="#equation-of-state-unit" title="Permalink to this heading"></a></h1>
+<span id="chp-eos-unit"></span><h1>Equation of State Unit<a class="headerlink" href="#equation-of-state-unit" title="Link to this heading"></a></h1>
 <section id="introduction">
-<span id="sec-eos-intro"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<span id="sec-eos-intro"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit implements the equation of state needed by the
 hydrodynamics and nuclear burning solvers. The function
 <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> provides the interface for operating on a
@@ -151,7 +153,7 @@ includes much more physics and relies on a table look-up scheme for
 performance.</p>
 </section>
 <section id="gamma-law-and-multigamma">
-<span id="sec-eos-gammas"></span><h2>Gamma Law and Multigamma<a class="headerlink" href="#gamma-law-and-multigamma" title="Permalink to this heading"></a></h2>
+<span id="sec-eos-gammas"></span><h2>Gamma Law and Multigamma<a class="headerlink" href="#gamma-law-and-multigamma" title="Link to this heading"></a></h2>
 <p>Flash-X uses the method of Colella &amp; Glaz (1985) to handle general
 equations of state. General equations of state contain 4 adiabatic
 indices (Chandrasekhar 1939), but the method of Colella &amp; Glaz
@@ -211,7 +213,7 @@ gamma-law EOS is limited, due to its restricted range of applicability
 for astrophysical problems.</p>
 </section>
 <section id="helmholtz">
-<span id="sec-eos-helmholtz"></span><h2>Helmholtz<a class="headerlink" href="#helmholtz" title="Permalink to this heading"></a></h2>
+<span id="sec-eos-helmholtz"></span><h2>Helmholtz<a class="headerlink" href="#helmholtz" title="Link to this heading"></a></h2>
 <p>The Helmholtz EOS provided with the Flash-X distribution contains more
 physics and is appropriate for addressing astrophysical phenomena in
 which electrons and positrons may be relativistic and/or degenerate and
@@ -362,9 +364,9 @@ since the solution is not exact. The returned quantities are
 thermodynamically consistent.</p>
 </section>
 <section id="usage">
-<span id="sec-eos-usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
+<span id="sec-eos-usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <section id="initialization">
-<span id="sec-eos-initialization"></span><h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this heading"></a></h3>
+<span id="sec-eos-initialization"></span><h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading"></a></h3>
 <p>The initialization function of the Eos unit <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_init</span></code> is
 fairly simple for the two ideal gas gamma law implementations included.
 It gathers the runtime parameters and the physical constants needed by
@@ -380,7 +382,7 @@ routine reads in the table data on processor 0 and broadcasts it to all
 other processors.</p>
 </section>
 <section id="runtime-parameters">
-<span id="sec-eos-runtime-parameters"></span><h3>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h3>
+<span id="sec-eos-runtime-parameters"></span><h3>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h3>
 <p>Runtime parameters for the <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> unit require the user to set the
 thermodynamic properties for the single gas. <code class="docutils literal notranslate"><span class="pre">Eos/gamma</span></code>,
 <code class="docutils literal notranslate"><span class="pre">Eos/eos_singleSpeciesA</span></code>, <code class="docutils literal notranslate"><span class="pre">Eos/eos_singleSpeciesZ</span></code> set the ratio of
@@ -429,7 +431,7 @@ When the parameter <code class="docutils literal notranslate"><span class="pre">
 corrections are not applied.</p>
 </section>
 <section id="direct-and-wrapped-calls">
-<span id="sec-eos-wrapper"></span><h3>Direct and Wrapped Calls<a class="headerlink" href="#direct-and-wrapped-calls" title="Permalink to this heading"></a></h3>
+<span id="sec-eos-wrapper"></span><h3>Direct and Wrapped Calls<a class="headerlink" href="#direct-and-wrapped-calls" title="Link to this heading"></a></h3>
 <p>The primary function in the <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit operates on a vector, taking
 density, composition, and either temperature, internal energy, or
 pressure as input, and returning <span class="math notranslate nohighlight">\(\gamma_1\)</span>, and either the
@@ -467,7 +469,7 @@ quantities.</p>
 </section>
 </section>
 <section id="unit-test">
-<span id="sec-eos-unit-test"></span><h2>Unit Test<a class="headerlink" href="#unit-test" title="Permalink to this heading"></a></h2>
+<span id="sec-eos-unit-test"></span><h2>Unit Test<a class="headerlink" href="#unit-test" title="Link to this heading"></a></h2>
 <p>The unit test of the Eos function can exercise all three
 implementations. Because the Gamma law allows only one species, the
 setup required for the three implementations is specific. To invoke any
