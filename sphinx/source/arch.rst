@@ -11,7 +11,82 @@ applications. Some aspects of |flashx| architecture are adapted from
 |flash| , but it is fundamentally a new
 software with an architecture designed for use with heterogeneous
 platforms. Portability on heterogeneous platforms is achieved through
-a **language-agnostic performance portability layer** (LAPPL) comprised of three sets of tools:
+a new **orchestration system for applications** (ORCHA) that is
+designed to be language agnostic and adaptable for future changes in
+the computing platforms. ORCHA has a collection of tools that address
+three main major concerns from the applications perspective described
+below.
+
+.. _`Sec:orcha`:
+
+ORCHA Tools
+-------------------
+
+Applications can effectively utilize heterogeneous platforms if they
+have (1) data structures and algorithms suitable for target
+devices, (2) can conceptualize a map of computation to target devices,
+and (3) can execute the map by moving data and computation to devices
+efficiently. In general, attempting to meet these requirements naively
+can result in several implementation variants of the same
+computation. That in turn could lead to maintenance nightmare. Tools
+in ORCHA avoid this nightmare through abstractions and
+code generation. The tools are designed such that each tool focuses on
+a small subset of abstractions and code generation that have similar
+requirements, but are substantially different from those addressed by
+the other tools. Through this approach of divide and conquer the tools
+have been kept relatively simple and customizable, but their
+combination provides a powerful performance portability solution. Four
+main tools are |setup|, |cgkit|, |MP|, and  |milhoja|. They have
+helper code generation tools that enable daisy-chaining the actions of
+the tools in different ways needed by different applications. The
+tools are described individually in separate sections followed by an
+explanation of how are they combined for an end-to-end solution.
+
+.. _`Sec:cgkit`:
+
+Code Generation Toolkit (CG-Kit)
+-------------------
+The object of |cgkit| is to empower knowledgeable users to be able to
+express their desired execution control flow and the map of what to
+compute where in a **recipe** without having to change the source code.
+The recipes are parsed and coverted into graphs which are optimized
+for minimizing data movement and maximizing data reuse and potential
+for latency hiding. Optimized graphs are then converted to
+**parameterized source trees** that are  
+
+|cgkit|, as the name suggests is composed of several tools. 
+The spotlight of this paper is on \cgkit\ and, in particular, on
+\cgkit-enabled generation of algorithmic variants.
+
+By variants we mean different realizations of numerical algorithms that lead to
+the same solution outcome but differ in the details of algorithm design and/or
+the implementation of how the solution is obtained.
+While the need for variants arises from differences in hardware architecture, as
+mentioned earlier, maintaining all variants explicitly is challenging because of
+code bloat.
+\cgkit\ introduces a feasible way of handling variants and thereby
+achieves \emph{algorithmic portability}, where algorithms are adapted to
+hardware platforms.
+
+Our vision is to provide a
+shorthand for expressing the needed variations in implementation that enable
+optimization of the application instance on the target platform.
+With \cgkit\ the variants can be
+expressed succinctly as \emph{\cgkit\ recipes} in the Python
+language without including any of the data layout and numerical
+detail.  The recipes are translated into \emph{\cgkit\ parameterized
+source trees}.  Platform-dependent customizations are encapsulated in
+\emph{\cgkit\ templates} that comprise the building blocks of
+parameterized source trees.  Our tools parse source code of any
+programming language.  In the context of scientific computing, however,
+we focus on the C/C++ and Fortran languages.  The final
+generated code is compilable and optimized for readability by human programmers,
+which is a key property to aide developers with code understanding, debugging, and
+reasoning about performance metrics.
+
+
+
+comprised of three sets of tools:
 the **configuration tools** (CFT), **code translators** (CT) and
 the **runtime orchestrator**  (RO).
 
