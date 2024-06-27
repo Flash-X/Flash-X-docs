@@ -8,217 +8,70 @@ Overview of |flashx| architecture
 |flashx| is a component based software system where different
 permutations and combinations of various components generate different
 applications. Some aspects of |flashx| architecture are adapted from
-|flash| , but it is fundamentally a new
-software with an architecture designed for use with heterogeneous
-platforms. Portability on heterogeneous platforms is achieved through
-a new **orchestration system for applications** (ORCHA) that is
+|flash| , but it is fundamentally a new software with an architecture
+designed for use with heterogeneous platforms. Portability on
+heterogeneous platforms is achieved through 
+a new **orchestration system for applications** (|orcha|) that is
 designed to be language agnostic and adaptable for future changes in
-the computing platforms. ORCHA has a collection of tools that address
+the computing platforms. |orcha| has a collection of tools that address
 three main major concerns from the applications perspective described
 below.
 
-.. _`Sec:orcha`:
 
-ORCHA Tools
--------------------
+As mentioned earlier |flashx| is not a monolithic application code;
+instead, it should be viewed as a collection of components that are
+selectively grouped to form various applications. Users specify which
+components should be included in a simulation, define a rough
+discretization/parallelization layout, and assign their own initial
+conditions, boundary conditions, and problem setup to create a unique
+application executable. In |flashx| terminology, a component that
+implements an exclusive portion of the code’s functionality is called
+a **unit**. A typical |flashx| simulation requires a proper subset of the
+units available in the code. Thus, it is important to distinguish
+between the entire |flashx| source code and a given |flashx|
+application.
 
-Applications can effectively utilize heterogeneous platforms if they
-have (1) data structures and algorithms suitable for target
-devices, (2) can conceptualize a map of computation to target devices,
-and (3) can execute the map by moving data and computation to devices
-efficiently. In general, attempting to meet these requirements naively
-can result in several implementation variants of the same
-computation. That in turn could lead to maintenance nightmare. Tools
-in ORCHA avoid this nightmare through abstractions and
-code generation. The tools are designed such that each tool focuses on
-a small subset of abstractions and code generation that have similar
-requirements, but are substantially different from those addressed by
-the other tools. Through this approach of divide and conquer the tools
-have been kept relatively simple and customizable, but their
-combination provides a powerful performance portability solution. Four
-main tools are |setup|, |cgkit|, |MP|, and  |milhoja|. They have
-helper code generation tools that enable daisy-chaining the actions of
-the tools in different ways needed by different applications. The
-tools are described individually in separate sections followed by an
-explanation of how are they combined for an end-to-end solution.
+.. _`Sec:unit`:
 
-.. _`Sec:cgkit`:
+Unit
+----
 
-Code Generation Toolkit (CG-Kit)
--------------------
-The object of |cgkit| is to empower knowledgeable users to be able to
-express their desired execution control flow and the map of what to
-compute where in a **recipe** without having to change the source code.
-The recipes are parsed and coverted into graphs which are optimized
-for minimizing data movement and maximizing data reuse and potential
-for latency hiding. Optimized graphs are then converted to
-**parameterized source trees** that are  
+A |flashx| unit provides well-defined functionality and publishes an
+Application Programming Interface (API), a collection of routines
+through which other units can interact with it. A unit
+can have multiple alternative implementations of varying complexity
+and for different purposes. A unit can have an arbitrary number of
+subunits that provide subsets of the unit’s functionality, though in
+practice the number of subunits remains low. Units must include a null
+implementation for every routine in their API at the top level of
+their hierarchy. This feature permits an application to
+easily exclude a unit without the need to modify code elsewhere. For
+example, the input/output unit can be easily turned on and off for
+testing purposes, by using the null implementations. 
 
-|cgkit|, as the name suggests is composed of several tools. 
-The spotlight of this paper is on \cgkit\ and, in particular, on
-\cgkit-enabled generation of algorithmic variants.
+|flashx| implements its inheritance, extensibility, and
+modularity  through its configuration layer. This layer
+consists of a collection of text Config files that reside at various
+levels of the code organization, and the setup tool which interprets
+the Config files. The two primary functions of this layer are to
+configure a single application from the |flashx| source tree, and to
+implement inheritance and customizability in the code. 
 
-By variants we mean different realizations of numerical algorithms that lead to
-the same solution outcome but differ in the details of algorithm design and/or
-the implementation of how the solution is obtained.
-While the need for variants arises from differences in hardware architecture, as
-mentioned earlier, maintaining all variants explicitly is challenging because of
-code bloat.
-\cgkit\ introduces a feasible way of handling variants and thereby
-achieves \emph{algorithmic portability}, where algorithms are adapted to
-hardware platforms.
-
-Our vision is to provide a
-shorthand for expressing the needed variations in implementation that enable
-optimization of the application instance on the target platform.
-With \cgkit\ the variants can be
-expressed succinctly as \emph{\cgkit\ recipes} in the Python
-language without including any of the data layout and numerical
-detail.  The recipes are translated into \emph{\cgkit\ parameterized
-source trees}.  Platform-dependent customizations are encapsulated in
-\emph{\cgkit\ templates} that comprise the building blocks of
-parameterized source trees.  Our tools parse source code of any
-programming language.  In the context of scientific computing, however,
-we focus on the C/C++ and Fortran languages.  The final
-generated code is compilable and optimized for readability by human programmers,
-which is a key property to aide developers with code understanding, debugging, and
-reasoning about performance metrics.
-
-
-
-comprised of three sets of tools:
-the **configuration tools** (CFT), **code translators** (CT) and
-the **runtime orchestrator**  (RO).
-
-The CFT include a domain specific language configuration (DSCL) for
-program synthesis through assembly, and a key-value dictionary with a
-correspoding translator *macroprocessor*. The configuration toolchain
-takes its inspiration from the *setup tool* of |flash| which has been used
-to implement composability at the level of major functionalities in the
-code. The setup tool interprets the configuration (DSCL), which encodes
-metadata about each component and subcomponent of the code in a
-completely distributed fashion in *Config files*. The metadata about one
-component is completely oblivious of the metadata about other
-components, though it has some knowledge of the components that are
-available in the code. The setup tool recursively parses the Config file
-of each mentioned component, assimilates the information, and assembles
-a consistent, fully-configured instance of an application along with its
-build system and a static runtime environment. The key-value dictionary
-serves dual purpose of lowering the granularity of components for
-assembly by the setup tool, and enables single expression of maintained
-source code. The keys are language-agnostic macros with enhancements
-such as inlining, recursion and arguments. Combined with the setup tool,
-the macroprocessor brings the functionality of C++ template
-metaprogramming that permits maintenance
-of single source code that can be specialized for target devices as
-needed. In addition to being able to generate variants for different
-target architecture, the setup tool is also able to include multiple
-variants of same API by appropriately appending the variant name to
-the routine/function name during configuration. This feature is
-useful, for example, if different equations of state need to be used
-in different parts of the domain.
-
-Another DSL is being built for expressing *recipies* for overall
-control flow of the simulatio, which are translated into a FORTRAN
-by the CT. The recipes replace the timestepper
-functionality because control flow during evolution of solution now
-may involve offloading work and data to different devices, therefore,
-simple drivers are no longer adequate. The CT have two tasks: (1)
-parse the |flashx| directives for optimization within the physics
-operators; and (2) to translate the recipe into a data flow
-description of the execution suitable for the RO. The RO then
-uses this generated information to orchestrate computation and data
-movement between devices as needed. The overarching design principle
-of the performance portability layer is to enable both domain-specific
-knowledge and platform knowledge to be utilized in application
-configuration without placing undue burden on either the tool
-developers or the domain experts. 
-
-The LAPPL exposes the hierarchy of data motion and allocations deep
-within the components of the applications and separates them from the
-arithmetic and logic implementing the numerical method. On the platform
-hardware side, they expose the hierarchical parallelism of a given
-platform’s hardware through appropriately designed interfaces. The
-objective of this exercise is to enable the software to take maximal
-advantage of the exposed parallelism in hardware without having to alter
-the arithmetic. The directives serve the purpose of letting the code
-translators know which kind of transformations are safe for specific
-devices. Some program synthesis is involved in the process that can take
-several passes of code generation. Similar to the code expression, the
-offline tools themselves subscribe to separation of concerns in the
-sense that each tool addresses itself to a very focused program
-synthesis step.
-
-We begin by casting every non-trivial function in the physics operators
-of the code as a collection of code blocks. Some code blocks may be
-declarations, some may implement the control logic, and some will
-implement the numerics of the function. Sometimes arithmetic and logic
-blocks cannot be separated out; some code blocks have both. These code
-blocks become **components** in a hierarchical composability through the use
-of macros in the form of s key-value dictionary where values are code
-snippets of arbitrary length and complexity. Keys are user-defined
-with a provision for multiple alternative definitions, including null
-definitions, which lets them mimic the template meta-programming in
-C++ mentioned earlier.
-
-The information encoded in the directives is to be utilized by the CT to
-determine which code blocks can be treated as kernels on devices such as
-accelerators, which code blocks can have overlapped computation with
-other code blocks, which code blocks can be queued sequentially so that
-data movement is minimized, etc. Note that the absence of such metadata
-has no implication for correct execution. Instead, what this
-decomposition aims for is better optimization with richer metadata.
-This division of labor between multiple tools is made not only to achieve
-good encapsulation and modularity, but also to ensure that no single
-tool is too complex or requires too much intelligence. This design
-approach enables extraction of all useful information for orchestrating
-computations during runtime when the application is being configured.
-This is in contrast to general solutions that delay the orchestration
-decision due to the conservative assumption that information about the
-tasks and their dependencies is only fully known at runtime. While this
-approach may not squeeze every last bit of performance from the
-hardware, it has the virtue of being simple and maintainable with no
-runtime overheads. Also, by design, every step in program synthesis is
-human-readable to facilitate both correctness-debugging and
-performance-debugging.
-
-The design goal of the RO is to develop a base set of runtime
-elements, such as thread teams, that can be composed at runtime into
-**thread team configurations** in ways that maximize the efficient use
-of the node. For a given simulation, the RO operates with :math:`N`
-thread teams that are created when the simulation starts and persist
-until the simulation terminates, where each team is allowed to
-simultaneously use at most :math:`M` threads at any given time. The
-thread teams are run in cycles such that for each cycle a team is
-assigned an action routine and a data type. Examples of data types are
-tiles, blocks, and data packets of blocks. Upon starting a cycle, the
-team is given data items of the appropriate type and the threads of the
-team work in a coordinated fashion so that the given action is applied
-to each data item once. The cycle ends once the team has been informed
-that no more data items will be given and the action has been applied to
-all given data items. In our design, the pairing of the action with data
-items is viewed as a task so that thread teams implement task-based
-parallelism *via* thread-level parallelism. While the threads in the
-team execute code in the host, they can also be used to launch kernels
-in accelerators and therefore make use of finer-grained parallelism.
-Ideally, the data type assigned to a thread team for a given action will
-be chosen based on the hardware that the action routine has been written
-to use. For instance, a tile would be a sensible data type for executing
-an action routine that uses the CPU for heavy computation or a data
-packet of blocks for a routine that launches kernels on a remote device
-with its own memory system. 
-
-Note that no part of this design limits itself to using manually built
-task graphs nor requires extreme simplicity in them. The interfaces are
-designed to be robust enough that the RO can also execute complex
-task graphs. By disassociating the executor of the graph from the
-generator, we have ensured that in the future, we will be able to use
-automation in task graph generation without having to alter the
-mechanics of the RO. All the heavy lifting of analysis and
-scheduling can be done separately in the generator which never needs to
-interface with the executor. We believe that this model of combination
-of program synthesis with orthogonal composition concepts will have
-longevity because of its ability to adapt to new systems incrementally.
+Unit architecture abstracts the computational complexity of
+the unit from its public interfaces, and controls the scope of various
+data items owned by the unit. A unit’s API provides interfaces for
+modifying the state of the solution and for accessing and modifying
+data it owns that may be needed by other units.  
+Units can have one or more subunits which are groupings of
+self-contained functionality. The concept subunits
+formalizes the selective use of a subset of a unit’s functionality,
+and the possibility of multiple alternative implementations of the
+same subset.  Subunits implement disjoint subsets of a
+unit’s API, where none of the subsets can be a null set. The union of
+all subsets constituting various subunits must be exactly equal to the
+unit API. Every unit has at least a Main subunit that implements the
+bulk of the unit’s functionality, including its initialization. The
+Main subunit is also the custodian of all the unit-scope data. 
 
 
 .. _`Sec:Inheritance`:
