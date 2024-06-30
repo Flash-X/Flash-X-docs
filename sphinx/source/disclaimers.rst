@@ -26,37 +26,37 @@ are listed in below.
 
 **Infrastructure**
 
-
-+------------+------------------------------+----------------------+
-| Setup tool |  Klaus Weide / Younjun Lee | mostly current   |
-+------------+------------------------------+----------------------+
-| Grid       | Klaus Weide / Tom Klosterman | mostly current |
-+------------+------------------------------+----------------------+
-| I/O        | Klaus Weide /Anshu Dubey                 | current              |
-+------------+------------------------------+----------------------+
-| Orchestration | Youngjun Lee/ Klaus Weide/ Anshu Dubey | In flux|
-| MOL   |Steve Fromm | 
++---------------+--------------------------+----------------+
+| Setup too     |  Klaus Weide/Younjun Lee | mostly current |  
++---------------+--------------------------+----------------+
+| Grid          | Klaus Weide/Anshu Dubey  | mostly current |
++---------------+--------------------------+----------------+
+| I/O           | Klaus Weide/Anshu Dubey  | current        |
++---------------+--------------------------+----------------+
+| Orchestration | Youngjun Lee/Klaus Weide | In flux        |
++---------------+--------------------------+----------------+
+| MOL           | Steve Fromm              | In flux        |
++---------------+--------------------------+----------------+
 
 
 **Physics**
 
-
 +---------------+------------------------------+-------------------------------+
 | Unsplit Hydro | Klaus Weide                  | current                       |
 +---------------+------------------------------+-------------------------------+
-| INS           | Akash Dhruv                  | mostly current          |
+| INS           | Akash Dhruv                  | mostly current                |
 +---------------+------------------------------+-------------------------------+
-| Spark         | Youngjun Lee / Anshu Dubey     | mostly current            |
+| Spark         | Youngjun Lee/Anshu Dubey     | mostly current                |
 +---------------+------------------------------+-------------------------------+
-| Gravity       | Austin Harris / Sean Couch                 | current                       |
+| Gravity       | Austin Harris/Sean Couch     | current                       |
 +---------------+------------------------------+-------------------------------+
-|  Burn         | Austin Harris                | current                        |
+|  Burn         | Austin Harris                | current                       |
 +---------------+------------------------------+-------------------------------+
-| Eos           | Austin Harris / Steve Fromm  | current, except Hybrid      |
+| Eos           | Austin Harris/Steve Fromm    | current, except Hybrid        |
 +---------------+------------------------------+-------------------------------+
 | Thornado      | Eirik Endeve                 | submodule, not described here |
 +---------------+------------------------------+-------------------------------+
-| Particles     | Anshu Dubey                  | mostly current, tracers only         |
+| Particles     | Anshu Dubey                  |  tracers only                 |
 +---------------+------------------------------+-------------------------------+
 
 
@@ -75,7 +75,7 @@ are listed in below.
 +----------------+---------------------+
 |  Klaus Weide   | kweide@uchicago.edu |
 +----------------+---------------------+
-|  Youngjun Lee | leey@anl.gov |
+|  Youngjun Lee  | leey@anl.gov        |
 +----------------+---------------------+
 
 

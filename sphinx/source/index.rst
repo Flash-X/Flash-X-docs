@@ -17,8 +17,8 @@ Welcome to |flashx|'s documentation!
    intro
    quickstart
    arch
-   setup
    orcha
+   setup 
    timeadvance
    infrastructure
    physics

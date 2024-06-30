@@ -4,13 +4,8 @@
 
 
 |MP|
-
 ======================
 
-.. _`Sec:mpIntroduction`:
-
-Overview
---------
 
 With the advent of accelerators we need to have
 many more alternative implementations to accommodate differences
@@ -32,7 +27,7 @@ macroprocessor described below.
 
 .. _`Sec:mpuse`:
 
-Usiing Macros
+Using Macros
 ------------
 
 A function in a physics unit typically has some

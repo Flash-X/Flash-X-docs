@@ -70,22 +70,4 @@ entails that the recipe writer selects the granulariy of  algorithmic building b
 (e.g., subroutines, actions, etc.) and defines their dependencies on each other.
 
 
-Applications can effectively utilize heterogeneous platforms if they
-have (1) data structures and algorithms suitable for target
-devices, (2) can conceptualize a map of computation to target devices,
-and (3) can execute the map by moving data and computation to devices
-efficiently. In general, attempting to meet these requirements naively
-can result in several implementation variants of the same
-computation. That in turn could lead to a maintenance nightmare. Tools
-in |orcha| avoid this nightmare through abstractions and
-code generation. The tools are designed such that each tool focuses on
-a small subset of abstractions and code generation that have similar
-requirements, but are substantially different from those addressed by
-the other tools. Through this approach of divide and conquer the tools
-have been kept relatively simple and customizable, but their
-combination provides a powerful performance portability solution. Four
-main tools are |setup|, |cgkit|, |MP|, and  |milhoja|. They have
-helper code generation tools that enable daisy-chaining the actions of
-the tools in different ways needed by different applications. The
-tools are described individually in separate sections followed by an
-explanation of how are they combined for an end-to-end solution.
+

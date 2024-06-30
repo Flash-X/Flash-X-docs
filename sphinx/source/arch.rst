@@ -72,6 +72,11 @@ all subsets constituting various subunits must be exactly equal to the
 unit API. Every unit has at least a Main subunit that implements the
 bulk of the unit’s functionality, including its initialization. The
 Main subunit is also the custodian of all the unit-scope data. 
+Subunits and other finer-grained components can have their own data
+modules that are only visible to the routines and functions within
+those components. In other words, a data module placed in a directory
+is only visible to routines in functions in that directory or its
+sub-directories, but not to its parent or ancestor directories. 
 
 
 .. _`Sec:Inheritance`:
@@ -142,7 +147,21 @@ for organization. We avoid any problems by means of a careful naming
 convention that allows clear distinction between organizational and
 namespace directories. See for naming conventions.
 
+.. _`Sec: Customization `:
 
+Customization
+-------------------
+The Simulation unit in the code is treated differently from all other
+units because this is where the application is defined. The parsing of
+*Config* file begins from that of the application being
+configured. Additionally, this unit also provides the mechanism for
+customization. The inheritance implemented by the *setup* tool
+replaces any file or a macro definition assembled during the
+configuration of hte application if another file or macro of the same
+name is encountered in the Simulation unit. Thus a user desirous of
+customizing any part of the source code can do so by simply placing an
+identically named file or macro in a file with ".ini" extenstion in
+the directory that they created for their *Simulation*.
 
 
 .. _`Sec: unitTest `:

@@ -9,8 +9,10 @@ This chapter covers performance portability system.
 .. toctree::
     :maxdepth: 1
     :caption: Contents
-       
+
+    orcha_overview
     cgkit
     macroprocessor
     milhoja
-    setup_addons
+    application_use
+    
