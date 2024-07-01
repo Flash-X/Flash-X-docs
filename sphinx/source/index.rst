@@ -17,8 +17,9 @@ Welcome to |flashx|'s documentation!
    intro
    quickstart
    arch
-   setup
-   driver
+   orcha
+   setup 
+   timeadvance
    infrastructure
    physics
    monitor

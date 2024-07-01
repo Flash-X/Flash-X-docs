@@ -9,18 +9,13 @@ The |flashx| code is a component-based software system for simulation of
 multiphysics applications formulated largely as a collection of partial-
 and ordinary- differential equations as well as algebraic equations. The
 maintained code components are written in a combination of high level
-languages such as Fortran, C and C++ with an embedded domain-specific
-macro language implemented in the form of key-value dictionaries. The
-accompanying configuration tool-chain can translate and assemble
-different permutations and combinations of the 
-components to configure a diverse set of applications. An accompanying
-domain-specific runtime system has been developed that can orchestrate
-data movement between devices (CPU, accelerators, and other
-specialized devices that might exist) on a compute node of a high 
-performance computing (HPC) platform. This runtime is not included in
-the distribution, but can be obtained from its own repository. The
-code uses the Message-Passing
-Interface (MPI) library communication between nodes, though more than
+languages such as Fortran, C and C++. |flashx| is accompanied by
+several tools written in python or C++ that provide configurability
+and performance portability to the code. The distribution includes
+several existing application configurations, and tests for exercising
+these configurations. A unit-test framework is also embedded in the
+code. The code uses the Message-Passing Interface (MPI) library
+communication between nodes, though more than 
 one MPI rank can also be placed on a node. HDF5 is the default mode for
 IO. |flashx| has three interchangeable discretization grids: a Uniform
 Grid, a oct-tree based adaptive grid using the |paramesh|  library, and

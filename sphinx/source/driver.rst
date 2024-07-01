@@ -5,10 +5,9 @@
 Driver Unit
 ===========
 
-The *Driver* unit controls the initialization and evolution of |flashx|
-simulations. In addition, at the highest level, the Driver unit
-organizes the interaction between units. Initialization can be from
-scratch or from a stored checkpoint file. It also implements methods
+The *Driver* unit controls the initialization and finalization of |flashx|
+simulations. Initialization can be from
+scratch or from a stored checkpoint file. It also call the methods
 for advancing the solution, and calls the *IO* unit at the end of
 every timestep to produce checkpoint files, plot files, or other output.
 
@@ -33,8 +32,6 @@ initialize, evolve, and finalize the |flashx| program. The file
 
    call Driver_initAll()
 
-   call Driver_evolveAll( )
-
    call Driver_finalizeAll( )
 
    end program Flashx
@@ -44,9 +41,7 @@ source directory must be overridden by an implementation function in a
 unit implementation directory under the Driver or *Simulation*
 directory trees, in order for a simulation to perform any meaningful
 actions. The most commonly used implementations for these files
-are located in the *Driver/DriverMain* unit implementation directory,
-with a few specialized ones in
-*Driver/DriverMain/Unsplit*. 
+are located in the *Driver/DriverMain* unit implementation directory.
 
 *Driver_initAll*
 ~~~~~~~~~~~~~~~~~~~~
@@ -72,25 +67,6 @@ please see . It is important to note that when individual units are
 being initialized, order is often very important and the order of
 initialization is different depending on whether the run is from scratch
 or being restarted from a checkpoint file.
-
-*Driver_evolveAll*
-~~~~~~~~~~~~~~~~~~~~~~
-
-The next routine is *Driver/Driver_evolveAll* which controls the
-timestepping of the simulation, as well as the normal termination of
-|flashx| based on time. Driver_evolveAll checks the parameters
-*tmax*, *nend* to determine that the run should end,
-having reached a particular point in time, a certain number of steps, or
-a particular cosmological redshift, respectively. Likewise the initial
-simulation time, step number and cosmological redshift for a simulation
-can be set using the runtime parameters *tmin*, *nbegin*.
-
-The implementation in the Driver/DriverMain/Unsplit directory
-is the default. This implementation in general calls each
-of the physics routines only once per time step, and each call advances
-solution vectors by one timestep. At the end of one loop of timestep
-advancement, the condition for updating the adaptive mesh refinement
-pattern is tested and applied.
 
 
 Runtime Parameters
