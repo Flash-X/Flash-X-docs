@@ -10,10 +10,10 @@ incomplete, but the information that is included is valid. Please check back
 frequently for updates if you are developing code for |flashx|
 
 Maintaining a large and complex code like |flashx| is
-challenging. This is especially true because a great deal of
-performance portability layer is currently in the process of being
-hardened for production use and not all of its interfaces are
-finalized. Therefore, it is extremely important for the developers to
+challenging. This is especially true because several components of
+|orcha| have not been exercised sufficiently in production setting so
+far. It is still possible that some of the interfaces may need
+modifications.  Therefore, it is extremely important for the developers to
 read through the section on **Good Practices for Maintenance** to
 ensure that their contributions will not need large amounts of
 refactoring later. 
@@ -26,37 +26,37 @@ are listed in below.
 
 **Infrastructure**
 
-
-+------------+------------------------------+----------------------+
-| Setup tool | Tom Klosterman / Klaus Weide | may be out of date   |
-+------------+------------------------------+----------------------+
-| Grid       | Klaus Weide / Tom Klosterman | likely to be current |
-+------------+------------------------------+----------------------+
-| I/O        | Rajeev Jain                  | current              |
-+------------+------------------------------+----------------------+
-
++---------------+--------------------------+----------------+
+| Setup too     |  Klaus Weide/Younjun Lee | mostly current |  
++---------------+--------------------------+----------------+
+| Grid          | Klaus Weide/Anshu Dubey  | mostly current |
++---------------+--------------------------+----------------+
+| I/O           | Klaus Weide/Anshu Dubey  | current        |
++---------------+--------------------------+----------------+
+| Orchestration | Youngjun Lee/Klaus Weide | In flux        |
++---------------+--------------------------+----------------+
+| MOL           | Steve Fromm              | In flux        |
++---------------+--------------------------+----------------+
 
 
 **Physics**
 
-
 +---------------+------------------------------+-------------------------------+
 | Unsplit Hydro | Klaus Weide                  | current                       |
 +---------------+------------------------------+-------------------------------+
-| INS           | Akash Dhruv                  | may be out of date            |
+| INS           | Akash Dhruv                  | mostly current                |
 +---------------+------------------------------+-------------------------------+
-| Spark         | Sean Couch / Anshu Dubey     | may be out of date            |
+| Spark         | Youngjun Lee/Anshu Dubey     | mostly current                |
 +---------------+------------------------------+-------------------------------+
-| Gravity       | Sean Couch                   | current                       |
+| Gravity       | Austin Harris/Sean Couch     | current                       |
 +---------------+------------------------------+-------------------------------+
-|               | Austin Harris                | current except Xnet           |
-| Burn          |                              | which is not included yet     | 
+|  Burn         | Austin Harris                | current                       |
 +---------------+------------------------------+-------------------------------+
-| Eos           | Austin Harris / Sean Couch   | current, except Weaklib       |
+| Eos           | Austin Harris/Steve Fromm    | current, except Hybrid        |
 +---------------+------------------------------+-------------------------------+
 | Thornado      | Eirik Endeve                 | submodule, not described here |
 +---------------+------------------------------+-------------------------------+
-| Particles     | Anshu Dubey                  | mostly current, tracers only         |
+| Particles     | Anshu Dubey                  |  tracers only                 |
 +---------------+------------------------------+-------------------------------+
 
 
@@ -73,13 +73,10 @@ are listed in below.
 +----------------+---------------------+
 |  Austin Harris | harrisja@ornl.gov   |
 +----------------+---------------------+
-|  Rajeev Jain   | rajeeja@anl.gov     |
-+----------------+---------------------+
-|  Jared O'Neal  | joneal@anl.gov      |
-+----------------+---------------------+
 |  Klaus Weide   | kweide@uchicago.edu |
 +----------------+---------------------+
-
+|  Youngjun Lee  | leey@anl.gov        |
++----------------+---------------------+
 
 
 

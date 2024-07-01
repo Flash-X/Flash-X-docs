@@ -37,6 +37,10 @@ You should verify that you have the following:
 
 -  A copy of the Python language, version 3.0 or later is required.
 
+- If you wish to use |orcha| you need all the tools in it. These are
+  -- |milhoja|, |cgkit| and |flashx|_recipe Tools
+
+  
 .. _unpack:
 
 Obtaining and configuring |flashx| for quick start
