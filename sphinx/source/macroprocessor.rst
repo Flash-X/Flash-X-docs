@@ -77,12 +77,12 @@ other macros embedded in it. This approach can be particularly useful
 when the involved arithmetic is complex but identical in both versions
 and the only difference is in the data layout and access patterns. 
 
-. container:: center
+.. container:: center
 
-   .. figure:: macro-example.png
+   .. figure:: macro_example.png
       :alt: macro-use
       :name: Fig:macro-use
-      :width: 3in
+      :width: 6.5in
 
 	      
 An additional feature is required if more than one variant needs

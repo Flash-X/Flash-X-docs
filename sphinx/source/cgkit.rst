@@ -70,4 +70,41 @@ entails that the recipe writer selects the granulariy of  algorithmic building b
 (e.g., subroutines, actions, etc.) and defines their dependencies on each other.
 
 
+.. _`Sec:example`:
 
+Example
+--------
+
+We have applied CG-Kit to generate variants in the new Hydro solver,
+|spark|, which has two different modes for optimizing memory and
+communication optizations. The memory optimizations apply to using
+|spark| with |amrex|, which prefers to apply flux-correction on a per
+level basis and allocate and  deallocate memory for storage of fluxes
+at that level before going on to the next finer level. |paramesh|
+applies flux-correction at all levels simultaneously. In principle
+this can be done for |amrex| too by keeping the flux-storage around
+until all levels have finished computing. The communication optimization
+at the cost of extra computation and memory applies to multi-stage RK
+integration. The *telescoping* mode of operation gets extra layers of
+guardcells and in all except the final stage also updates the cells
+that will act as guardcells for the next stage. Thus for a 2 stage RK
+we get 2*NGUARD guardcells along each face In the first stage we
+update NGUARD extra cells along each face so that no communication is
+requered to fetch them from neighboring blocks. The figure below shows
+two of these variants.
+
+.. container:: center
+
+   .. figure:: variants.png
+      :alt: variants
+      :name: Fig:variants
+      :width: 6.5in
+
+
+In these variants the arithmetic of physics computations remains
+unchanged, the only difference occur in the control flow of the
+algorithm and where communications are placed during
+computation. Recipes provide a succint way of expressing these
+variants. 
+
+	  
