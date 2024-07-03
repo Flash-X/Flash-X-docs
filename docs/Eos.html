@@ -51,15 +51,16 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="orcha.html">The Performance Portability System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeadvance.html">TimeAdvance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="physics.html">Physics Units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Hydro.html">Hydrodynamics Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="IncompNS.html">Incompressible Navier-Stokes Unit</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Equation of State Unit</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#gamma-law-and-multigamma">Gamma Law and Multigamma</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gamma-law">Gamma Law</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helmholtz">Helmholtz</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#initialization">Initialization</a></li>
@@ -112,25 +113,43 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit implements the equation of state needed by the
 hydrodynamics and nuclear burning solvers. The function
 <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> provides the interface for operating on a
-one-dimensional vector. The same interface can be used for a single cell
-by reducing the vector size to 1. Additionally, this function can be
+single data point. A macro (<code class="docutils literal notranslate"><span class="pre">eos_args</span></code>) is defined to provide a list
+of arguments. It is highly recommended using this macro in both, the
+the declaration section of the caller and in the call to the function
+itself. This recommendation stems from the possibility of the
+interface needing to change in future if other variants of Eos are
+introduced. This function can be
 used to find the thermodynamic quantities either from the density,
 temperature, and composition or from the density, internal energy, and
-composition. For user’s convenience, a wrapper function
-(<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_wrapped</span></code>) is provided, which takes a section of a
-block and translates it into the data format required by the
-<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> function, then calls the function. Upon return from
-the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> function, the wrapper translates the returned
-data back to the same section of the block.</p>
-<p>Four implementations of the (<code class="docutils literal notranslate"><span class="pre">Eos</span></code>) unit are available in the current
-release of Flash-X: <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> which implements a perfect-gas equation of
-state; <code class="docutils literal notranslate"><span class="pre">Gamma/RHD</span></code> which implements a perfect-gas equation taking
-relativistic effects into account; <code class="docutils literal notranslate"><span class="pre">Multigamma</span></code> which implements a
-perfect-gas equation of state with multiple fluids, each of which can
-have its own adiabatic index (<span class="math notranslate nohighlight">\(\gamma\)</span>); and <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code> which
-uses a fast Helmholtz free-energy table interpolation to handle
-degenerate/relativistic electrons/positrons and includes radiation
-pressure and ions (via the perfect gas approximation).</p>
+composition.</p>
+<p>For user’s convenience, two wrapper functions are
+provided. (<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_vector</span></code>) takes in a two dimensional
+array of data points where the first dimension is the length of the
+vector, and the second dimension is for the physical
+quantities, both input and output. The index of each physical quantity for the second
+dimension is included in <code class="docutils literal notranslate"><span class="pre">Eos.h</span></code>. In FLASH all interfaces of Eos
+used a single-dimensional vector and one had to find the offset for
+the desired physical quantity. Use of two-dimensional array has
+obviated the need for this additional step. The second wrapper
+function is  <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_multiDim</span></code>  which takes a pointer to a multidimensional array of data,
+computes kinetic energy if velocities are included in the data, and
+converts the data to the two-dimension vector format. It then calls
+the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_vector</span></code>  function, and upon return from
+the function, it translates the returned data back to the same
+mutidimensional array..</p>
+<p>Two implementations of the (<code class="docutils literal notranslate"><span class="pre">Eos</span></code>) unit are available in the
+Flash-X distribution, and a third can be imported if desired (see the
+Readme at the top level of the source for instructions to import).  The
+two that are included in the distribution are:
+<code class="docutils literal notranslate"><span class="pre">Gamma</span></code> which implements a perfect-gas equation of
+state; and <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code> which uses a fast Helmholtz free-energy table
+interpolation to handle degenerate/relativistic electrons/positrons
+and includes radiation pressure and ions (via the perfect gas
+approximation). For <code class="docutils literal notranslate"><span class="pre">WeakLib</span></code>, the imported implementation, the
+necessary functions to make the calls compatible with Flash-X’s API
+are included in the distribution. A hybrid implementation that can
+call either the <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code> or the <code class="docutils literal notranslate"><span class="pre">WeakLib</span></code> version depending on
+the state of the matter is also included in the distribution.</p>
 <p>As described in previous sections, Flash-X evolves the Euler equations
 for compressible, inviscid flow. This system of equations must be closed
 by an additional equation that provides a relation between the
@@ -143,17 +162,15 @@ than <span class="math notranslate nohighlight">\(10^{11}\)</span> times during 
 simulation of stellar phenomena. Thus, it is very desirable to have an
 EOS that is as efficient as possible, yet accurately represents the
 relevant physics. While Flash-X is capable of using any general equation
-of state, we discuss here the three equation of state routines that are
-supplied: an ideal-gas or gamma-law EOS, an EOS for a fluid composed of
-multiple gamma-law gases, and a tabular Helmholtz free energy EOS
-appropriate for stellar interiors. The two gamma-law EOSs consist of
-simple analytic expressions that make for a very fast EOS routine both
-in the case of a single gas or for a mixture of gases. The Helmholtz EOS
+of state, we discuss here the two primary versions that are supplied: an ideal-gas or gamma-law EOS, and a tabular Helmholtz free energy EOS
+appropriate for stellar interiors. The gamma-law EOS consists of
+simple analytic expressions that make for a very fast EOS routine
+in the case of a single gas. The Helmholtz EOS
 includes much more physics and relies on a table look-up scheme for
 performance.</p>
 </section>
-<section id="gamma-law-and-multigamma">
-<span id="sec-eos-gammas"></span><h2>Gamma Law and Multigamma<a class="headerlink" href="#gamma-law-and-multigamma" title="Link to this heading"></a></h2>
+<section id="gamma-law">
+<span id="sec-eos-gammas"></span><h2>Gamma Law<a class="headerlink" href="#gamma-law" title="Link to this heading"></a></h2>
 <p>Flash-X uses the method of Colella &amp; Glaz (1985) to handle general
 equations of state. General equations of state contain 4 adiabatic
 indices (Chandrasekhar 1939), but the method of Colella &amp; Glaz
@@ -193,16 +210,6 @@ Equating these expressions for pressure yields an expression for the
 specific internal energy as a function of temperature</p>
 <div class="math notranslate nohighlight">
 \[\epsilon = \frac{1}{\gamma - 1} \frac{N_a k} {\bar{A}} T~.\]</div>
-<p>The relativistic variant of the ideal gas equation is explained in more
-detail in .</p>
-<p>Simulations are not restricted to a single ideal gas; the multigamma EOS
-simulations with several species of ideal gases each with its own value
-of <span class="math notranslate nohighlight">\(\gamma\)</span>. In this case the above expressions hold, but
-<span class="math notranslate nohighlight">\(\gamma\)</span> represents the weighted average adiabatic index
-calculated from</p>
-<div class="math notranslate nohighlight">
-\[\frac{1}{\left(\gamma - 1\right)} = \bar{A}\sum_{i}\frac{1}{\left(\gamma_{i} -
-1\right)}\frac{X_{i}}{A_{i}}~.\]</div>
 <p>We note that the analytic expressions apply to both the forward
 (internal energy as a function of density, temperature, and composition)
 and backward (temperature as a function of density, internal energy and
@@ -211,6 +218,9 @@ iteration in order to obtain the temperature, this EOS is quite
 inexpensive to evaluate. Despite its fast performance, use of the
 gamma-law EOS is limited, due to its restricted range of applicability
 for astrophysical problems.</p>
+<p>In the current distribution of Flash-X we have excluded the
+multigamma version because of lack of use-cases. It will be included
+in future distributions.</p>
 </section>
 <section id="helmholtz">
 <span id="sec-eos-helmholtz"></span><h2>Helmholtz<a class="headerlink" href="#helmholtz" title="Link to this heading"></a></h2>
@@ -368,7 +378,7 @@ thermodynamically consistent.</p>
 <section id="initialization">
 <span id="sec-eos-initialization"></span><h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading"></a></h3>
 <p>The initialization function of the Eos unit <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_init</span></code> is
-fairly simple for the two ideal gas gamma law implementations included.
+fairly simple for theideal gas gamma law implementation included.
 It gathers the runtime parameters and the physical constants needed by
 the equation of state and stores them in the data module. The Helmholtz
 EOS <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_init</span></code> routine is a little more complex. The
@@ -386,42 +396,14 @@ other processors.</p>
 <p>Runtime parameters for the <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> unit require the user to set the
 thermodynamic properties for the single gas. <code class="docutils literal notranslate"><span class="pre">Eos/gamma</span></code>,
 <code class="docutils literal notranslate"><span class="pre">Eos/eos_singleSpeciesA</span></code>, <code class="docutils literal notranslate"><span class="pre">Eos/eos_singleSpeciesZ</span></code> set the ratio of
-specific heats and the nucleon and proton numbers for the gas. In
-contrast, the <code class="docutils literal notranslate"><span class="pre">Multigamma</span></code> implementation does not set runtime
-parameters to define properties of the multiple species. Instead, the
-simulation <code class="docutils literal notranslate"><span class="pre">Config</span></code> file indicates the requested species, for example
-helium and oxygen can be defined as</p>
-<div class="center docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPECIES</span> <span class="n">HE4</span>
-<span class="n">SPECIES</span> <span class="n">O16</span>
-</pre></div>
-</div>
-</div>
-<p>The properties of the gases are initialized in the file
-<code class="docutils literal notranslate"><span class="pre">Simulation/Simulation_initSpecies</span></code><code class="docutils literal notranslate"><span class="pre">.F90</span></code>, for example</p>
-<div class="center docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">Simulation_initSpecies</span><span class="p">()</span>
-  <span class="n">use</span> <span class="n">Multispecies_interface</span><span class="p">,</span> <span class="n">ONLY</span> <span class="p">:</span> <span class="n">Multispecies_setProperty</span>
-  <span class="n">implicit</span> <span class="n">none</span>
-<span class="c1">#include &quot;Simulation.h&quot;</span>
-<span class="c1">#include &quot;Multispecies.h&quot;</span>
-  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">HE4_SPEC</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="mf">4.</span><span class="p">)</span>
-  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">HE4_SPEC</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="mf">2.</span><span class="p">)</span>
-  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">HE4_SPEC</span><span class="p">,</span> <span class="n">GAMMA</span><span class="p">,</span> <span class="mf">1.66666666667e0</span><span class="p">)</span>
-  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">O16_SPEC</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">)</span>
-  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">O16_SPEC</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
-  <span class="n">call</span> <span class="n">Multispecies_setProperty</span><span class="p">(</span><span class="n">O16_SPEC</span><span class="p">,</span> <span class="n">GAMMA</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">)</span>
-<span class="n">end</span> <span class="n">subroutine</span> <span class="n">Simulation_initSpecies</span>
-</pre></div>
-</div>
-</div>
+specific heats and the nucleon and proton numbers for the gas.</p>
 <p>For the Helmholtz equation of state, the table-lookup algorithm requires
 a given temperature and density. When temperature or internal energy are
 supplied as the input parameter, an iterative solution is found.
 Therefore, no matter what mode is selected for <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code> input, the
 best initial value of temperature should be provided to speed
 convergence of the iterations. The iterative solver is controlled by two
-runtime parameters <code class="docutils literal notranslate"><span class="pre">Eos/eos_maxNewton</span></code> and <code class="docutils literal notranslate"><span class="pre">Eos/eos_tolerance</span></code> which
+vruntime parameters <code class="docutils literal notranslate"><span class="pre">Eos/eos_maxNewton</span></code> and <code class="docutils literal notranslate"><span class="pre">Eos/eos_tolerance</span></code> which
 define the maximum number of iterations and convergence tolerance. An
 additional runtime parameter for <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code>, <code class="docutils literal notranslate"><span class="pre">Eos/eos_coulumbMult</span></code>,
 indicates whether or not to apply Coulomb corrections. In some regions
@@ -431,54 +413,71 @@ When the parameter <code class="docutils literal notranslate"><span class="pre">
 corrections are not applied.</p>
 </section>
 <section id="direct-and-wrapped-calls">
-<span id="sec-eos-wrapper"></span><h3>Direct and Wrapped Calls<a class="headerlink" href="#direct-and-wrapped-calls" title="Link to this heading"></a></h3>
-<p>The primary function in the <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit operates on a vector, taking
+<span id="sec-eos-interfaces"></span><h3>Direct and Wrapped Calls<a class="headerlink" href="#direct-and-wrapped-calls" title="Link to this heading"></a></h3>
+<p>The primary function in the <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit operates on a single data point, taking
 density, composition, and either temperature, internal energy, or
 pressure as input, and returning <span class="math notranslate nohighlight">\(\gamma_1\)</span>, and either the
 pressure, temperature or internal energy (whichever was not used as
-input). This equation of state interface is useful for initializing a
-problem. The user is given direct control over the input and output,
-since everything is passed through the argument list. Also, the vector
-data format is more efficient than calling the equation of state routine
-directly on a point by point basis, since it permits pipelining and
-provides better cache performance. Certain optional quantities such
+input). This equation of state interface is particularly useful for initializing an
+application instance. The user is given direct control over the input and output,
+since everything is passed through the argument list. Certain optional quantities such
 electron pressure, degeneracy parameter, and thermodynamic derivatives
-can be calculated by the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> function if needed. These
-quantities are selected for computation based upon a logical mask array
-provided as an input argument. A .true. value in the mask array results
-in the corresponding quantity being computed and reported back to the
-calling function. Examples of calling the basic implementation <code class="docutils literal notranslate"><span class="pre">Eos</span></code>
-are provided in the API description, see <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code>.</p>
+can be calculated by the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> function if needed. They
+are computed if an optional argument <code class="docutils literal notranslate"><span class="pre">derivs</span></code> is present in the call.</p>
 <p>The hydrodynamic and burning computations repeatedly call the Eos
 function to update pressure and temperature during the course of their
 calculation. Typically, values in all the cells of the block need of be
-updated in these calls. Since the primary Eos interface requires the
-data to be organized as a vector, using it directly could make the code
-in the calling unit very cumbersome and error prone. The wrapper
-interface, <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_wrapped</span></code> provides a means by which the
-details of translating the data from block to vector and back are hidden
-from the calling unit. The wrapper interface permits the caller to
-define a section of block by giving the limiting indices along each
-dimension. The <code class="docutils literal notranslate"><span class="pre">Eos_wrapped</span></code> routine translates the block section thus
-described into the vector format of the <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> interface,
-and upon return translates the vector format back to the block section.
-This wrapper routine cannot calculate the optional derivative
-quantities. If they are needed, call the <code class="docutils literal notranslate"><span class="pre">Eos</span></code> routine directly with
-the optional mask set to true and space allocated for the returned
-quantities.</p>
+updated in these calls. Additionally, the kinetic energy in the system
+should be taken into account for accuracy. The single point interface
+is not aware of velocities, and therefore cannot consider the effects
+of kinetic energey directly. For user convenience several interfaces
+are provided to make the invocation of Eos more convenient.
+The interface <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_fillEosData</span></code> convert data coming in as a
+multidimensional array of grid data into a two dimensional data
+structure  and <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_getFromEosData</span></code> does the reverse. It
+puts the updated values returned in the two dimensional array into the
+multidimensional grid data.</p>
+<p>The interface <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_vector</span></code> applies EOS to the two
+dimensional vectorised data points given to it. Similar to the
+<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code>, this interface does not have access to the
+velocity and other grid data values. It assumes that the calling
+routine will have either invoked  <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_fillEosData</span></code> or
+otherwise accounted for kinetice energy if it is desired before
+calling this routine. Similarly it expects an invocation of
+<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_getFromEosData</span></code> by the
+calling routine afterwards if those same effects are to be accounted
+for. The difference between <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos</span></code> and
+<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_vector</span></code> is that the former works on a single data
+point while the latter works on a vector of data point.</p>
+<p>An additional interface <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_multiDim</span></code> provides a means by which the
+details of translating the data from block to vector and back, and
+accounting for kinetic energy  are hidden
+from the calling unit. This  interface permits the caller to
+define a multidimensional collection of cells along each their lower
+and upper bounds. These are typically either a whole block or a
+section of block.  The <code class="docutils literal notranslate"><span class="pre">Eos_multiDim</span></code> returns updated values in the
+same multidimensional array where the input values were provided. The
+internal mechanisms for manipulating the data are transparent to the
+user. The main implementation of this routine calls
+<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_fillEosData</span></code>, <code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_vector</span></code> and
+<code class="docutils literal notranslate"><span class="pre">physics/Eos/Eos_getFromEosData</span></code> in that order.
+This wrapper routine does not calculate the optional derivative
+quantities. If they are needed, one needs to call either point-wise of
+vector based interfaces with the optional arguement <code class="docutils literal notranslate"><span class="pre">derivs</span></code>
+in the argument list of the invoking call..</p>
 </section>
 </section>
 <section id="unit-test">
 <span id="sec-eos-unit-test"></span><h2>Unit Test<a class="headerlink" href="#unit-test" title="Link to this heading"></a></h2>
-<p>The unit test of the Eos function can exercise all three
+<p>The unit test of the Eos function can exercise all the
 implementations. Because the Gamma law allows only one species, the
-setup required for the three implementations is specific. To invoke any
+setup required for each implementations is specific. To invoke any
 three-dimensional <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit test, the command is:</p>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">./setup</span> <span class="pre">unitTest/Eos/</span></code><em>implementation</em> <code class="docutils literal notranslate"><span class="pre">-auto</span> <span class="pre">-3d</span></code></p>
 </div></blockquote>
-<p>where <em>implementation</em> is one of <code class="docutils literal notranslate"><span class="pre">Gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">Multigamma</span></code>,
-<code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code>. The <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit test works on the assumption that if the
+<p>where <em>implementation</em> is one of <code class="docutils literal notranslate"><span class="pre">Gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">Helmholtz</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">Hybrid/Helmholtz_Weaklib</span></code> . The <code class="docutils literal notranslate"><span class="pre">Eos</span></code> unit test works on the assumption that if the
 four physical variables in question (density, pressure, energy and
 temperature) are in thermal equilibrium with one another, then applying
 the equation of state to any two of them should leave the other two
@@ -495,9 +494,12 @@ great confidence that the <code class="docutils literal notranslate"><span class
 <p>In our implementation of the Eos unit test, the initial conditions
 applied to the domain create a gradient for density along the <span class="math notranslate nohighlight">\(x\)</span>
 axis and gradients for temperature and pressure along the <span class="math notranslate nohighlight">\(y\)</span>
-axis. If the test is being run for the Multigamma or Helmholtz
-implementations, then the species are initialized to have gradients
-along the <span class="math notranslate nohighlight">\(z\)</span> axis.</p>
+axis. If the test is being run for the Helmholtz implementation, then
+the species are initialized to have gradients along the <span class="math notranslate nohighlight">\(z\)</span>
+axis. The initial conditions for the Hybrid unit test make sure that
+physical conditions are generated that would cause one set of cells to
+call the Helmholtz implementation, another set to call the Weaklib
+implementation and yet another set to call both.</p>
 </section>
 </section>
 

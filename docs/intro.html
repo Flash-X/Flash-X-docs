@@ -50,8 +50,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="orcha.html">The Performance Portability System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeadvance.html">TimeAdvance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
@@ -89,18 +90,13 @@
 multiphysics applications formulated largely as a collection of partial-
 and ordinary- differential equations as well as algebraic equations. The
 maintained code components are written in a combination of high level
-languages such as Fortran, C and C++ with an embedded domain-specific
-macro language implemented in the form of key-value dictionaries. The
-accompanying configuration tool-chain can translate and assemble
-different permutations and combinations of the
-components to configure a diverse set of applications. An accompanying
-domain-specific runtime system has been developed that can orchestrate
-data movement between devices (CPU, accelerators, and other
-specialized devices that might exist) on a compute node of a high
-performance computing (HPC) platform. This runtime is not included in
-the distribution, but can be obtained from its own repository. The
-code uses the Message-Passing
-Interface (MPI) library communication between nodes, though more than
+languages such as Fortran, C and C++. Flash-X is accompanied by
+several tools written in python or C++ that provide configurability
+and performance portability to the code. The distribution includes
+several existing application configurations, and tests for exercising
+these configurations. A unit-test framework is also embedded in the
+code. The code uses the Message-Passing Interface (MPI) library
+communication between nodes, though more than
 one MPI rank can also be placed on a node. HDF5 is the default mode for
 IO. Flash-X has three interchangeable discretization grids: a Uniform
 Grid, a oct-tree based adaptive grid using the Paramesh  library, and

@@ -21,9 +21,7 @@
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Infrastructure" href="infrastructure.html" />
-    <link rel="prev" title="The Flash-X configuration" href="setup.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,29 +44,14 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="disclaimers.html">Current Status and Disclaimers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="orcha.html">The Performance Portability System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Driver Unit</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#driver-routines">Driver Routines</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#driver-initall"><em>Driver_initAll</em></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#driver-evolveall"><em>Driver_evolveAll</em></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#driver-finalizeall">Driver_finalizeAll</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#driver-accessor-functions">Driver accessor functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#time-step-limiting">Time Step Limiting</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#generic-time-step-limiting-for-positive-definiteness">Generic time step limiting for positive definiteness</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="timeadvance.html">TimeAdvance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
@@ -102,10 +85,9 @@
              
   <section id="driver-unit">
 <span id="chp-driver-unit"></span><h1>Driver Unit<a class="headerlink" href="#driver-unit" title="Link to this heading"></a></h1>
-<p>The <em>Driver</em> unit controls the initialization and evolution of Flash-X
-simulations. In addition, at the highest level, the Driver unit
-organizes the interaction between units. Initialization can be from
-scratch or from a stored checkpoint file. It also implements methods
+<p>The <em>Driver</em> unit controls the initialization and finalization of Flash-X
+simulations. Initialization can be from
+scratch or from a stored checkpoint file. It also call the methods
 for advancing the solution, and calls the <em>IO</em> unit at the end of
 every timestep to produce checkpoint files, plot files, or other output.</p>
 <section id="driver-routines">
@@ -120,7 +102,6 @@ initialize, evolve, and finalize the Flash-X program. The file
 <p>implicit none</p>
 <p>call Driver_initParallel()</p>
 <p>call Driver_initAll()</p>
-<p>call Driver_evolveAll( )</p>
 <p>call Driver_finalizeAll( )</p>
 <p>end program Flashx</p>
 </div>
@@ -129,9 +110,7 @@ source directory must be overridden by an implementation function in a
 unit implementation directory under the Driver or <em>Simulation</em>
 directory trees, in order for a simulation to perform any meaningful
 actions. The most commonly used implementations for these files
-are located in the <em>Driver/DriverMain</em> unit implementation directory,
-with a few specialized ones in
-<em>Driver/DriverMain/Unsplit</em>.</p>
+are located in the <em>Driver/DriverMain</em> unit implementation directory.</p>
 <section id="driver-initall">
 <h3><em>Driver_initAll</em><a class="headerlink" href="#driver-initall" title="Link to this heading"></a></h3>
 <p>The first of these routines is <em>Driver/Driver_initParallel</em>, which
@@ -155,23 +134,6 @@ please see . It is important to note that when individual units are
 being initialized, order is often very important and the order of
 initialization is different depending on whether the run is from scratch
 or being restarted from a checkpoint file.</p>
-</section>
-<section id="driver-evolveall">
-<h3><em>Driver_evolveAll</em><a class="headerlink" href="#driver-evolveall" title="Link to this heading"></a></h3>
-<p>The next routine is <em>Driver/Driver_evolveAll</em> which controls the
-timestepping of the simulation, as well as the normal termination of
-Flash-X based on time. Driver_evolveAll checks the parameters
-<em>tmax</em>, <em>nend</em> to determine that the run should end,
-having reached a particular point in time, a certain number of steps, or
-a particular cosmological redshift, respectively. Likewise the initial
-simulation time, step number and cosmological redshift for a simulation
-can be set using the runtime parameters <em>tmin</em>, <em>nbegin</em>.</p>
-<p>The implementation in the Driver/DriverMain/Unsplit directory
-is the default. This implementation in general calls each
-of the physics routines only once per time step, and each call advances
-solution vectors by one timestep. At the end of one loop of timestep
-advancement, the condition for updating the adaptive mesh refinement
-pattern is tested and applied.</p>
 <section id="runtime-parameters">
 <h4>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h4>
 <p>The Driver unit supplies certain runtime parameters regardless of
@@ -258,10 +220,7 @@ multidimensional 3T simulations in order to avoid some kinds of
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="setup.html" class="btn btn-neutral float-left" title="The Flash-X configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="infrastructure.html" class="btn btn-neutral float-right" title="Infrastructure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Milhoja &mdash; Flash-X 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=7026087e"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Application’s Use of Orcha" href="application_use.html" />
+    <link rel="prev" title="Macroprocessor" href="macroprocessor.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Flash-X
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="disclaimers.html">Current Status and Disclaimers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="orcha.html">The Performance Portability System</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="orcha_overview.html">Overview of ORCHA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cgkit.html">Code Generation Toolkit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macroprocessor.html">Macroprocessor</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Milhoja</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#milhoja-design-features">Milhoja Design Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#runtime-elements">Runtime Elements</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="application_use.html">Application’s Use of Orcha</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeadvance.html">TimeAdvance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_section.html">Developer’s Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Flash-X</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="orcha.html">The Performance Portability System</a></li>
+      <li class="breadcrumb-item active">Milhoja</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/milhoja.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="milhoja">
+<span id="chp-milhoja"></span><h1>Milhoja<a class="headerlink" href="#milhoja" title="Link to this heading"></a></h1>
+<p>Milhoja is a domain specific runtime design to execute a graph given
+to it over and over again. The motivation comes from the kind of
+applications that have an evolution cycle where the control flow does
+not vary from one timestep to another, but might vary from one
+application instance to another. Thus all the analysis for optimizing
+the graph is done offline. Milhoja does not concern itself with
+concepts such as work stealing, or reapportioning work dynamically. In
+that sense it an execution engine that makes the data and the
+computation move as dictated by user’s recipe translated by CG-Kit
+into a graph.</p>
+<section id="milhoja-design-features">
+<span id="sec-mdesign"></span><h2>Milhoja Design Features<a class="headerlink" href="#milhoja-design-features" title="Link to this heading"></a></h2>
+<p>The design goal of Milhoja is to develop a base set of runtime
+elements, such as thread teams, that can be composed at runtime into
+<strong>thread team configurations</strong> in ways that maximize the efficient use
+of the node. For a given simulation, Milhoja operates with <span class="math notranslate nohighlight">\(N\)</span>
+thread teams that are created when the simulation starts and persist
+until the simulation terminates, where each team is allowed to
+simultaneously use at most <span class="math notranslate nohighlight">\(M\)</span> threads at any given time. The
+thread teams are run in cycles such that for each cycle a team is
+assigned an action routine and a data model. Examples of data model are
+tiles, blocks, and data packets of blocks. Upon starting a cycle, the
+team is given the data and the threads of the
+team work in a coordinated fashion so that the given action is applied
+to each data item once. The cycle ends once the team has been informed
+that no more data items will be given and the action has been applied to
+all given data items. In our design, the pairing of the action with data
+items is viewed as a task so that thread teams implement task-based
+parallelism <em>via</em> thread-level parallelism. While the threads in the
+team execute code in the host, they can also be used to launch kernels
+in accelerators and therefore make use of finer-grained parallelism.
+Ideally, the data type assigned to a thread team for a given action will
+be chosen based on the hardware that the action routine has been written
+to use. For instance, a tile would be a sensible data type for executing
+an action routine that uses the CPU for heavy computation or a data
+packet of blocks for a routine that launches kernels on a remote device
+with its own memory system.</p>
+<p>Note that no part of this design limits itself to using manually built
+task graphs nor requires extreme simplicity in them. The interfaces are
+designed to be robust enough that Milhoja can also execute complex
+task graphs. By ddisassociating the executor of the graph from the
+generator, we have ensured that in the future, we will be able to use
+automation in task graph generation without having to alter the
+mechanics of the Milhoja. All the heavy lifting of analysis and
+scheduling can be done separately in the generator which never needs to
+interface with the executor. We believe that this model of combination
+of program synthesis with orthogonal composition concepts will have
+longevity because of its ability to adapt to new systems incrementally.</p>
+<p>Milhoja relies upon helper code generation tools to perform its
+work. Given that the task definition can vary from one application
+instance from another even when the underlying physics is unvarying,
+clearly the data and computation that needs to move between devices is
+not known apriori. That information is generated by CG-Kit. Therefore
+we need code generators that can create data packets and tasks to be
+digested by Milhoja based upon the recipe that is ingested by
+CG-Kit. Note that if there is no division of work between devices in
+the recipes CG-Kit, Milhoja need not be used in the application at
+all, and CG-Kit is able to generate all the needed code. However, if
+Milhoja is to be used, then these additional code generators come
+into play.</p>
+<p>The code generator for assembling data packets relies upon
+annotations in the interfaces of the unit API. In Flash-X every unit
+has a file that specifies all of the unit’s public interfaces. We
+include comments in the interface file that describe all of the
+information needed by the code generators for data packets and
+tasks. An example of these annotations is given below</p>
+<div class="codeseg docutils container">
+<p>insert the comment section of hydro</p>
+</div>
+<p>Note that the annotations start by defining data and arguments that
+are common to more than one interface to avoid having to replicate the
+definitions. Each of the data items is accompanied by the information
+that tells its size to the data packet generator. Additional
+information that is critical for data packet generator is whether the
+data item needs to move back and forth from the host to device and
+vice versa or if it is strictly temporary – it needs to have
+space on the device but never needs to move between devices. A parser
+converts this information into json files that the code generators can
+use to emit data for both data packet and task generation.</p>
+</section>
+<section id="runtime-elements">
+<span id="sec-rtelements"></span><h2>Runtime Elements<a class="headerlink" href="#runtime-elements" title="Link to this heading"></a></h2>
+<p>The primary runtime elements are the thread teams which are created on the
+host when the simulation starts and persist throughout the application
+execution.  The number of threads in each team is specified at the
+time of execution.  To apply a computation to a set of blocks in an arbitrary order, a
+thread team is assigned an associated taskfunction along with all
+relevant data. items get enqueued with the thread team for
+execution. Milhoja coordinates the asynchronous movement of data
+to  the target memory systems
+as well as execution of all associated tasks.
+Note that taskfunctions can execute code
+on any device without being aware of the specifics of the device so long as the
+required data is resident in the appropriate memory system.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="macroprocessor.html" class="btn btn-neutral float-left" title="Macroprocessor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="application_use.html" class="btn btn-neutral float-right" title="Application’s Use of Orcha" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Flash-X Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

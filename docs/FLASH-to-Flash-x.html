@@ -48,8 +48,9 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="orcha.html">The Performance Portability System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="driver.html">Driver Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeadvance.html">TimeAdvance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="monitor.html">Monitor Units</a></li>
@@ -83,36 +84,129 @@
              
   <section id="converting-from-flash-to-flash-x">
 <span id="sec-converting"></span><h1>Converting from FLASH to Flash-X<a class="headerlink" href="#converting-from-flash-to-flash-x" title="Link to this heading"></a></h1>
-<p>Converting FLASH source to Flash-X source so that it can build with basic functionality is relatively straightforward if advanced features of the software system are not to be used. Many low level routines will compile without any modifications. However, several commonly used interfaces have changed, and iterators are used for looping over blocks. At the end of the chapter we list most commonly used Grid accessor functions that have changed. Some commonly repeated patterns have macros defined for them that are also listed at the end, with the description of functionality they provide.</p>
-<p>In FLASH, following code lines appear in a file that has looping over blocks:</p>
+<p>Converting FLASH source to Flash-X source so that it can build with
+basic functionality is relatively straightforward if advanced features
+of the software system are not to be used. Many low level routines
+will compile without any modifications. However, several commonly used
+interfaces have changed, and some units have been reorganized. The
+<em>Driver</em> unit no longer implements time integration, there is a new
+unit <em>TimeAdvance</em> where the integrators reside. In addition to the
+Strang-split integrator inherited from FLASH there is a new
+implementation of this new unit that uses the  method of lines
+<em>Mol</em>. With full integration of CG-Kit into the code this unit is
+likely to be converted into a collection of recipes. The <em>Driver</em> unit
+only handles the book keeping such as checking for and doing
+refinement, checkpointing and other I/O related actions.</p>
+<p>The <em>Grid</em> unit has had fairly extensive changes to its API. The
+biggest change from the perspective of physics units is that  bounds
+(typically stored in blkLimits and blkLimitsGC)
+for a block are based on global view instead of local view that
+FLASH used.   Therefore, even with fixed block sizes, the values of
+in the above two arrays are not identical for all blocks. The second
+major change is in looping over blocks. Instead of obtaining a list of
+blocks from the grid unit and looping over them through <em>block_id</em> we
+now have iterators for looping over blocks. Several quantities that
+could only be obtained through explicit interfaces such as
+<em>Grid_getBlkPtr</em> are now accessible through the functions provided by
+the iterators.</p>
+<p>For example, in FLASH, following code lines appear in a file that has looping over blocks:</p>
 <div class="codeseg docutils container">
 <p>use Grid_interface, ONLY: Grid_getListofBlocks, Grid_getBlkLimits
 !! some more use statements</p>
-<p>integer :: blockCount, blockList(MAXBLOCKS), blockType
+<p>integer :: blockCount, blockList(MAXBLOCKS)
 integer, dimension(LOW:HIGH,MDIM) :: blkLimits, blkLimitsGC
 real, dimension(MDIM):: deltas
-!! some more declarations</p>
-<p>call Grid_getListofBlocks(blockCount,blockList,blockType)
+real, dimension(:,:,:,:), pointer || Uin</p>
+<p>call Grid_getListofBlocks(blockCount,blockList,LEAF)
 do i = 1,blockcount</p>
 <blockquote>
 <div><p>blockid=blockList(i)
 call Grid_getBlkLimits(blockid,blkLimits,blkLimitsGC)
-call Grid_getDeltas(blockid,deltas)</p>
+call Grid_getDeltas(blockid,deltas)
+call Grid_getBlkPtr(blockid,Uin,CENTER)</p>
 <p>!! some code for operating on the block</p>
 </div></blockquote>
 <p>end do</p>
 </div>
-<p>In Flash-X Grid_getListofBlocks does not exist. The code lines that provide the same functionality are</p>
+<p>In Flash-X Grid_getListofBlocks is deprecated, and does not work with
+AMReX. The code lines that provide the same functionality are</p>
 <div class="codeseg docutils container">
 <p>use Grid_interface, ONLY : Grid_getTileIterator, Grid_releaseTileIterator
 use Grid_tile,         ONLY : Grid_tile_t
-use Grid_iterator,     ONLY : Grid_iterator_t
-!! use statements unchanged</p>
+use Grid_iterator,     ONLY : Grid_iterator_t</p>
 <p>type(Grid_iterator_t) :: itor
 type(Grid_tile_t) :: tileDesc
-!! declarations unchaged</p>
+integer, dimension(LOW:HIGH,MDIM) :: blkLimits, blkLimitsGC,grownLimits
+real, dimension(MDIM):: deltas
+real, dimension(:,:,:,:), pointer || Uin</p>
+<p>call Grid_getTileIterator(itor,LEAF,level)
+do while(itor%%isValid())</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div><p>call itor%%currentTile(tileDesc)
+blkLimits(:,:)=tileDesc%%limits
+blkLimitsGC=tileDesc%%blkLimitsGC
+call tileDesc%getDataPtr(Uin, CENTER)
+call tileDesc%deltas(del)</p>
+<p>!! some code for operating on the block</p>
+</div></blockquote>
+<p>call tileDesc%releaseDataPtr(Uin,CENTER)
+call itor%next()</p>
+</div></blockquote>
+<p>end do !!block loop
+call Grid_releaseTileIterator(itor)</p>
+</div></blockquote>
 </div>
-<p>Additionally, bounds for a block are based on global view instead of local view that FLASH used.</p>
+<p>Using general purpose macros provided with the code the same code can
+be reduced to</p>
+<div class="codeseg docutils container">
+<p>&#64;M iter_use
+&#64;M iter_declare(blkLimits,blkLimitsGC, grownLimits)
+&#64;M iter_all_begin(LEAF,.false., blkLimits,blkLimitsGC, grownLimits)</p>
+<blockquote>
+<div><p>!! some code for operating on the block</p>
+</div></blockquote>
+<p>&#64;M iter_end</p>
+</div>
+<p>Note that &#64;M iter_declare would expand to</p>
+<div class="codeseg docutils container">
+<p>type(Grid_iterator_t) :: itor
+real,   pointer    :: Uin(:,:,:,:)
+type(Grid_tile_t)     :: tileDesc
+integer :: level
+integer, dimension(LOW:HIGH,MDIM) :: blkLimits,blkLimitsGC, grownLimits
+real,dimension(MDIM) :: deltas</p>
+</div>
+<p>In this macro, the declarations of arrays containing bounds can be
+changed by changing the argument list, for example instead of
+blkLimits,blkLimitsGC, grownLimits as arguments one could use
+limit1, limit2, limit3 as the argument list and the corresponding
+expansion would change to</p>
+<div class="codeseg docutils container">
+<p>type(Grid_iterator_t) :: itor
+real,   pointer    :: Uin(:,:,:,:)
+type(Grid_tile_t)     :: tileDesc
+integer :: level
+integer, dimension(LOW:HIGH,MDIM) :: limit1, limit2, limit3
+real,dimension(MDIM) :: deltas</p>
+</div>
+<p>However, the declarations of itor, Uin, deltas, level and tileDesc are
+unchangeable. Users wishing to use different variable names for these
+quantities can define their own macros either with a larger argument
+list or different explicit variable names. It would be best to keep
+the newly defined macros local to the user’s own code component and
+give it a different name to avoid causing any ambiguity in expansion.
+The final version of Flash-X is envisioned to
+have iteration over block occur only at the level of the <em>TimeAdvance</em>
+unit.</p>
+<p>Several new interfaces in the <em>Grid</em> API are introduced for greater
+flexibility in handling fluxes and their reconciliation at fine-coarse
+boundaries. These are needed for new time integrater, whether Mol or
+higher order methods. Currently many interfaces do not have any real
+implentations included. They may be eliminated or implemented in
+future. The commonly used interfaces that have changed from FLASH to
+<a href="#id1"><span class="problematic" id="id2">|flash-x|</span></a> are listed below.</p>
 </section>
 
 
