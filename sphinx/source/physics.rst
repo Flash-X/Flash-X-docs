@@ -3,7 +3,7 @@
 Physics Units
 =============
 
-This chapter covers the Pphysics units. 
+This chapter covers the physics units. 
 
 
 .. toctree::
