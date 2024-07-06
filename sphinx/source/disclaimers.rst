@@ -27,7 +27,7 @@ are listed in below.
 **Infrastructure**
 
 +---------------+--------------------------+----------------+
-| Setup too     |  Klaus Weide/Younjun Lee | mostly current |  
+| Setup tool    | Klaus Weide/Younjun Lee  | mostly current |
 +---------------+--------------------------+----------------+
 | Grid          | Klaus Weide/Anshu Dubey  | mostly current |
 +---------------+--------------------------+----------------+
