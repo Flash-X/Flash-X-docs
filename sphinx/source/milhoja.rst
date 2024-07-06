@@ -116,3 +116,60 @@ on any device without being aware of the specifics of the device so long as the
 required data is resident in the appropriate memory system.
 
 
+.. _`Sec:examples`:
+
+Runtime Examples
+-------------------
+
+Below are the examples of possible thread team configurations in
+increasing order of complexity. 
+
+.. container:: center
+
+   .. figure:: CpuConfig.png
+      :alt: cpuconfig
+      :name: Fig:cpuconfig
+      :width: 3.0in
+
+	      
+The figure above shows a configuration where computation is being done
+only on the CPU, while the next figure shows computation only on the
+GPU. Note that there are addiotional steps of data packing and
+unpacking and the data is moving back and forth between the host and
+the GPU.
+
+
+.. container:: center
+
+   .. figure:: GpuConfig.png
+      :alt: gpuconfig
+      :name: Fig:gpuconfig
+      :width: 3.5in
+
+The next figure shows a configuration with the next level of
+complexity where both CPU and GPU are applied to the same task. Two
+teams are in operation, the CPU team is given 3 thread and the GPU
+team is given 4 threads. These threads are used only for moving data,
+not for computation.
+
+.. container:: center
+
+   .. figure:: CpuGpuDataParallel.png
+      :alt: cpugpuparallel
+      :name: Fig:cpugpuparallel
+      :width: 4.0in
+
+
+The final figure shows an example of how we envision |milhoja| being
+used. Here concurrent computations are proceeding on the two devices
+but they are allotted different tasks at first. The data from GPU is
+sent back to the CPU once its computation is done, and yet another
+task is performed on the CPU. 
+
+
+.. container:: center
+
+   .. figure:: ConcurrentExample.png
+      :alt: concurrentl
+      :name: Fig:concurrent
+      :width: 5.0in
