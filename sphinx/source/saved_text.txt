@@ -1,0 +1,26 @@
+.. container:: center
+
+   ::
+
+      SPECIES HE4
+      SPECIES O16
+
+The properties of the gases are initialized in the file
+``Simulation/Simulation_initSpecies``\ ``.F90``, for example
+
+.. container:: center
+
+   ::
+
+      subroutine Simulation_initSpecies()
+        use Multispecies_interface, ONLY : Multispecies_setProperty
+        implicit none
+      #include "Simulation.h"
+      #include "Multispecies.h"
+        call Multispecies_setProperty(HE4_SPEC, A, 4.)
+        call Multispecies_setProperty(HE4_SPEC, Z, 2.)
+        call Multispecies_setProperty(HE4_SPEC, GAMMA, 1.66666666667e0)
+        call Multispecies_setProperty(O16_SPEC, A, 16.0)
+        call Multispecies_setProperty(O16_SPEC, Z, 8.0)
+        call Multispecies_setProperty(O16_SPEC, GAMMA, 1.4)
+      end subroutine Simulation_initSpecies

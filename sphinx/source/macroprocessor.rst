@@ -105,5 +105,194 @@ present it any of its own ".ini" files. As with files, the definitions
 placed in the Simulation directory of the application override all
 definitions encountered earlier.
 
+We have defined several macros for convenience that are available in
+the file "macro_processors.ini" in the *bin* directory. The more
+commonly used ones are described below.
 
+.. container:: codeseg
+  
+   [loop_3d]
+   
+   args=limits
+   
+   definition =
+      do k=limits(LOW,KAXIS),limits(HIGH,KAXIS)
+         do j=limits(LOW,JAXIS),limits(HIGH,JAXIS)
+             do i=limits(LOW,IAXIS),limits(HIGH,IAXIS)
+
+Use as @M loop_3d(blkLimits)  results in the loop bounds for a triply
+nested loop in place of the macro name where every occurence of
+"limits" is replaced with "blkLimits"
+	     
+
+.. container:: codeseg
+	     
+  [bounds_3d]
+  
+  args=limits
+
+  definition =
+    limits(LOW,IAXIS):limits(HIGH,IAXIS),&
+    
+    limits(LOW,JAXIS):limits(HIGH,JAXIS),&
+    
+    limits(LOW,KAXIS):limits(HIGH,KAXIS)
+
+    usage in declaration as
+
+    real, dimension(@M bounds_3d(blkLimits)) :: arr
+
+will result in a 3D array being declared with bounds defined using the
+supplied two dimensional array blkLimits.
+
+
+.. container:: codeseg
+ 
+   [bounds_2d]
+   
+   args=x1,x2,limits
+   
+   definition =
+   
+    limits(LOW,x1AXIS):limits(HIGH,x1AXIS),&
+
+    limits(LOW,x2AXIS):limits(HIGH,x2AXIS)
+
+This macros is used for declaring 2D arrays when bounds are included
+in the supplied array to replace *limits*. This one has an additional
+feature, x1 and x2 can be "I", "J", or "K" to define which two
+directions are included in the array
+
+
+.. container:: codeseg
+	       
+    [tileDesc_get]
+    
+    args =lim1,lim2,lim3,del
+    
+    definition =
+    
+     lim1(:,:)=tileDesc%%limits
+     
+     lim2(:,:)=tileDesc%%blkLimitsGC
+     
+     lim3(:,:)=tileDesc%%grownLimits
+     
+     call tileDesc%%deltas(del)
+     
+     level=tileDesc%%level
+
+@M tileDesc_get(blkLimits,blkLimitsGC,grownLimits,deltas) fills the
+supplied arrays with the corresponding tile data. It assumes that all
+these variables have been declared in the code. The argument lim1 has
+bounds for the interior cells of the block where the solution is to be
+advanced and lim2 has bounds for all cells of the block including the
+guardcells. The third argument lim3 is needed for tiling, that is if a
+block is subdivided into tiles, the lim3 has bounds for the section of
+the block that is the part of the tile and also includes those
+interior cells that effectively become the guardcells for the cells
+that are to be advanced in this tile. The final argument is a real 1D
+array of size 3 in which deltax, deltay and delaz are returned. Note
+that the function returns valid values for 1:NDIM dimensions
+only. Also note that this macro fetches the value of the "level"
+assuming that it has been declared as is in the declaration section of
+the code. For convenience one
+can use the next macro, "tileDesc_declare" in the declaration section
+of the code to ensure that the variables are appropriately declared. Note
+that the first three arguments given to the two macros must be
+identical and identically ordered for correct behavior. 
+     
+
+.. container:: codeseg
+
+  [tileDesc_declare]
+  
+  args = lim1,lim2,lim3
+  
+  definition =
+  
+      integer :: level
+      
+      integer, dimension(LOW:HIGH,MDIM) :: lim1,lim2,lim3
+      
+      real,dimension(MDIM) :: deltas
+
+There are additional tile related macros that can be put in the "use"
+and declaration sections of the code, as well as used as arguments. It
+is not necessary to use any of these macros, however, users are
+strongly encouraged to use them wherever needed. If we need to change
+the tile class for any reason, it would be straightforward to make the
+code compatible everywhere by just making the change to the macro
+definition instead of writing scripts to do search and replace.
+
+The next few macros pertain to the use of iterators in the code. As
+with tiles there is one for the "use" section and one for the "declare"
+section. For starting the iterator two different macros are provided;
+one compatible with |amrex|'s prefered mode of operating on a level by
+level basis, and the other one compatible with |paramesh|'s preference
+of operating on all levels in the same loop. The arguments for the two
+
+
+.. container:: codeseg
+
+   [iter_all_begin]
+
+   args=x1,t1,lim1,lim2,del
+
+   definition =
+
+       call Grid_getTileIterator(itor, x1, tiling=t1) 
+  
+      do while(itor%%isValid())
+  
+         call itor%%currentTile(tileDesc)
+     
+        @M tileDesc_get(lim1,lim2,grownLimits,del)
+     
+        call tileDesc%%getDataPtr(Uin, CENTER)
+
+This is the macro for |paramesh| preferred iterators where x1 is the
+argument for the blocktype (usually LEAF} and t1 is either .true. if
+tiing is desired, and .false. if it is not. The arguments lim1 and
+lim2 are the usual blkLimits and blkLimitsGC. Note that the macros is
+assuming that grownLimits and Uin are declared as expected, they are
+not among the arguments. The next macro has an additional argument l1,
+where the value of level resides. 
+
+     
+.. container:: codeseg
+      
+     [iter_level_begin]
+
+     args=x1,t1,l1,lim1,lim2,del
+
+     definition=
+
+        call Grid_getTileIterator(itor,x1,level=l1,tiling=t1)
+
+	    do while(itor%%isValid())
+
+	         call itor%%currentTile(tileDesc)
+
+		 @M tileDesc_get(lim1,lim2,grownLimits,del)
+
+		 call tileDesc%%getDataPtr(Uin, CENTER)
+
+		 
+The next macro is to be used at the end of the iterator loop. It
+release the pointer Uin, and also the tile iterator.		 
+
+
+ .. container:: codeseg
+     
+      [iter_end]
+
+      definition =
+         call tileDesc%%releaseDataPtr(Uin,CENTER)
+	 
+         call itor%%next()
+	 
+      end do !!block loop
+      
+      call Grid_releaseTileIterator(itor)
 
