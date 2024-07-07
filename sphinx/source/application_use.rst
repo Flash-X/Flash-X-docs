@@ -6,7 +6,7 @@
 Application's Use of Orcha
 ======================
 
-In this section we desribe the end-to-end pipeline of how an
+In this section we describe the end-to-end pipeline of how an
 application can use |orcha|. At first glance it may seem intimidating
 because there are several steps involved in the configurations
 process, however, the steps are many fewer in terms of what the users
