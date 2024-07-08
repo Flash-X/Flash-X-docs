@@ -35,7 +35,7 @@ Naming Conventions
     remaining part of the name is lowercase and all subsequent words are
     capitalized. For example, Grid_fillGuardcells, Driver_getDt} etc
 
-**Private UnitMain funtions**
+**Private UnitMain functions**
     The private functions are named un_routineName, where *un* stands for
     a short string (usually 2 or 3 letters) derived from the unit name.
     For example gr_createDomain is a private function in the GridMain
