@@ -7,7 +7,7 @@ Quick Start
 
 This chapter describes how to get up-and-running quickly with |flashx|
 with an example simulation, the Sedov explosion. We explain how to
-configure a problem, build it, run it, and examine the output using IDL.
+configure a problem, build it, run it, and examine the output.
 
 System requirements
 -------------------
