@@ -58,6 +58,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Milhoja</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#milhoja-design-features">Milhoja Design Features</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#runtime-elements">Runtime Elements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#runtime-examples">Runtime Examples</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="application_use.html">Application’s Use of Orcha</a></li>
@@ -193,6 +194,47 @@ as well as execution of all associated tasks.
 Note that taskfunctions can execute code
 on any device without being aware of the specifics of the device so long as the
 required data is resident in the appropriate memory system.</p>
+</section>
+<section id="runtime-examples">
+<span id="sec-examples"></span><h2>Runtime Examples<a class="headerlink" href="#runtime-examples" title="Link to this heading"></a></h2>
+<p>Below are the examples of possible thread team configurations in
+increasing order of complexity.</p>
+<div class="center docutils container">
+<figure class="align-default" id="fig-cpuconfig">
+<a class="reference internal image-reference" href="_images/CpuConfig.png"><img alt="cpuconfig" src="_images/CpuConfig.png" style="width: 3.0in;" /></a>
+</figure>
+</div>
+<p>The figure above shows a configuration where computation is being done
+only on the CPU, while the next figure shows computation only on the
+GPU. Note that there are addiotional steps of data packing and
+unpacking and the data is moving back and forth between the host and
+the GPU.</p>
+<div class="center docutils container">
+<figure class="align-default" id="fig-gpuconfig">
+<a class="reference internal image-reference" href="_images/GpuConfig.png"><img alt="gpuconfig" src="_images/GpuConfig.png" style="width: 3.5in;" /></a>
+</figure>
+</div>
+<p>The next figure shows a configuration with the next level of
+complexity where both CPU and GPU are applied to the same task. Two
+teams are in operation, the CPU team is given 3 thread and the GPU
+team is given 4 threads. These threads are used only for moving data,
+not for computation.</p>
+<div class="center docutils container">
+<figure class="align-default" id="fig-cpugpuparallel">
+<a class="reference internal image-reference" href="_images/CpuGpuDataParallel.png"><img alt="cpugpuparallel" src="_images/CpuGpuDataParallel.png" style="width: 4.0in;" /></a>
+</figure>
+</div>
+<p>The final figure shows an example of how we envision Milhoja being
+used. Here concurrent computations are proceeding on the two devices
+but they are allotted different tasks at first. The data from GPU is
+sent back to the CPU once its computation is done, and yet another
+task is performed on the CPU.</p>
+<div class="center docutils container">
+<figure class="align-default" id="fig-concurrent">
+<a class="reference internal image-reference" href="_images/ConcurrentExample.png"><img alt="concurrentl" src="_images/ConcurrentExample.png" style="width: 5.0in;" /></a>
+</figure>
+</div>
+<p>&gt;&gt;&gt;&gt;&gt;&gt;&gt; main</p>
 </section>
 </section>
 

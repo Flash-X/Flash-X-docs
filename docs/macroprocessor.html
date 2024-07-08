@@ -45,12 +45,22 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="disclaimers.html">Current Status and Disclaimers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Overview of Flash-X architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="orcha.html">The Performance Portability System</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="orcha.html">The Performance Portability System</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="orcha_overview.html">Overview of ORCHA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cgkit.html">Code Generation Toolkit</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Macroprocessor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-macros">Using Macros</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="milhoja.html">Milhoja</a></li>
+<li class="toctree-l2"><a class="reference internal" href="application_use.html">Application’s Use of Orcha</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="setup.html">The Flash-X configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timeadvance.html">TimeAdvance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
@@ -172,6 +182,162 @@ directory inherits all definitions and replaces those that are
 present it any of its own “.ini” files. As with files, the definitions
 placed in the Simulation directory of the application override all
 definitions encountered earlier.</p>
+<p>We have defined several macros for convenience that are available in
+the file “macro_processors.ini” in the <em>bin</em> directory. The more
+commonly used ones are described below.</p>
+<div class="codeseg docutils container">
+<p>[loop_3d]</p>
+<p>args=limits</p>
+<dl class="simple">
+<dt>definition =</dt><dd><dl class="simple">
+<dt>do k=limits(LOW,KAXIS),limits(HIGH,KAXIS)</dt><dd><dl class="simple">
+<dt>do j=limits(LOW,JAXIS),limits(HIGH,JAXIS)</dt><dd><p>do i=limits(LOW,IAXIS),limits(HIGH,IAXIS)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</div>
+<p>Use as &#64;M loop_3d(blkLimits)  results in the loop bounds for a triply
+nested loop in place of the macro name where every occurence of
+“limits” is replaced with “blkLimits”</p>
+<div class="codeseg docutils container">
+<p>[bounds_3d]</p>
+<p>args=limits</p>
+<dl>
+<dt>definition =</dt><dd><p>limits(LOW,IAXIS):limits(HIGH,IAXIS),&amp;</p>
+<p>limits(LOW,JAXIS):limits(HIGH,JAXIS),&amp;</p>
+<p>limits(LOW,KAXIS):limits(HIGH,KAXIS)</p>
+<p>usage in declaration as</p>
+<p>real, dimension(&#64;M bounds_3d(blkLimits)) :: arr</p>
+</dd>
+</dl>
+</div>
+<p>will result in a 3D array being declared with bounds defined using the
+supplied two dimensional array blkLimits.</p>
+<div class="codeseg docutils container">
+<p>[bounds_2d]</p>
+<p>args=x1,x2,limits</p>
+<p>definition =</p>
+<blockquote>
+<div><p>limits(LOW,x1AXIS):limits(HIGH,x1AXIS),&amp;</p>
+<p>limits(LOW,x2AXIS):limits(HIGH,x2AXIS)</p>
+</div></blockquote>
+</div>
+<p>This macros is used for declaring 2D arrays when bounds are included
+in the supplied array to replace <em>limits</em>. This one has an additional
+feature, x1 and x2 can be “I”, “J”, or “K” to define which two
+directions are included in the array</p>
+<div class="codeseg docutils container">
+<p>[tileDesc_get]</p>
+<p>args =lim1,lim2,lim3,del</p>
+<p>definition =</p>
+<blockquote>
+<div><p>lim1(:,:)=tileDesc%%limits</p>
+<p>lim2(:,:)=tileDesc%%blkLimitsGC</p>
+<p>lim3(:,:)=tileDesc%%grownLimits</p>
+<p>call tileDesc%%deltas(del)</p>
+<p>level=tileDesc%%level</p>
+</div></blockquote>
+</div>
+<p>&#64;M tileDesc_get(blkLimits,blkLimitsGC,grownLimits,deltas) fills the
+supplied arrays with the corresponding tile data. It assumes that all
+these variables have been declared in the code. The argument lim1 has
+bounds for the interior cells of the block where the solution is to be
+advanced and lim2 has bounds for all cells of the block including the
+guardcells. The third argument lim3 is needed for tiling, that is if a
+block is subdivided into tiles, the lim3 has bounds for the section of
+the block that is the part of the tile and also includes those
+interior cells that effectively become the guardcells for the cells
+that are to be advanced in this tile. The final argument is a real 1D
+array of size 3 in which deltax, deltay and delaz are returned. Note
+that the function returns valid values for 1:NDIM dimensions
+only. Also note that this macro fetches the value of the “level”
+assuming that it has been declared as is in the declaration section of
+the code. For convenience one
+can use the next macro, “tileDesc_declare” in the declaration section
+of the code to ensure that the variables are appropriately declared. Note
+that the first three arguments given to the two macros must be
+identical and identically ordered for correct behavior.</p>
+<div class="codeseg docutils container">
+<p>[tileDesc_declare]</p>
+<p>args = lim1,lim2,lim3</p>
+<p>definition =</p>
+<blockquote>
+<div><p>integer :: level</p>
+<p>integer, dimension(LOW:HIGH,MDIM) :: lim1,lim2,lim3</p>
+<p>real,dimension(MDIM) :: deltas</p>
+</div></blockquote>
+</div>
+<p>There are additional tile related macros that can be put in the “use”
+and declaration sections of the code, as well as used as arguments. It
+is not necessary to use any of these macros, however, users are
+strongly encouraged to use them wherever needed. If we need to change
+the tile class for any reason, it would be straightforward to make the
+code compatible everywhere by just making the change to the macro
+definition instead of writing scripts to do search and replace.</p>
+<p>The next few macros pertain to the use of iterators in the code. As
+with tiles there is one for the “use” section and one for the “declare”
+section. For starting the iterator two different macros are provided;
+one compatible with AMReX’s prefered mode of operating on a level by
+level basis, and the other one compatible with Paramesh’s preference
+of operating on all levels in the same loop. The arguments for the two</p>
+<div class="codeseg docutils container">
+<p>[iter_all_begin]</p>
+<p>args=x1,t1,lim1,lim2,del</p>
+<p>definition =</p>
+<blockquote>
+<div><blockquote>
+<div><p>call Grid_getTileIterator(itor, x1, tiling=t1)</p>
+</div></blockquote>
+<p>do while(itor%%isValid())</p>
+<blockquote>
+<div><blockquote>
+<div><p>call itor%%currentTile(tileDesc)</p>
+</div></blockquote>
+<p>&#64;M tileDesc_get(lim1,lim2,grownLimits,del)</p>
+<p>call tileDesc%%getDataPtr(Uin, CENTER)</p>
+</div></blockquote>
+</div></blockquote>
+</div>
+<p>This is the macro for Paramesh preferred iterators where x1 is the
+argument for the blocktype (usually LEAF} and t1 is either .true. if
+tiing is desired, and .false. if it is not. The arguments lim1 and
+lim2 are the usual blkLimits and blkLimitsGC. Note that the macros is
+assuming that grownLimits and Uin are declared as expected, they are
+not among the arguments. The next macro has an additional argument l1,
+where the value of level resides.</p>
+<div class="codeseg docutils container">
+<p>[iter_level_begin]</p>
+<p>args=x1,t1,l1,lim1,lim2,del</p>
+<p>definition=</p>
+<blockquote>
+<div><p>call Grid_getTileIterator(itor,x1,level=l1,tiling=t1)</p>
+<blockquote>
+<div><p>do while(itor%%isValid())</p>
+<blockquote>
+<div><p>call itor%%currentTile(tileDesc)</p>
+<p>&#64;M tileDesc_get(lim1,lim2,grownLimits,del)</p>
+<p>call tileDesc%%getDataPtr(Uin, CENTER)</p>
+</div></blockquote>
+</div></blockquote>
+</div></blockquote>
+</div>
+<p>The next macro is to be used at the end of the iterator loop. It
+release the pointer Uin, and also the tile iterator.</p>
+<blockquote>
+<div><div class="codeseg docutils container">
+<p>[iter_end]</p>
+<dl>
+<dt>definition =</dt><dd><p>call tileDesc%%releaseDataPtr(Uin,CENTER)</p>
+<p>call itor%%next()</p>
+</dd>
+</dl>
+<p>end do !!block loop</p>
+<p>call Grid_releaseTileIterator(itor)</p>
+</div>
+</div></blockquote>
 </section>
 </section>
 
