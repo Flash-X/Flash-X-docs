@@ -404,18 +404,28 @@ Uniform Grid
 ------------
 
 The Uniform Grid has the same resolution in all the blocks throughout
-the domain, and each processor has exactly one block. The uniform grid
-can operate in either of two modes: fixed block size (FIXEDBLOCKSIZE)
-mode, and non-fixed block size (NONFIXEDBLOCKSIZE) mode. The default
-fixed block size grid is statically defined at compile time and can
-therefore take advantage of compile-time optimizations. The non-fixed
-block size version uses dynamic memory allocation of grid variables.
+the domain, and each processor has exactly one block.
+
+.. container:: flashtip
+
+   In FLASH, the uniform grid
+   can operate in either of two modes: fixed block size (FIXEDBLOCKSIZE)
+   mode, and non-fixed block size (NONFIXEDBLOCKSIZE) mode. The default
+   fixed block size grid is statically defined at compile time and can
+   therefore take advantage of compile-time optimizations. The non-fixed
+   block size version uses dynamic memory allocation of grid variables.
+   |flashx| currently only supports the Uniform Grid in NONFIXEDBLOCKSIZE
+   mode (whereas the other Grid implementations in |flashx| operate in
+   FIXEDBLOCKSIZE mode).
 
 FIXEDBLOCKSIZE Mode
 ~~~~~~~~~~~~~~~~~~~
 
+NOTE THAT THIS MODE IS CURRENTLY NOT IMPLEMENTED IN |flashx|. The remainder
+of this section thus is only for historical information.
+
 *FIXEDBLOCKSIZE* mode, also called static mode, is the default for the
-uniform grid. In this mode, the block size is specified at compile time
+uniform grid in FLASH. In this mode, the block size is specified at compile time
 as NXB\ :math:`\times`\ NYB\ :math:`\times`\ NZB. These
 variables default to :math:`8` if the dimension is defined and :math:`1`
 otherwise – *e.g.* for a two-dimensional simulation, the defaults are

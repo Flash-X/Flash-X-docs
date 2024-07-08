@@ -406,16 +406,24 @@ deeper in the Grid unit.</p>
 <section id="uniform-grid">
 <span id="sec-grid-ug"></span><h2>Uniform Grid<a class="headerlink" href="#uniform-grid" title="Link to this heading"></a></h2>
 <p>The Uniform Grid has the same resolution in all the blocks throughout
-the domain, and each processor has exactly one block. The uniform grid
+the domain, and each processor has exactly one block.</p>
+<div class="flashtip docutils container">
+<p>In FLASH, the uniform grid
 can operate in either of two modes: fixed block size (FIXEDBLOCKSIZE)
 mode, and non-fixed block size (NONFIXEDBLOCKSIZE) mode. The default
 fixed block size grid is statically defined at compile time and can
 therefore take advantage of compile-time optimizations. The non-fixed
-block size version uses dynamic memory allocation of grid variables.</p>
+block size version uses dynamic memory allocation of grid variables.
+Flash-X currently only supports the Uniform Grid in NONFIXEDBLOCKSIZE
+mode (whereas the other Grid implementations in Flash-X operate in
+FIXEDBLOCKSIZE mode).</p>
+</div>
 <section id="fixedblocksize-mode">
 <h3>FIXEDBLOCKSIZE Mode<a class="headerlink" href="#fixedblocksize-mode" title="Link to this heading"></a></h3>
+<p>NOTE THAT THIS MODE IS CURRENTLY NOT IMPLEMENTED IN Flash-X. The remainder
+of this section thus is only for historical information.</p>
 <p><em>FIXEDBLOCKSIZE</em> mode, also called static mode, is the default for the
-uniform grid. In this mode, the block size is specified at compile time
+uniform grid in FLASH. In this mode, the block size is specified at compile time
 as NXB<span class="math notranslate nohighlight">\(\times\)</span>NYB<span class="math notranslate nohighlight">\(\times\)</span>NZB. These
 variables default to <span class="math notranslate nohighlight">\(8\)</span> if the dimension is defined and <span class="math notranslate nohighlight">\(1\)</span>
 otherwise – <em>e.g.</em> for a two-dimensional simulation, the defaults are
