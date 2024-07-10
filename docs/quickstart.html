@@ -201,6 +201,12 @@ typing</p>
 the Makefile.h in the object directory.</p></li>
 <li><p>Make sure your version of MPI creates a valid executable that can run
 in parallel.</p></li>
+<li><p>You may see an error regarding argument type mismatch. If you do add
+fallow-argument-mismatch flag to FFLAGS_OPT, FFLAGS_DEBUG, and FFLAGS_TEST</p>
+<blockquote>
+<div><p>in your Makefile.h</p>
+</div></blockquote>
+</li>
 </ul>
 <p>Flash-X by default expects to find a text file named <em>flash.par</em> in
 the directory from which it is run. This file sets the values of various
