@@ -137,6 +137,11 @@ suggestions to diagnose the problem:
 -  Make sure your version of MPI creates a valid executable that can run
    in parallel.
 
+-  You may see an error regarding argument type mismatch. If you do add 
+   fallow-argument-mismatch flag to FFLAGS_OPT, FFLAGS_DEBUG, and FFLAGS_TEST 
+    in your Makefile.h
+
+      
 |flashx| by default expects to find a text file named *flash.par* in
 the directory from which it is run. This file sets the values of various
 runtime parameters that determine the behavior of |flashx|. If it is not
